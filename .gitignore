@@ -2,13 +2,6 @@
 dist/
 legacy/
 
-# Local long-term planning (not committed)
-docs/AVREAM_LONG_TERM_PLAN.md
-
-# Local roadmap + agent notes (not committed)
-ROADMAP.md
-LOCAL_AGENT_NOTES.md
-
 # Local workspace artifacts
 legacy/_local/
 
