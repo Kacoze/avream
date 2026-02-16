@@ -1,45 +1,49 @@
-# AVream
+# AVream - Android Phone as Webcam and Microphone for Linux
 
-AVream lets you use your Android phone as a webcam and microphone on Linux.
+[![Release](https://img.shields.io/github/v/release/Kacoze/avream?display_name=tag)](https://github.com/Kacoze/avream/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](docs/SUPPORTED_PLATFORMS.md)
+[![CI](https://img.shields.io/github/actions/workflow/status/Kacoze/avream/ci.yml?branch=main)](https://github.com/Kacoze/avream/actions)
 
-It is built for real desktop calls and streams: Google Meet, Zoom, OBS, and any app that can read standard Linux virtual camera and mic devices.
+AVream turns your Android phone into a Linux virtual camera and microphone for real meetings and recordings.
 
-Keywords: Android phone as webcam on Linux, Android as microphone on Linux, Linux virtual camera, USB/Wi-Fi phone camera bridge.
+If you are looking for an Android phone as webcam on Linux, Android as microphone on Linux, or a reliable Linux virtual camera bridge for Zoom, Google Meet, and OBS, AVream is built for exactly that workflow.
 
 ## Why AVream
 
-- Phone-first flow: pick phone, start camera, select `AVream Camera` in your app.
-- USB and Wi-Fi modes with practical reconnect behavior.
-- Dedicated CLI (`avream`) and desktop GUI (`avream-ui`).
-- Secure privilege model via polkit helper (no `sudo` in GUI actions).
+- No dedicated app required on the phone.
+- Phone-first UX: scan phone, select device, start camera.
+- USB and Wi-Fi modes with practical reconnect flow.
+- Works as standard Linux devices: `AVream Camera` and `AVream Mic`.
+- Includes both GUI (`avream-ui`) and CLI (`avream`).
+- Security model based on polkit helper actions (no `sudo` in GUI controls).
 
-## 5-Minute Quickstart
+## Works With
 
-1. Download and install the monolithic package from Releases:
+- Google Meet
+- Zoom
+- OBS Studio
+- Other apps that support Linux V4L2 camera and Pulse/PipeWire microphone devices
+
+## Quickstart (Recommended)
+
+1. Download the latest monolithic package from Releases and install it:
 
 ```bash
 sudo apt install ./avream_1.0.0_amd64.deb
 ```
 
-2. Enable daemon service once:
-
-```bash
-mkdir -p ~/.config/avream
-cp -n /usr/lib/systemd/user/avreamd.env ~/.config/avream/avreamd.env
-systemctl --user daemon-reload
-systemctl --user enable --now avreamd.service
-```
-
-3. Connect phone with USB, unlock it, accept USB debugging prompt.
-4. Launch GUI:
+2. Launch AVream GUI:
 
 ```bash
 avream-ui
 ```
 
-5. On first launch, if daemon is not active, click `Enable AVream Service`.
-6. Click `Scan Phones` -> `Use Selected Phone` -> `Start Camera`.
-7. In Meet/Zoom/OBS choose `AVream Camera` and (optionally) `AVream Mic`.
+3. On first launch, if daemon lock screen appears, click `Enable AVream Service`.
+4. Connect phone with USB, unlock it, and accept USB debugging authorization.
+5. Click `Scan Phones`, select your device, then click `Use Selected Phone`.
+6. Click `Start Camera`.
+7. In your conferencing app, choose `AVream Camera` (and optionally `AVream Mic`).
 
 ## CLI Quickstart
 
@@ -50,26 +54,37 @@ avream start --mode wifi --lens front
 avream camera stop
 ```
 
-Full CLI reference: `docs/CLI_README.md`.
+See `docs/CLI_README.md` for full command reference.
 
 ## Install Options
 
-- Recommended for most users: monolithic package `avream_<version>_amd64.deb`.
-- Advanced packaging: split packages (`avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`).
+- Recommended: `avream_<version>_amd64.deb` (single package).
+- Advanced split packages: `avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`.
 
-See `docs/INSTALL.md` for install, upgrade, and uninstall examples.
+Full install, upgrade, and uninstall guide: `docs/INSTALL.md`.
+
+## Feature Snapshot
+
+| Capability | AVream |
+| --- | --- |
+| Android phone webcam on Linux | Yes |
+| Android phone microphone on Linux | Yes |
+| USB and Wi-Fi workflows | Yes |
+| GUI and CLI control | Yes |
+| User daemon + structured API | Yes |
+| No phone-side companion app required | Yes |
 
 ## Documentation
 
 - User guide: `docs/USER_GUIDE.md`
-- Install and upgrade: `docs/INSTALL.md`
+- Installation and upgrade: `docs/INSTALL.md`
 - CLI reference: `docs/CLI_README.md`
 - Troubleshooting: `docs/TROUBLESHOOTING.md`
 - FAQ: `docs/FAQ.md`
 - Supported platforms: `docs/SUPPORTED_PLATFORMS.md`
 - API contract: `docs/API_V1.md`
 
-Release and security docs:
+Release and security references:
 
 - `docs/RELEASE_CHECKLIST.md`
 - `docs/RELEASE_TEMPLATE.md`
@@ -79,21 +94,25 @@ Release and security docs:
 ## Architecture
 
 - `avreamd`: user daemon exposing JSON API over UNIX socket.
-- `avream-ui`: GTK4/libadwaita desktop app.
-- `avream-helper`: privileged helper via polkit.
+- `avream-ui`: GTK4/libadwaita desktop application.
+- `avream-helper`: privileged helper for selected system actions via polkit.
 
 ## Known Limits
 
-- Phone speaker output (PC audio -> phone speaker) is not part of stable baseline.
-- Preview is a separate `scrcpy` window, not embedded in GTK content.
+- PC audio output to phone speaker is not in stable baseline.
+- Preview runs as a separate `scrcpy` window, not embedded in GTK content.
 
-## Developer Notes
+## For Developers
 
-Build local packages:
+Build local Debian packages:
 
 ```bash
 bash scripts/build-deb.sh
 bash scripts/build-deb-split.sh
 ```
 
-Generated release docs are copied to `dist/` by `scripts/generate-dist-docs.sh`.
+Release docs copied to `dist/` are generated by:
+
+```bash
+bash scripts/generate-dist-docs.sh
+```
