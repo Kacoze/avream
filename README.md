@@ -32,7 +32,7 @@ Official website: https://kacoze.github.io/avream/
 1. Download the latest monolithic package from Releases and install it:
 
 ```bash
-sudo apt install ./avream_1.0.0_amd64.deb
+sudo apt install ./avream_<version>_amd64.deb
 ```
 
 2. Launch AVream GUI:
@@ -60,7 +60,7 @@ See `docs/CLI_README.md` for full command reference.
 
 ## Updates
 
-- GUI: `Advanced -> Updates` for check/install.
+- GUI: click version indicator in bottom-left to check updates and open update modal.
 - CLI:
 
 ```bash
@@ -70,6 +70,8 @@ avream update install --allow-stop-streams
 ```
 
 Update install verifies checksums from release assets before installing.
+
+When an update is available, version indicator turns red and shows `current -> latest`.
 
 ## Install Options
 

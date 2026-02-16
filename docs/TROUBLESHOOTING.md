@@ -48,7 +48,7 @@ adb connect <IP>:5555
 adb devices
 ```
 
-- If endpoint changed (DHCP), run **Setup Wi-Fi** again.
+- If endpoint changed (DHCP), reconnect using **Use Selected Phone** in Wi-Fi mode or run `avream wifi setup` again.
 
 CLI fallback:
 

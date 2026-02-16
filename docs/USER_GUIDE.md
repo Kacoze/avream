@@ -7,7 +7,7 @@ This guide covers the stable AVream flow for using an Android phone as webcam an
 Install the `.deb` package:
 
 ```bash
-sudo apt install ./avream_1.0.0_amd64.deb
+sudo apt install ./avream_<version>_amd64.deb
 ```
 
 ## 2) Enable daemon service (one-time)
@@ -66,7 +66,7 @@ avream start --mode wifi --lens front
 By default, AVream may show a polkit password prompt for privileged actions (camera reset/reload).
 
 Use GUI:
-1. Open **Advanced (Passwordless auth)**.
+1. Open **Advanced** and use **Passwordless auth** section.
 2. Click **Enable**.
 3. Approve the polkit prompt.
 4. Click **Check** to confirm status.
@@ -100,3 +100,20 @@ If something fails, see `docs/TROUBLESHOOTING.md`.
 4. AVream asks for confirmation, can stop active camera/mic, verifies checksums, installs update, and schedules daemon restart.
 5. **Open Release** is always available in modal.
 6. When update is available, bottom-left version indicator turns red and shows `current -> latest`.
+
+## 9) Saved UI settings
+
+AVream auto-saves recent UI connection settings and restores them on next launch.
+
+Saved fields include:
+- connection mode,
+- lens and rotation,
+- preview window mode,
+- Wi-Fi endpoint,
+- last selected phone identifiers (id/serial/ip hints).
+
+In **Advanced -> UI settings**:
+- **Save Settings** writes current values immediately,
+- **Reset Saved** clears saved values and restores defaults.
+
+Wi-Fi section also shows status of saved endpoint (`✓ connected` or `✗ not found/state`).
