@@ -27,6 +27,7 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.api = ApiClient()
         self._busy = False
         self._selected_phone: dict[str, Any] | None = None
+        self._daemon_locked = False
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         root.set_margin_top(16)
@@ -157,9 +158,38 @@ class AvreamWindow(Adw.ApplicationWindow):
         docs_row.append(self.open_cli_readme_btn)
         root.append(docs_row)
 
+        self.lock_status_label = Gtk.Label(label="")
+        self.lock_status_label.set_xalign(0)
+        self.lock_status_label.set_wrap(True)
+
+        self.enable_service_btn = Gtk.Button(label="Enable AVream Service")
+        self.retry_service_btn = Gtk.Button(label="Retry")
+        self.manual_service_btn = Gtk.Button(label="Show Manual Commands")
+
+        lock_controls = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        lock_controls.append(self.enable_service_btn)
+        lock_controls.append(self.retry_service_btn)
+        lock_controls.append(self.manual_service_btn)
+
+        lock_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        lock_box.set_margin_top(24)
+        lock_box.set_margin_bottom(24)
+        lock_box.set_margin_start(24)
+        lock_box.set_margin_end(24)
+        lock_title = Gtk.Label(label="AVream daemon is not running")
+        lock_title.set_xalign(0)
+        lock_title.add_css_class("title-3")
+        lock_box.append(lock_title)
+        lock_box.append(self.lock_status_label)
+        lock_box.append(lock_controls)
+
+        self.main_stack = Gtk.Stack()
+        self.main_stack.add_titled(root, "main", "Main")
+        self.main_stack.add_titled(lock_box, "daemon-lock", "Daemon lock")
+
         toolbar = Adw.ToolbarView()
         toolbar.add_top_bar(header)
-        toolbar.set_content(root)
+        toolbar.set_content(self.main_stack)
         self.set_content(toolbar)
 
         self.phone_scan_btn.connect("clicked", self._on_phone_scan)
@@ -173,6 +203,9 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.video_stop_btn.connect("clicked", self._on_video_stop)
         self.video_reset_btn.connect("clicked", self._on_video_reset)
         self.refresh_btn.connect("clicked", self._on_refresh)
+        self.enable_service_btn.connect("clicked", self._on_enable_service)
+        self.retry_service_btn.connect("clicked", self._on_retry_service)
+        self.manual_service_btn.connect("clicked", self._on_show_manual_commands)
         self.phone_list.connect("row-selected", self._on_phone_selected)
         self.phone_list.connect("row-activated", self._on_phone_activated)
         self.preview_window_switch.connect("notify::active", self._on_preview_window_toggled)
@@ -260,6 +293,13 @@ class AvreamWindow(Adw.ApplicationWindow):
 
     def _set_busy(self, busy: bool) -> None:
         self._busy = busy
+
+        if self._daemon_locked:
+            self.enable_service_btn.set_sensitive(not busy)
+            self.retry_service_btn.set_sensitive(not busy)
+            self.manual_service_btn.set_sensitive(True)
+            return
+
         for btn in (
             self.phone_scan_btn,
             self.phone_use_btn,
@@ -292,7 +332,13 @@ class AvreamWindow(Adw.ApplicationWindow):
             if hint:
                 composed += f"\nHint: {hint}"
             self._append_log(f"Error: {composed}")
-            self._show_error_dialog("AVream request failed", composed)
+            if code == "E_DAEMON_UNREACHABLE":
+                self._set_daemon_lock(
+                    True,
+                    "AVream cannot reach daemon socket. Enable service and retry.",
+                )
+            else:
+                self._show_error_dialog("AVream request failed", composed)
         else:
             success = self._describe_success(result)
             if success:
@@ -403,8 +449,19 @@ class AvreamWindow(Adw.ApplicationWindow):
             err = body.get("error", {}) if isinstance(body, dict) else {}
             code = err.get("code", "E_UNKNOWN")
             msg = err.get("message", "unknown error")
+            if code == "E_DAEMON_UNREACHABLE":
+                self._set_daemon_lock(
+                    True,
+                    "AVream daemon service is not active for this user session.",
+                )
+                self.status_label.set_text("Status: daemon unavailable")
+                return
+
+            self._set_daemon_lock(False)
             self.status_label.set_text(f"Status error: {code}: {msg}")
             return
+
+        self._set_daemon_lock(False)
 
         data = body.get("data", {}) if isinstance(body, dict) else {}
         runtime = data.get("runtime", {}) if isinstance(data, dict) else {}
@@ -436,6 +493,98 @@ class AvreamWindow(Adw.ApplicationWindow):
             mode = "on" if self.preview_window_switch.get_active() else "off"
             self.preview_status_label.set_text(f"Preview window: {mode}")
             self.preview_mode_hint_label.set_text("")
+
+    def _set_daemon_lock(self, locked: bool, reason: str | None = None) -> None:
+        self._daemon_locked = locked
+        if locked:
+            message = reason or "AVream daemon is required before using camera and phone controls."
+            self.lock_status_label.set_text(
+                f"{message}\n\n"
+                "Click 'Enable AVream Service' for one-time setup, or use manual commands."
+            )
+            self.main_stack.set_visible_child_name("daemon-lock")
+            return
+
+        self.main_stack.set_visible_child_name("main")
+
+    def _service_enable_commands(self) -> str:
+        return (
+            "mkdir -p ~/.config/avream\n"
+            "cp -n /usr/lib/systemd/user/avreamd.env ~/.config/avream/avreamd.env\n"
+            "systemctl --user daemon-reload\n"
+            "systemctl --user enable --now avreamd.service"
+        )
+
+    def _on_show_manual_commands(self, _btn) -> None:
+        self._show_info_dialog("Manual setup commands", self._service_enable_commands())
+
+    def _on_retry_service(self, _btn) -> None:
+        self._refresh_status()
+
+    def _wait_for_daemon_ready(self, attempts: int = 60, interval_ms: int = 500) -> None:
+        state = {"remaining": attempts}
+        self.lock_status_label.set_text("Service enabled. Waiting for daemon startup...")
+
+        def tick() -> bool:
+            self._refresh_status()
+            if not self._daemon_locked:
+                self._append_log("AVream daemon is ready.")
+                self._set_busy(False)
+                return False
+
+            state["remaining"] -= 1
+            if state["remaining"] <= 0:
+                self._set_busy(False)
+                self._append_log("Daemon did not become ready before timeout.")
+                self.lock_status_label.set_text(
+                    "Service was enabled, but daemon is still unreachable. Click Retry or use manual commands."
+                )
+                return False
+
+            done = attempts - state["remaining"]
+            self.lock_status_label.set_text(f"Service enabled. Waiting for daemon startup... ({done}/{attempts})")
+            return True
+
+        GLib.idle_add(tick)
+        GLib.timeout_add(interval_ms, tick)
+
+    def _on_enable_service(self, _btn) -> None:
+        self._set_busy(True)
+        self.progress_label.set_text("Enabling AVream daemon service...")
+
+        command = [
+            "bash",
+            "-lc",
+            (
+                "set -e; "
+                "mkdir -p ~/.config/avream; "
+                "if [ -f /usr/lib/systemd/user/avreamd.env ]; then "
+                "cp -n /usr/lib/systemd/user/avreamd.env ~/.config/avream/avreamd.env || true; "
+                "fi; "
+                "systemctl --user daemon-reload; "
+                "systemctl --user reset-failed avreamd.service || true; "
+                "systemctl --user enable avreamd.service; "
+                "systemctl --user start avreamd.service"
+            ),
+        ]
+
+        def done(result: dict) -> bool:
+            self.progress_label.set_text("")
+            if not result.get("ok"):
+                self._set_busy(False)
+                stderr = str(result.get("stderr", "")).strip() or "service enable failed"
+                self._append_log(f"service enable failed: {stderr}")
+                self._show_error_dialog(
+                    "Enable service failed",
+                    f"{stderr}\n\nRun manually:\n{self._service_enable_commands()}",
+                )
+                return False
+
+            self._append_log("AVream daemon service enabled.")
+            self._wait_for_daemon_ready()
+            return False
+
+        self._run_cmd_async(command, done)
 
     def _on_refresh(self, _btn) -> None:
         self._refresh_status()
