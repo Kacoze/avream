@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="AVream">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1d35"/>
+      <stop offset="100%" stop-color="#07111f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3ea6ff"/>
+      <stop offset="100%" stop-color="#37d6a2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="70" y="70" width="1060" height="490" rx="24" fill="#0f1a2f" stroke="#294265"/>
+  <rect x="108" y="108" width="430" height="414" rx="18" fill="#14233b"/>
+  <rect x="580" y="108" width="512" height="92" rx="14" fill="#14233b"/>
+  <rect x="580" y="220" width="512" height="92" rx="14" fill="#14233b"/>
+  <rect x="580" y="332" width="512" height="92" rx="14" fill="#14233b"/>
+  <circle cx="323" cy="248" r="94" fill="url(#accent)"/>
+  <text x="230" y="425" fill="#e8f1ff" font-family="Segoe UI, Noto Sans, sans-serif" font-size="56" font-weight="700">AVream</text>
+  <text x="610" y="168" fill="#e8f1ff" font-family="Segoe UI, Noto Sans, sans-serif" font-size="34" font-weight="600">Android Phone as Webcam and Mic</text>
+  <text x="610" y="278" fill="#a9bbd6" font-family="Segoe UI, Noto Sans, sans-serif" font-size="30">Linux | USB + Wi-Fi | GUI + CLI</text>
+  <text x="610" y="390" fill="#a9bbd6" font-family="Segoe UI, Noto Sans, sans-serif" font-size="30">Zoom | Google Meet | OBS</text>
+</svg>

@@ -9,6 +9,8 @@ AVream turns your Android phone into a Linux virtual camera and microphone for r
 
 If you are looking for an Android phone as webcam on Linux, Android as microphone on Linux, or a reliable Linux virtual camera bridge for Zoom, Google Meet, and OBS, AVream is built for exactly that workflow.
 
+Official website: https://kacoze.github.io/avream/
+
 ## Why AVream
 
 - No dedicated app required on the phone.
@@ -59,7 +61,7 @@ See `docs/CLI_README.md` for full command reference.
 ## Install Options
 
 - Recommended: `avream_<version>_amd64.deb` (single package).
-- Advanced split packages: `avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`.
+- Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz` (contains `avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`).
 
 Full install, upgrade, and uninstall guide: `docs/INSTALL.md`.
 

@@ -34,13 +34,52 @@ jobs:
 
       - name: Generate checksums
         run: |
-          sha256sum dist/*.deb dist/*.md > dist/SHA256SUMS.txt
+          mkdir -p dist/release-split
+          cp "dist/avream-daemon_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
+          cp "dist/avream-ui_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
+          cp "dist/avream-helper_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
+          cp "dist/avream-meta_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
+          cat > dist/release-split/README.txt <<'EOF'
+          Advanced Debian package bundle for AVream.
+
+          Recommended for most users:
+            Use monolithic package: avream_<version>_amd64.deb
+
+          This archive contains split packages for advanced setups:
+            - avream-daemon
+            - avream-ui
+            - avream-helper
+            - avream-meta
+
+          Install split packages with:
+            sudo apt install ./avream-daemon_<version>_amd64.deb ./avream-ui_<version>_amd64.deb ./avream-helper_<version>_amd64.deb
+          EOF
+          tar -C dist/release-split -czf "dist/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz" .
+          rm -rf dist/release-split
+          sha256sum "dist/avream_${{ steps.meta.outputs.version }}_amd64.deb" "dist/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz" dist/*.md > dist/SHA256SUMS.txt
+
+      - name: Generate release summary
+        run: |
+          cat > dist/RELEASE_NOTES.md <<EOF
+          ## Recommended Download
+
+          Most users should install the monolithic package:
+
+          - [avream_${{ steps.meta.outputs.version }}_amd64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream_${{ steps.meta.outputs.version }}_amd64.deb)
+
+          ## Advanced Packages
+
+          Split Debian packages are bundled for advanced setups:
+
+          - [avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz)
+          EOF
 
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/*.deb
+            dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
+            dist/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz
             dist/*.md
             dist/SHA256SUMS.txt
-          generate_release_notes: true
+          body_path: dist/RELEASE_NOTES.md

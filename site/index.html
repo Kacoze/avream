@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AVream - Android Phone as Webcam and Microphone for Linux</title>
+    <meta
+      name="description"
+      content="Use your Android phone as a webcam and microphone on Linux with AVream. USB and Wi-Fi workflows, GUI and CLI, built for Zoom, Google Meet, and OBS."
+    />
+    <meta
+      name="keywords"
+      content="android phone as webcam linux, android as microphone linux, linux virtual camera, zoom webcam linux, meet webcam linux"
+    />
+    <meta property="og:title" content="AVream - Android Phone as Webcam and Microphone for Linux" />
+    <meta
+      property="og:description"
+      content="Phone-first Linux webcam and microphone bridge for Android. Stable USB and Wi-Fi flow, GUI and CLI, no phone-side companion app required."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kacoze.github.io/avream/" />
+    <meta property="og:image" content="https://kacoze.github.io/avream/assets/og-image.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://kacoze.github.io/avream/" />
+    <link rel="stylesheet" href="./styles.css" />
+    <meta name="avream-manifest-path" content="./release-manifest.json" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "AVream",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Linux",
+        "url": "https://kacoze.github.io/avream/",
+        "softwareVersion": "latest",
+        "description": "Use Android phone as webcam and microphone on Linux for Zoom, Google Meet, and OBS.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="./">AVream</a>
+        <nav class="nav">
+          <a href="#quickstart">Quickstart</a>
+          <a href="#features">Features</a>
+          <a href="#download">Download</a>
+          <a href="./docs/">Docs</a>
+          <a href="https://github.com/Kacoze/avream">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <div class="badge-row">
+          <span class="badge">Linux</span>
+          <span class="badge">Android phone webcam</span>
+          <span class="badge">Android phone microphone</span>
+          <span class="badge">USB + Wi-Fi</span>
+          <span class="badge">GUI + CLI</span>
+        </div>
+        <h1>Turn your Android phone into a professional Linux webcam and mic.</h1>
+        <p>
+          AVream is a production-ready Android webcam bridge for Linux. Start a stable virtual camera and
+          microphone for Zoom, Google Meet, OBS, and other apps that use standard Linux camera and audio
+          devices.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" data-release-download-btn href="https://github.com/Kacoze/avream/releases/latest">Download latest</a>
+          <a class="btn" href="#quickstart">Start in 5 minutes</a>
+          <a class="btn" href="./docs/">Read docs</a>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <span class="kicker">Why AVream</span>
+        <h2>Built for real daily calls and streams</h2>
+        <div class="grid grid-3">
+          <article class="card">
+            <h3>Phone-first workflow</h3>
+            <p class="muted">Scan device, select phone, start camera. Practical USB and Wi-Fi paths with reconnect behavior.</p>
+          </article>
+          <article class="card">
+            <h3>Native Linux integration</h3>
+            <p class="muted">Apps see standard devices: <code>AVream Camera</code> and <code>AVream Mic</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Secure by design</h3>
+            <p class="muted">User daemon + polkit helper model for privileged actions, without GUI-side <code>sudo</code>.</p>
+          </article>
+          <article class="card">
+            <h3>No phone-side app required</h3>
+            <p class="muted">Uses Android USB debugging and scrcpy camera source. Keep your phone setup simple.</p>
+          </article>
+          <article class="card">
+            <h3>GUI and CLI</h3>
+            <p class="muted">Control AVream from desktop UI or scriptable <code>avream</code> commands.</p>
+          </article>
+          <article class="card">
+            <h3>Meet / Zoom / OBS ready</h3>
+            <p class="muted">Designed around conferencing and recording workflows used on Linux desktops.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="quickstart">
+        <span class="kicker">Quickstart</span>
+        <h2>How to use Android phone as webcam on Linux</h2>
+        <div class="grid grid-2">
+          <article class="card">
+            <h3>Install and launch</h3>
+            <pre><code data-install-monolith-command>sudo apt install ./avream_latest_amd64.deb
+avream-ui</code></pre>
+            <p class="muted">On first launch, click <strong>Enable AVream Service</strong> if lock screen appears.</p>
+          </article>
+          <article class="card">
+            <h3>Connect and start</h3>
+            <ul class="tight">
+              <li>Connect phone via USB and accept USB debugging prompt.</li>
+              <li>Click <strong>Scan Phones</strong>, select your device, then <strong>Use Selected Phone</strong>.</li>
+              <li>Click <strong>Start Camera</strong>.</li>
+              <li>Select <code>AVream Camera</code> (and optionally <code>AVream Mic</code>) in your app.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <span class="kicker">CLI</span>
+        <h2>Automate and script your setup</h2>
+        <div class="card">
+          <pre><code>avream status
+avream devices
+avream start --mode wifi --lens front
+avream camera stop</code></pre>
+          <p class="muted">Full command reference: <a href="./docs/cli.html">CLI documentation</a>.</p>
+        </div>
+      </section>
+
+      <section class="section" id="download">
+        <span class="kicker">Download</span>
+        <h2>Pick your package model</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Package</th>
+              <th>Recommended for</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code data-release-monolith-name>avream_latest_amd64.deb</code></td>
+              <td>Most users</td>
+              <td>Single package with daemon, UI, and helper.</td>
+            </tr>
+            <tr>
+              <td><a data-release-split-archive-url href="https://github.com/Kacoze/avream/releases/latest"><code data-release-split-archive-name>avream-deb-split_latest_amd64.tar.gz</code></a></td>
+              <td>Advanced setups</td>
+              <td>Contains split Debian packages: <code>avream-daemon</code>, <code>avream-ui</code>, <code>avream-helper</code>, <code>avream-meta</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="notice">
+          Download assets from
+          <a data-release-url href="https://github.com/Kacoze/avream/releases/latest">latest GitHub release</a>.
+        </p>
+      </section>
+
+      <section class="section">
+        <span class="kicker">Docs</span>
+        <h2>Everything in one place</h2>
+        <div class="grid grid-3">
+          <a class="card" href="./docs/install.html"><h3>Install & Upgrade</h3><p class="muted">Monolithic and split package paths.</p></a>
+          <a class="card" href="./docs/user-guide.html"><h3>User Guide</h3><p class="muted">End-to-end GUI workflow.</p></a>
+          <a class="card" href="./docs/cli.html"><h3>CLI Reference</h3><p class="muted">All commands for scripted control.</p></a>
+          <a class="card" href="./docs/troubleshooting.html"><h3>Troubleshooting</h3><p class="muted">Fix common camera and mic issues fast.</p></a>
+          <a class="card" href="./docs/faq.html"><h3>FAQ</h3><p class="muted">Answers to frequent Linux webcam questions.</p></a>
+          <a class="card" href="./docs/platforms.html"><h3>Supported Platforms</h3><p class="muted">Stable targets and runtime requirements.</p></a>
+        </div>
+      </section>
+
+      <section class="section">
+        <span class="kicker">Known limits</span>
+        <h2>Transparent scope</h2>
+        <div class="grid grid-2">
+          <article class="card">
+            <h3>Phone speaker output</h3>
+            <p class="muted">PC audio output to phone speaker is not part of stable baseline.</p>
+          </article>
+          <article class="card">
+            <h3>Preview mode</h3>
+            <p class="muted">Preview runs in a separate <code>scrcpy</code> window, not embedded inside GTK content.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p data-footer-version>AVream latest - Android webcam and microphone bridge for Linux.</p>
+        <p>
+          <a href="https://github.com/Kacoze/avream">GitHub</a> ·
+          <a href="./docs/">Documentation</a> ·
+          <a data-release-url href="https://github.com/Kacoze/avream/releases/latest">Releases</a>
+        </p>
+      </div>
+    </footer>
+    <script defer src="./release.js"></script>
+  </body>
+</html>

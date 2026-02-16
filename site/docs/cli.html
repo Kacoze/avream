@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AVream CLI Reference</title>
+    <meta name="description" content="Command line control for AVream daemon, camera, Wi-Fi setup, and microphone." />
+    <link rel="canonical" href="https://kacoze.github.io/avream/docs/cli.html" />
+    <link rel="stylesheet" href="../styles.css" />
+    <meta name="avream-manifest-path" content="../release-manifest.json" />
+  </head>
+  <body>
+    <header class="topbar"><div class="container topbar-inner"><a class="brand" href="../">AVream</a><nav class="nav"><a href="./">Docs</a><a href="./install.html">Install</a><a href="./user-guide.html">User Guide</a></nav></div></header>
+    <main class="container">
+      <section class="hero"><span class="kicker">CLI</span><h1>AVream command line reference</h1><p>Scriptable control for status, devices, camera, Wi-Fi, and microphone.</p></section>
+      <section class="section"><div class="card"><h2>Common flow</h2><pre><code>avream status
+avream devices
+avream start --mode wifi --lens front
+avream camera stop</code></pre></div></section>
+      <section class="section"><div class="grid grid-2">
+        <div class="card"><h3>Camera</h3><pre><code>avream camera start --serial &lt;ADB_SERIAL_OR_IPPORT&gt; --lens front --preview-window
+avream camera stop
+avream camera reset</code></pre></div>
+        <div class="card"><h3>Wi-Fi</h3><pre><code>avream wifi setup --serial &lt;USB_SERIAL&gt; --port 5555
+avream wifi connect 192.168.1.10:5555
+avream wifi disconnect 192.168.1.10:5555</code></pre></div>
+        <div class="card"><h3>Microphone</h3><pre><code>avream mic start --backend pipewire
+avream mic stop</code></pre></div>
+        <div class="card"><h3>JSON and socket path</h3><pre><code>avream --json status
+avream --socket-path /tmp/avream.sock status</code></pre></div>
+      </div></section>
+      <section class="section"><div class="card"><h2>If command is missing</h2><pre><code data-reinstall-monolith-command>sudo apt install --reinstall ./avream_latest_amd64.deb
+rehash</code></pre></div></section>
+    </main>
+    <footer class="footer"><div class="container"><a href="./">Back to docs hub</a></div></footer>
+    <script defer src="../release.js"></script>
+  </body>
+</html>

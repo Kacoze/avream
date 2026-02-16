@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AVream Troubleshooting</title>
+    <meta name="description" content="Fix daemon, camera, Wi-Fi, and microphone issues in AVream." />
+    <link rel="canonical" href="https://kacoze.github.io/avream/docs/troubleshooting.html" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="topbar"><div class="container topbar-inner"><a class="brand" href="../">AVream</a><nav class="nav"><a href="./">Docs</a><a href="./faq.html">FAQ</a><a href="./user-guide.html">User Guide</a></nav></div></header>
+    <main class="container">
+      <section class="hero"><span class="kicker">Troubleshooting</span><h1>Fix common AVream issues fast</h1><p>Use these recovery steps before deeper debugging.</p></section>
+      <section class="section"><div class="card"><h2>Daemon unreachable</h2><pre><code>systemctl --user daemon-reload
+systemctl --user enable --now avreamd.service
+systemctl --user status avreamd.service</code></pre></div></section>
+      <section class="section"><div class="grid grid-2">
+        <div class="card"><h3>No phone detected</h3><ul class="tight"><li>Use data-capable USB cable.</li><li>Enable USB debugging.</li><li>Accept phone authorization prompt.</li></ul><pre><code>avream devices
+adb devices</code></pre></div>
+        <div class="card"><h3>Wi-Fi setup fails</h3><pre><code>avream wifi setup --serial &lt;USB_SERIAL&gt; --port 5555
+avream wifi connect &lt;IP&gt;:5555</code></pre></div>
+        <div class="card"><h3>No AVream Camera in app</h3><pre><code>avream camera stop
+avream camera reset
+avream camera start --lens front</code></pre></div>
+        <div class="card"><h3>Mic missing</h3><p class="muted">Start camera first, then pick <code>AVream Mic</code> in your app.</p></div>
+      </div></section>
+      <section class="section"><div class="card"><h2>Preview not visible</h2><p class="muted">Preview is a separate <code>scrcpy</code> window. Install scrcpy and restart AVream.</p><pre><code>sudo apt install scrcpy</code></pre></div></section>
+    </main>
+    <footer class="footer"><div class="container"><a href="./">Back to docs hub</a></div></footer>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AVream User Guide</title>
+    <meta name="description" content="Use Android phone as webcam and microphone on Linux with AVream GUI." />
+    <link rel="canonical" href="https://kacoze.github.io/avream/docs/user-guide.html" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="topbar"><div class="container topbar-inner"><a class="brand" href="../">AVream</a><nav class="nav"><a href="./">Docs</a><a href="./install.html">Install</a><a href="./troubleshooting.html">Troubleshooting</a></nav></div></header>
+    <main class="container">
+      <section class="hero"><span class="kicker">Guide</span><h1>Use Android phone as webcam on Linux</h1><p>GUI flow designed for Zoom, Meet, OBS, and other Linux apps.</p></section>
+      <section class="section"><div class="card"><h2>Camera flow</h2><ol>
+        <li>Enable Developer Options and USB debugging on your phone.</li>
+        <li>Connect USB, unlock phone, and accept debugging authorization.</li>
+        <li>Open <code>avream-ui</code>.</li>
+        <li>If daemon lock appears, click <strong>Enable AVream Service</strong>.</li>
+        <li>Click <strong>Scan Phones</strong>.</li>
+        <li>Select phone and click <strong>Use Selected Phone</strong>.</li>
+        <li>Choose lens and click <strong>Start Camera</strong>.</li>
+        <li>Select <code>AVream Camera</code> in your app.</li>
+      </ol></div></section>
+      <section class="section"><div class="card"><h2>Microphone flow</h2><p>Microphone follows camera lifecycle. Start camera, then select <code>AVream Mic</code> in your app.</p></div></section>
+      <section class="section"><div class="card"><h2>Wi-Fi mode</h2><ol>
+        <li>Select USB-connected phone.</li>
+        <li>Switch connection mode to Wi-Fi and click <strong>Use Selected Phone</strong>.</li>
+        <li>After endpoint appears, you can disconnect USB.</li>
+      </ol>
+      <pre><code>avream wifi setup --serial &lt;USB_SERIAL&gt; --port 5555
+avream start --mode wifi --lens front</code></pre>
+      </div></section>
+      <section class="section"><div class="card"><h2>Passwordless mode (optional)</h2><pre><code>avream-passwordless-setup status
+pkexec avream-passwordless-setup enable --user "$USER"</code></pre></div></section>
+    </main>
+    <footer class="footer"><div class="container"><a href="./">Back to docs hub</a></div></footer>
+  </body>
+</html>

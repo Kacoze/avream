@@ -23,7 +23,14 @@ systemctl --user enable --now avreamd.service
 
 Use this only when you need component-level installation.
 
+In GitHub Releases, split Debian packages are provided as one archive:
+
+`avream-deb-split_<version>_amd64.tar.gz`
+
+Extract and install:
+
 ```bash
+tar -xzf avream-deb-split_<version>_amd64.tar.gz
 sudo apt install ./avream-daemon_<version>_amd64.deb \
   ./avream-ui_<version>_amd64.deb \
   ./avream-helper_<version>_amd64.deb
