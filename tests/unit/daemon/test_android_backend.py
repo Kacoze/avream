@@ -35,6 +35,7 @@ class _ScrcpyStub:
         sink_path: str,
         preset: str,
         camera_facing: str | None = None,
+        camera_rotation: int | None = None,
         preview_window: bool = False,
         enable_audio: bool = False,
         extra_args=None,
@@ -42,6 +43,8 @@ class _ScrcpyStub:
         cmd = ["scrcpy", "-s", serial, f"--v4l2-sink={sink_path}", f"--preset={preset}"]
         if camera_facing:
             cmd.append(f"--camera-facing={camera_facing}")
+        if camera_rotation in {0, 90, 180, 270}:
+            cmd.append(f"--capture-orientation={camera_rotation}")
         if preview_window:
             cmd.append("--window-title=AVream Preview")
         else:
