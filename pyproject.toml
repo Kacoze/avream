@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "avream"
-version = "1.0.1"
+version = "1.0.2"
 description = "AVream daemon, UI, and helper workspace"
 readme = "README.md"
 requires-python = ">=3.11"
