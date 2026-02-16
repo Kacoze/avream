@@ -68,6 +68,17 @@ avream mic start --backend pipewire
 avream mic stop
 ```
 
+Update controls:
+
+```bash
+avream update status
+avream update check --force
+avream update install --allow-stop-streams
+avream update logs
+avream update config get
+avream update config set --auto-check daily --channel stable
+```
+
 JSON output and custom socket:
 
 ```bash

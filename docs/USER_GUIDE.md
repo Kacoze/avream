@@ -90,3 +90,12 @@ pkexec avream-passwordless-setup disable --user "$USER"
 - Meeting app shows `AVream Camera` and `AVream Mic`.
 
 If something fails, see `docs/TROUBLESHOOTING.md`.
+
+## 8) Updates
+
+In **Advanced -> Updates**:
+
+1. Click **Check Now** to query latest release.
+2. If update is available, click **Install Update**.
+3. AVream asks for confirmation, can stop active camera/mic, verifies checksums, installs update, and schedules daemon restart.
+4. If install fails, use **Open Release** and manual package install.

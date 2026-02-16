@@ -16,6 +16,12 @@ Implemented endpoints:
 - `POST /video/reset` body: `{ force?: boolean }`
 - `POST /audio/start` body: `{ backend?: "pipewire" | "snd_aloop" }`
 - `POST /audio/stop`
+- `GET /update/status`
+- `POST /update/check` body: `{ force?: boolean }`
+- `POST /update/install` body: `{ target?: "latest", allow_stop_streams?: boolean }`
+- `GET /update/logs`
+- `GET /update/config`
+- `POST /update/config` body: `{ auto_check?: "off" | "daily" | "weekly", channel?: "stable" }`
 - `GET /android/devices`
 - `POST /android/wifi/enable` body: `{ serial: string, port?: number }`
 - `POST /android/wifi/setup` body: `{ serial?: string, port?: number }`
@@ -25,6 +31,7 @@ Implemented endpoints:
 Notes:
 - `wifi/setup` is the recommended flow: it enables `adb tcpip`, detects phone IP over USB, and connects automatically.
 - `endpoint` accepts `IP` or `IP:PORT` (`5555` is used when port is omitted).
+- Updates currently install monolithic Debian package (`avream_<version>_amd64.deb`) with checksum verification.
 
 Removed from public API in phone-first mode:
 - `/sources/*`

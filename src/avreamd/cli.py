@@ -126,12 +126,18 @@ def cmd_status(args: argparse.Namespace, api: CliApiClient) -> int:
     video = runtime.get("video", {}) if isinstance(runtime, dict) else {}
     audio = runtime.get("audio", {}) if isinstance(runtime, dict) else {}
     video_rt = data.get("video_runtime", {}) if isinstance(data, dict) else {}
+    update_rt = data.get("update_runtime", {}) if isinstance(data, dict) else {}
     service = data.get("service", {}) if isinstance(data, dict) else {}
     helper = service.get("helper", {}) if isinstance(service, dict) else {}
     active_source = video_rt.get("active_source", {}) if isinstance(video_rt, dict) else {}
 
     print(f"Camera: {video.get('state', 'unknown')}")
     print(f"Microphone: {audio.get('state', 'unknown')}")
+    if isinstance(update_rt, dict):
+        latest = update_rt.get("latest_version")
+        available = bool(update_rt.get("update_available", False))
+        if latest:
+            print(f"Update: {'available' if available else 'up-to-date'} (latest: {latest})")
     if isinstance(active_source, dict) and active_source:
         serial = active_source.get("serial")
         facing = active_source.get("camera_facing")
@@ -332,6 +338,121 @@ def cmd_start(args: argparse.Namespace, api: CliApiClient) -> int:
     return 0
 
 
+def cmd_update_status(args: argparse.Namespace, api: CliApiClient) -> int:
+    data, result = _request_data(api, method="GET", path="/update/status")
+    if data is None:
+        return 1
+    if args.json:
+        _print_json(result)
+        return 0
+
+    current = data.get("current_version")
+    latest = data.get("latest_version")
+    available = bool(data.get("update_available", False))
+    install_state = data.get("install_state")
+    print(f"Current: {current}")
+    print(f"Latest: {latest}")
+    print(f"Update available: {'yes' if available else 'no'}")
+    print(f"Install state: {install_state}")
+    if available:
+        url = data.get("latest_release_url")
+        if isinstance(url, str) and url:
+            print(f"Release: {url}")
+    last_error = data.get("last_error")
+    if isinstance(last_error, dict) and last_error:
+        print(f"Last error: {last_error.get('message', 'unknown error')}")
+    return 0
+
+
+def cmd_update_check(args: argparse.Namespace, api: CliApiClient) -> int:
+    data, result = _request_data(api, method="POST", path="/update/check", payload={"force": bool(args.force)})
+    if data is None:
+        return 1
+    if args.json:
+        _print_json(result)
+        return 0
+    current = data.get("current_version")
+    latest = data.get("latest_version")
+    available = bool(data.get("update_available", False))
+    print(f"Current: {current}")
+    print(f"Latest: {latest}")
+    print("Update available." if available else "Already up to date.")
+    return 0
+
+
+def cmd_update_install(args: argparse.Namespace, api: CliApiClient) -> int:
+    payload = {
+        "target": "latest",
+        "allow_stop_streams": bool(args.allow_stop_streams),
+    }
+    data, result = _request_data(api, method="POST", path="/update/install", payload=payload)
+    if data is None:
+        return 1
+    if args.json:
+        _print_json(result)
+        return 0
+    if bool(data.get("already_up_to_date", False)):
+        print("Already up to date.")
+        return 0
+    print(f"Update installed: {data.get('target_version')}")
+    if data.get("restart_scheduled"):
+        print("Daemon restart scheduled.")
+    return 0
+
+
+def cmd_update_logs(args: argparse.Namespace, api: CliApiClient) -> int:
+    data, result = _request_data(api, method="GET", path="/update/logs")
+    if data is None:
+        return 1
+    if args.json:
+        _print_json(result)
+        return 0
+    events = data.get("events") if isinstance(data, dict) else None
+    if not isinstance(events, list) or not events:
+        print("No update events.")
+        return 0
+    for evt in events[-30:]:
+        if not isinstance(evt, dict):
+            continue
+        ts = evt.get("ts", "")
+        name = evt.get("event", "")
+        print(f"[{ts}] {name}")
+    return 0
+
+
+def cmd_update_config_get(args: argparse.Namespace, api: CliApiClient) -> int:
+    data, result = _request_data(api, method="GET", path="/update/config")
+    if data is None:
+        return 1
+    if args.json:
+        _print_json(result)
+        return 0
+    print(f"auto_check: {data.get('auto_check')}")
+    print(f"channel: {data.get('channel')}")
+    return 0
+
+
+def cmd_update_config_set(args: argparse.Namespace, api: CliApiClient) -> int:
+    payload: dict[str, Any] = {}
+    if args.auto_check is not None:
+        payload["auto_check"] = args.auto_check
+    if args.channel is not None:
+        payload["channel"] = args.channel
+    if not payload:
+        print("Nothing to update. Use --auto-check and/or --channel.", file=sys.stderr)
+        return 2
+    data, result = _request_data(api, method="POST", path="/update/config", payload=payload)
+    if data is None:
+        return 1
+    if args.json:
+        _print_json(result)
+        return 0
+    print("Update config saved.")
+    print(f"auto_check: {data.get('auto_check')}")
+    print(f"channel: {data.get('channel')}")
+    return 0
+
+
 def _default_socket_path() -> str:
     env = os.getenv("AVREAM_SOCKET_PATH")
     if env:
@@ -383,6 +504,31 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--lens", choices=["front", "back"], default="front")
     start.add_argument("--preview-window", action="store_true", help="Show scrcpy preview window")
 
+    update = sub.add_parser("update", help="Check and install AVream updates")
+    update_sub = update.add_subparsers(dest="update_cmd", required=True)
+    update_status = update_sub.add_parser("status", help="Show update status")
+    update_status.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    update_check = update_sub.add_parser("check", help="Check latest release")
+    update_check.add_argument("--force", action="store_true", help="Force refresh from release API")
+    update_check.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    update_install = update_sub.add_parser("install", help="Install latest monolithic .deb")
+    update_install.add_argument(
+        "--allow-stop-streams",
+        action="store_true",
+        help="Allow stopping camera/microphone if running",
+    )
+    update_install.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    update_logs = update_sub.add_parser("logs", help="Show update operation logs")
+    update_logs.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    update_cfg = update_sub.add_parser("config", help="Get or set update config")
+    update_cfg_sub = update_cfg.add_subparsers(dest="update_cfg_cmd", required=True)
+    update_cfg_get = update_cfg_sub.add_parser("get", help="Show current update config")
+    update_cfg_get.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    update_cfg_set = update_cfg_sub.add_parser("set", help="Set update config")
+    update_cfg_set.add_argument("--auto-check", choices=["off", "daily", "weekly"])
+    update_cfg_set.add_argument("--channel", choices=["stable"])
+    update_cfg_set.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+
     return parser
 
 
@@ -423,6 +569,23 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "start":
         return cmd_start(args, api)
+
+    if args.command == "update":
+        if args.update_cmd == "status":
+            return cmd_update_status(args, api)
+        if args.update_cmd == "check":
+            return cmd_update_check(args, api)
+        if args.update_cmd == "install":
+            return cmd_update_install(args, api)
+        if args.update_cmd == "logs":
+            return cmd_update_logs(args, api)
+        if args.update_cmd == "config":
+            if args.update_cfg_cmd == "get":
+                return cmd_update_config_get(args, api)
+            if args.update_cfg_cmd == "set":
+                return cmd_update_config_set(args, api)
+            parser.error("unknown update config subcommand")
+        parser.error("unknown update subcommand")
 
     parser.error("unknown command")
     return 2

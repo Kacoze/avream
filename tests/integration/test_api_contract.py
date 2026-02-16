@@ -105,6 +105,23 @@ class ApiContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status, 400)
         self._assert_error_envelope(body, code="E_VALIDATION")
 
+    async def test_update_status_contract(self) -> None:
+        if not HAS_AIOHTTP:
+            self.skipTest("aiohttp not installed in this environment")
+        status, body = await self._request("GET", "/update/status")
+        self.assertEqual(status, 200)
+        self._assert_success_envelope(body)
+        self.assertIn("current_version", body["data"])
+        self.assertIn("latest_version", body["data"])
+        self.assertIn("update_available", body["data"])
+
+    async def test_update_config_validation(self) -> None:
+        if not HAS_AIOHTTP:
+            self.skipTest("aiohttp not installed in this environment")
+        status, body = await self._request("POST", "/update/config", {"auto_check": "hourly"})
+        self.assertEqual(status, 400)
+        self._assert_error_envelope(body, code="E_VALIDATION")
+
 
 if __name__ == "__main__":
     unittest.main()

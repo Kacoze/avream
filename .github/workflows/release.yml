@@ -74,12 +74,27 @@ jobs:
           - [avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz)
           EOF
 
+      - name: Generate release manifest
+        run: |
+          cat > dist/release-manifest.json <<EOF
+          {
+            "version": "${{ steps.meta.outputs.version }}",
+            "release_url": "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}",
+            "assets": {
+              "monolith": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream_${{ steps.meta.outputs.version }}_amd64.deb",
+              "deb_split_archive": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz",
+              "checksums": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/SHA256SUMS.txt"
+            }
+          }
+          EOF
+
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
             dist/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz
+            dist/release-manifest.json
             dist/*.md
             dist/SHA256SUMS.txt
           body_path: dist/RELEASE_NOTES.md

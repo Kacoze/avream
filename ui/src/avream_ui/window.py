@@ -13,6 +13,11 @@ from avream_ui.api_client import ApiClient
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore[import-not-found]
 
+try:
+    from avreamd import __version__ as AVREAM_VERSION
+except Exception:
+    AVREAM_VERSION = "unknown"
+
 
 class AvreamWindow(Adw.ApplicationWindow):
     def __init__(self, **kwargs) -> None:
@@ -124,6 +129,23 @@ class AvreamWindow(Adw.ApplicationWindow):
         auth_expander.set_child(auth_box)
         root.append(auth_expander)
 
+        update_expander = Gtk.Expander(label="Updates")
+        update_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        update_btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.update_check_btn = Gtk.Button(label="Check Now")
+        self.update_install_btn = Gtk.Button(label="Install Update")
+        self.update_open_release_btn = Gtk.Button(label="Open Release")
+        update_btn_row.append(self.update_check_btn)
+        update_btn_row.append(self.update_install_btn)
+        update_btn_row.append(self.update_open_release_btn)
+        update_box.append(update_btn_row)
+        self.update_status_label = Gtk.Label(label="Update status: unknown")
+        self.update_status_label.set_xalign(0)
+        self.update_status_label.set_wrap(True)
+        update_box.append(self.update_status_label)
+        update_expander.set_child(update_box)
+        root.append(update_expander)
+
         controls = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         controls.append(self.phone_start_btn)
         self.video_stop_btn = Gtk.Button(label="Stop Camera")
@@ -150,7 +172,16 @@ class AvreamWindow(Adw.ApplicationWindow):
         root.append(log_scroll)
 
         docs_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        docs_row.set_halign(Gtk.Align.END)
+        docs_row.set_halign(Gtk.Align.FILL)
+        docs_row.set_hexpand(True)
+        self.version_btn = Gtk.Button(label=f"Version: {AVREAM_VERSION}")
+        self.version_btn.add_css_class("flat")
+        self.version_btn.set_halign(Gtk.Align.START)
+        self.version_btn.set_tooltip_text("Click to check for updates")
+        docs_row.append(self.version_btn)
+        docs_spacer = Gtk.Box()
+        docs_spacer.set_hexpand(True)
+        docs_row.append(docs_spacer)
         self.open_cli_readme_btn = Gtk.Button(label="CLI help")
         self.open_cli_readme_btn.add_css_class("flat")
         self.open_cli_readme_btn.add_css_class("pill")
@@ -199,6 +230,10 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.passwordless_status_btn.connect("clicked", self._on_passwordless_status)
         self.passwordless_enable_btn.connect("clicked", self._on_passwordless_enable)
         self.passwordless_disable_btn.connect("clicked", self._on_passwordless_disable)
+        self.update_check_btn.connect("clicked", self._on_update_check)
+        self.update_install_btn.connect("clicked", self._on_update_install)
+        self.update_open_release_btn.connect("clicked", self._on_update_open_release)
+        self.version_btn.connect("clicked", self._on_version_clicked)
         self.open_cli_readme_btn.connect("clicked", self._on_open_cli_readme)
         self.video_stop_btn.connect("clicked", self._on_video_stop)
         self.video_reset_btn.connect("clicked", self._on_video_reset)
@@ -211,6 +246,8 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.preview_window_switch.connect("notify::active", self._on_preview_window_toggled)
 
         self._video_running = False
+        self._update_available = False
+        self._latest_release_url = "https://github.com/Kacoze/avream/releases/latest"
         self._ignore_preview_toggle_event = False
 
         self._refresh_status()
@@ -308,6 +345,10 @@ class AvreamWindow(Adw.ApplicationWindow):
             self.passwordless_status_btn,
             self.passwordless_enable_btn,
             self.passwordless_disable_btn,
+            self.update_check_btn,
+            self.update_install_btn,
+            self.update_open_release_btn,
+            self.version_btn,
             self.open_cli_readme_btn,
             self.video_stop_btn,
             self.video_reset_btn,
@@ -440,6 +481,22 @@ class AvreamWindow(Adw.ApplicationWindow):
                 return f"Wi-Fi disconnected: {endpoint}."
             return "Wi-Fi disconnected."
 
+        if path == "/update/check":
+            available = bool(data.get("update_available", False)) if isinstance(data, dict) else False
+            current = data.get("current_version") if isinstance(data, dict) else None
+            latest = data.get("latest_version") if isinstance(data, dict) else None
+            if available:
+                return f"Update available: {current} -> {latest}."
+            return "Already up to date."
+
+        if path == "/update/install":
+            if isinstance(data, dict) and bool(data.get("already_up_to_date", False)):
+                return "Already up to date."
+            target = data.get("target_version") if isinstance(data, dict) else None
+            if isinstance(target, str) and target:
+                return f"Update installed to {target}. Daemon restart scheduled."
+            return "Update installed. Daemon restart scheduled."
+
         return ""
 
     def _refresh_status(self) -> None:
@@ -467,10 +524,31 @@ class AvreamWindow(Adw.ApplicationWindow):
         runtime = data.get("runtime", {}) if isinstance(data, dict) else {}
         video_rt = runtime.get("video", {}) if isinstance(runtime, dict) else {}
         audio_rt = runtime.get("audio", {}) if isinstance(runtime, dict) else {}
+        update_rt = data.get("update_runtime", {}) if isinstance(data, dict) else {}
         video_state = video_rt.get("state", "unknown") if isinstance(video_rt, dict) else "unknown"
         audio_state = audio_rt.get("state", "unknown") if isinstance(audio_rt, dict) else "unknown"
         self.status_label.set_text(f"Camera: {video_state} | Microphone: {audio_state}")
         self._video_running = video_state == "RUNNING"
+
+        if isinstance(update_rt, dict):
+            current = str(update_rt.get("current_version", "unknown"))
+            latest = str(update_rt.get("latest_version", "unknown"))
+            state = str(update_rt.get("install_state", "IDLE"))
+            available = bool(update_rt.get("update_available", False))
+            self.version_btn.set_label(f"Version: {current}")
+            self._update_available = available
+            latest_release_url = update_rt.get("latest_release_url")
+            if isinstance(latest_release_url, str) and latest_release_url:
+                self._latest_release_url = latest_release_url
+            label = f"Update: {current} -> {latest} | state: {state}"
+            if available:
+                label += " | available"
+            self.update_status_label.set_text(label)
+            self.update_install_btn.set_sensitive((not self._busy) and available and (state in {"IDLE", "DONE", "FAILED"}))
+        else:
+            self.version_btn.set_label(f"Version: {AVREAM_VERSION}")
+            self.update_status_label.set_text("Update status: unavailable")
+            self.update_install_btn.set_sensitive(False)
 
         active_source = video_rt.get("active_source", {}) if isinstance(video_rt, dict) else {}
         preview_window = False
@@ -975,6 +1053,74 @@ class AvreamWindow(Adw.ApplicationWindow):
             self._append_log(f"Opened CLI README: {readme_path}")
         except Exception as exc:
             self._show_error_dialog("Failed to open README", str(exc))
+
+    def _on_update_check(self, _btn) -> None:
+        self._set_busy(True)
+        self.progress_label.set_text("Checking for updates...")
+        self._call_async("POST", "/update/check", {"force": True}, self._after_action)
+
+    def _on_update_install(self, _btn) -> None:
+        def do_install() -> None:
+            self._set_busy(True)
+            self.progress_label.set_text("Installing update...")
+            self._call_async(
+                "POST",
+                "/update/install",
+                {"target": "latest", "allow_stop_streams": True},
+                self._after_action,
+            )
+
+        self._confirm(
+            "Install update",
+            "AVream will stop camera/microphone if needed, install latest package, and restart daemon service. Continue?",
+            do_install,
+        )
+
+    def _on_update_open_release(self, _btn) -> None:
+        opener = shutil.which("xdg-open")
+        if not opener:
+            self._show_error_dialog("xdg-open missing", f"Open this URL manually: {self._latest_release_url}")
+            return
+        try:
+            subprocess.Popen([opener, self._latest_release_url])
+            self._append_log(f"Opened release page: {self._latest_release_url}")
+        except Exception as exc:
+            self._show_error_dialog("Failed to open release page", str(exc))
+
+    def _on_version_clicked(self, _btn) -> None:
+        self._set_busy(True)
+        self.progress_label.set_text("Checking for updates...")
+
+        def done(result: dict) -> bool:
+            self._set_busy(False)
+            self.progress_label.set_text("")
+            body = result.get("body", {}) if isinstance(result, dict) else {}
+            if not isinstance(body, dict) or not body.get("ok"):
+                err = body.get("error", {}) if isinstance(body, dict) else {}
+                code = str(err.get("code", "E_UNKNOWN"))
+                msg = str(err.get("message", "request failed"))
+                if code == "E_DAEMON_UNREACHABLE":
+                    self._set_daemon_lock(True, "AVream cannot reach daemon socket. Enable service and retry.")
+                    return False
+                self._show_error_dialog("Update check failed", f"{code}: {msg}")
+                self._append_log(f"Update check failed: {code}: {msg}")
+                self._refresh_status()
+                return False
+
+            data = body.get("data", {}) if isinstance(body, dict) else {}
+            current = data.get("current_version", "unknown") if isinstance(data, dict) else "unknown"
+            latest = data.get("latest_version", "unknown") if isinstance(data, dict) else "unknown"
+            available = bool(data.get("update_available", False)) if isinstance(data, dict) else False
+            if available:
+                release_url = data.get("latest_release_url") if isinstance(data, dict) else None
+                extra = f"\n\nRelease: {release_url}" if isinstance(release_url, str) and release_url else ""
+                self._show_info_dialog("Update available", f"Current: {current}\nLatest: {latest}{extra}")
+            else:
+                self._show_info_dialog("No update", f"Current: {current}\nLatest: {latest}\n\nYou are up to date.")
+            self._refresh_status()
+            return False
+
+        self._call_async("POST", "/update/check", {"force": True}, done)
 
     def _on_preview_window_toggled(self, switch, _pspec) -> None:
         if self._ignore_preview_toggle_event:

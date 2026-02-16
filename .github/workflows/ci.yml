@@ -32,7 +32,9 @@ jobs:
             tests.unit.daemon.test_adb_adapter \
             tests.unit.daemon.test_android_backend \
             tests.unit.daemon.test_scrcpy_adapter \
-            tests.unit.daemon.test_privilege_client
+            tests.unit.daemon.test_privilege_client \
+            tests.unit.daemon.test_cli \
+            tests.unit.daemon.test_update_manager
 
       - name: Integration tests
         run: |

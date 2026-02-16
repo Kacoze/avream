@@ -17,6 +17,7 @@ from avreamd.integrations.scrcpy import ScrcpyAdapter
 from avreamd.integrations.v4l2loopback import V4L2LoopbackIntegration
 from avreamd.managers.audio_manager import AudioManager
 from avreamd.managers.privilege_client import PrivilegeClient
+from avreamd.managers.update_manager import UpdateManager
 from avreamd.managers.video_manager import VideoManager
 
 
@@ -49,6 +50,12 @@ class AvreamDaemon:
             v4l2=self.v4l2,
             audio_manager=self.audio_manager,
         )
+        self.update_manager = UpdateManager(
+            paths=paths,
+            state_store=self.state_store,
+            video_manager=self.video_manager,
+            audio_manager=self.audio_manager,
+        )
         self._runner: web.AppRunner | None = None
         self._site: web.UnixSite | None = None
         self._shutdown_event = asyncio.Event()
@@ -62,6 +69,7 @@ class AvreamDaemon:
             paths=self.paths,
             video_manager=self.video_manager,
             audio_manager=self.audio_manager,
+            update_manager=self.update_manager,
             adb_adapter=self.adb,
             privilege_client=self.privilege_client,
         )
@@ -71,10 +79,12 @@ class AvreamDaemon:
         self._site = web.UnixSite(self._runner, path=str(self.paths.socket_path))
         assert self._site is not None
         await self._site.start()
+        await self.update_manager.start_background()
         logger.info("avreamd listening on unix socket: %s", self.paths.socket_path)
 
     async def stop(self) -> None:
         self._shutdown_event.set()
+        await self.update_manager.stop_background()
         await self.supervisor.stop_all()
         if self._runner is not None:
             await self._runner.cleanup()

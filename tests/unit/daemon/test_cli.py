@@ -43,6 +43,13 @@ class CliParserTests(unittest.TestCase):
         self.assertEqual(args.lens, "front")
         self.assertFalse(args.preview_window)
 
+    def test_parse_update_install(self) -> None:
+        parser = cli.build_parser()
+        args = parser.parse_args(["update", "install", "--allow-stop-streams"])
+        self.assertEqual(args.command, "update")
+        self.assertEqual(args.update_cmd, "install")
+        self.assertTrue(args.allow_stop_streams)
+
 
 if __name__ == "__main__":
     unittest.main()

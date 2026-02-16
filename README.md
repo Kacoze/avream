@@ -58,6 +58,19 @@ avream camera stop
 
 See `docs/CLI_README.md` for full command reference.
 
+## Updates
+
+- GUI: `Advanced -> Updates` for check/install.
+- CLI:
+
+```bash
+avream update status
+avream update check --force
+avream update install --allow-stop-streams
+```
+
+Update install verifies checksums from release assets before installing.
+
 ## Install Options
 
 - Recommended: `avream_<version>_amd64.deb` (single package).

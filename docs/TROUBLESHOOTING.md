@@ -121,3 +121,15 @@ To disable passwordless mode:
 ```bash
 pkexec avream-passwordless-setup disable --user "$USER"
 ```
+
+## Update install fails
+
+- Run `avream update check --force` and verify latest release is reachable.
+- Check logs: `avream update logs`.
+- Ensure `pkexec` and `apt` are available on system.
+- If camera/mic is running, allow AVream to stop streams before update.
+- Fallback: install monolithic package manually from release assets:
+
+```bash
+sudo apt install ./avream_<version>_amd64.deb
+```
