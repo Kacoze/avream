@@ -1,5 +1,7 @@
 # AVream Troubleshooting
 
+Use this page when Android webcam/microphone setup on Linux is not working as expected.
+
 ## Daemon unreachable
 
 Run:
@@ -16,6 +18,12 @@ systemctl --user status avreamd.service
 - Enable USB debugging.
 - Unlock phone and accept debugging authorization prompt.
 - Run `adb devices` and confirm state is `device`.
+
+Quick check:
+
+```bash
+avream devices
+```
 
 ## Phone detected as unauthorized/offline
 
@@ -42,11 +50,26 @@ adb devices
 
 - If endpoint changed (DHCP), run **Setup Wi-Fi** again.
 
+CLI fallback:
+
+```bash
+avream wifi setup --serial <USB_SERIAL> --port 5555
+avream wifi connect <IP>:5555
+```
+
 ## No AVream Camera in apps
 
 - Click **Reset Camera** in AVream, then start camera again.
 - Ensure `v4l2loopback` is installed (`v4l2loopback-dkms` on Debian/Ubuntu).
 - Close apps already using `/dev/video*` and retry.
+
+CLI fallback:
+
+```bash
+avream camera stop
+avream camera reset
+avream camera start --lens front
+```
 
 ## Preview not visible in AVream window
 
@@ -61,7 +84,7 @@ sudo apt install scrcpy
 
 ## Microphone does not appear
 
-- Start microphone in AVream first.
+- Start camera in AVream first (mic follows camera lifecycle).
 - Install missing tools: `pulseaudio-utils` and/or `pipewire-bin`.
 
 ## Polkit / authorization issues

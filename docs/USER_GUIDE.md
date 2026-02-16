@@ -1,13 +1,13 @@
 # AVream User Guide
 
-This guide covers the simplified AVream flow: use your Android phone as camera and/or microphone.
+This guide covers the stable AVream flow for using an Android phone as webcam and microphone on Linux.
 
 ## 1) Install
 
 Install the `.deb` package:
 
 ```bash
-sudo apt install ./avream_<version>_amd64.deb
+sudo apt install ./avream_1.0.0_amd64.deb
 ```
 
 ## 2) Enable daemon service (one-time)
@@ -24,13 +24,14 @@ systemctl --user enable --now avreamd.service
 1. Enable Developer Options and USB debugging on your phone.
 2. Connect phone with USB, unlock it, and accept USB debugging prompt.
 3. Open AVream.
-4. Click **Scan Phones**.
-5. Select the phone and click **Use Selected Phone**.
-6. Choose **Camera lens**: Front or Back.
-7. Optional: enable **Preview window** if you want a separate AVream preview window.
-8. Preview window mode can be changed only when camera is stopped.
-9. Click **Start Camera**.
-10. In Zoom/Meet/OBS select **AVream Camera**.
+4. If daemon lock screen appears, click **Enable AVream Service**.
+5. Click **Scan Phones**.
+6. Select the phone and click **Use Selected Phone**.
+7. Choose **Camera lens**: Front or Back.
+8. Optional: enable **Preview window** if you want a separate AVream preview window.
+9. Preview window mode can be changed only when camera is stopped.
+10. Click **Start Camera**.
+11. In Zoom/Meet/OBS select **AVream Camera**.
 
 AVream preview window uses scrcpy with AVream title and size settings.
 
@@ -51,6 +52,13 @@ AVream starts virtual microphone automatically when camera starts.
 3. Wait for endpoint to appear (for example `192.168.1.10:5555`).
 4. You can disconnect USB and start camera with the Wi-Fi device.
 5. If needed, fill endpoint field manually and use **Use Selected Phone** / **Disconnect Selected** (`IP` or `IP:PORT`).
+
+CLI alternative for Wi-Fi setup:
+
+```bash
+avream wifi setup --serial <USB_SERIAL> --port 5555
+avream start --mode wifi --lens front
+```
 
 ## 6) Optional: disable auth prompts for AVream actions
 
@@ -74,3 +82,11 @@ To disable later:
 ```bash
 pkexec avream-passwordless-setup disable --user "$USER"
 ```
+
+## 7) Quick verification checklist
+
+- `systemctl --user status avreamd.service` returns active/running.
+- `avream devices` lists phone in `device` state.
+- Meeting app shows `AVream Camera` and `AVream Mic`.
+
+If something fails, see `docs/TROUBLESHOOTING.md`.

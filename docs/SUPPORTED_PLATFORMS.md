@@ -9,6 +9,12 @@
 Architecture:
 - amd64
 
+## Tested usage profile
+
+- Linux desktop session with user systemd services enabled.
+- Android phone with Developer Options and USB debugging.
+- Conferencing/recording apps that accept standard V4L2 camera and Pulse/PipeWire microphone.
+
 ## Required system capabilities
 
 - systemd user services
@@ -19,6 +25,11 @@ Architecture:
 
 - `scrcpy` + `adb` (Android camera backend)
 - `pulseaudio-utils` or `pw-loopback` (audio virtual mic path)
+
+## Package model
+
+- Recommended: monolithic `avream_<version>_amd64.deb`.
+- Advanced: split packages (`avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`).
 
 ## Out of scope for stable baseline
 

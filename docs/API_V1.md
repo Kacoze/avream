@@ -1,5 +1,7 @@
 # AVream API v1 (Phone-first)
 
+Developer contract for AVream daemon API used by GUI and CLI.
+
 Transport:
 - HTTP+JSON over UNIX socket (`$XDG_RUNTIME_DIR/avream/daemon.sock`)
 
@@ -39,3 +41,9 @@ Error mapping notes:
 - `E_CONFLICT`: action conflicts with current runtime state
 - `E_BACKEND_FAILED`: backend process failed or exited unexpectedly
 - `E_DEP_MISSING`: missing runtime dependency
+
+Minimal status probe:
+
+```bash
+curl --unix-socket "$XDG_RUNTIME_DIR/avream/daemon.sock" http://localhost/status
+```

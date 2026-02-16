@@ -9,6 +9,8 @@ mkdir -p "$OUT_DIR"
 cp "$ROOT_DIR/docs/USER_GUIDE.md" "$OUT_DIR/README_USER.md"
 cp "$ROOT_DIR/docs/API_V1.md" "$OUT_DIR/API_MINIMAL.md"
 cp "$ROOT_DIR/docs/CLI_README.md" "$OUT_DIR/CLI_README.md"
+cp "$ROOT_DIR/docs/INSTALL.md" "$OUT_DIR/INSTALL.md"
+cp "$ROOT_DIR/docs/FAQ.md" "$OUT_DIR/FAQ.md"
 
 cat > "$OUT_DIR/UPGRADE_NOTES.md" <<'EOF'
 # AVream Upgrade Notes (Phone-first)

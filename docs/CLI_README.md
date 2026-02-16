@@ -2,6 +2,13 @@
 
 Use `avream` to control AVream without GUI.
 
+If `avream` is missing after install, reinstall the package and refresh shell command cache:
+
+```bash
+sudo apt install --reinstall ./avream_<version>_amd64.deb
+rehash
+```
+
 ## Service control
 
 ```bash
@@ -75,3 +82,5 @@ avream-passwordless-setup status --user "$USER"
 pkexec avream-passwordless-setup enable --user "$USER"
 pkexec avream-passwordless-setup disable --user "$USER"
 ```
+
+For GUI-first setup, see `docs/USER_GUIDE.md`.
