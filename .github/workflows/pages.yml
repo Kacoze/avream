@@ -32,9 +32,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure Pages
+        id: configure_pages
+        continue-on-error: true
         uses: actions/configure-pages@v5
 
       - name: Generate latest release manifest
+        if: steps.configure_pages.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -108,10 +111,18 @@ jobs:
           PY
 
       - name: Upload site artifact
+        if: steps.configure_pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
+      - name: Pages not available notice
+        if: steps.configure_pages.outcome != 'success'
+        run: |
+          echo "GitHub Pages is not enabled or not available for this repository plan."
+          echo "Workflow finished without deployment."
+
       - name: Deploy to GitHub Pages
+        if: steps.configure_pages.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@v4
