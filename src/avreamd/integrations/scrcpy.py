@@ -19,6 +19,7 @@ class ScrcpyAdapter:
         sink_path: str,
         preset: str,
         camera_facing: str | None = None,
+        camera_rotation: int | None = None,
         preview_window: bool = False,
         enable_audio: bool = False,
         extra_args: Sequence[str] | None = None,
@@ -46,6 +47,9 @@ class ScrcpyAdapter:
 
         if camera_facing in {"front", "back"}:
             cmd.append(f"--camera-facing={camera_facing}")
+
+        if camera_rotation in {0, 90, 180, 270}:
+            cmd.append(f"--capture-orientation={camera_rotation}")
 
         if enable_audio:
             cmd.append("--audio-source=mic")

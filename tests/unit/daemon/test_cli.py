@@ -29,10 +29,11 @@ class CliHelpersTests(unittest.TestCase):
 class CliParserTests(unittest.TestCase):
     def test_parse_camera_start(self) -> None:
         parser = cli.build_parser()
-        args = parser.parse_args(["camera", "start", "--lens", "back", "--preview-window"])
+        args = parser.parse_args(["camera", "start", "--lens", "back", "--rotation", "90", "--preview-window"])
         self.assertEqual(args.command, "camera")
         self.assertEqual(args.camera_cmd, "start")
         self.assertEqual(args.lens, "back")
+        self.assertEqual(args.rotation, "90")
         self.assertTrue(args.preview_window)
 
     def test_parse_start_defaults(self) -> None:

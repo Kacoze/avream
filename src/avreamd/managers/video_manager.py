@@ -36,6 +36,7 @@ class VideoManager:
         self._watch_task: asyncio.Task | None = None
         self._active_proc_name: str | None = None
         self._camera_facing = "front"
+        self._camera_rotation = 0
         self._preview_window = False
         self._reconnect_cfg: dict[str, Any] = {"enabled": True, "max_attempts": 3, "backoff_ms": 1500}
         self._reconnect_status: dict[str, Any] = {
@@ -78,6 +79,7 @@ class VideoManager:
         reconnect: bool = False,
         serial: str | None = None,
         camera_facing: str | None = None,
+        camera_rotation: int | None = None,
         preview_window: bool | None = None,
     ) -> dict[str, Any]:
         async with self._lock:
@@ -124,12 +126,14 @@ class VideoManager:
 
             source_obj = await self._backend.select_default_source(preferred_serial=serial)
             facing = camera_facing if camera_facing in {"front", "back"} else self._camera_facing
+            rotation = camera_rotation if camera_rotation in {0, 90, 180, 270} else self._camera_rotation
             window = bool(preview_window) if preview_window is not None else self._preview_window
             command = self._backend.build_start_command(
                 serial=source_obj.serial,
                 sink_path=str(self._v4l2.device_path),
                 preset="balanced",
                 camera_facing=facing,
+                camera_rotation=rotation,
                 preview_window=window,
                 enable_audio=True,
             )
@@ -149,11 +153,13 @@ class VideoManager:
 
             await self._state_store.transition_video(SubsystemState.RUNNING)
             self._camera_facing = facing
+            self._camera_rotation = rotation
             self._preview_window = window
             self._active_source = {
                 "type": "android",
                 "serial": source_obj.serial,
                 "camera_facing": facing,
+                "camera_rotation": rotation,
                 "preview_window": window,
             }
             self._active_proc_name = self.PROC_NAME
@@ -285,6 +291,7 @@ class VideoManager:
                             reconnect=True,
                             serial=serial,
                             camera_facing=self._camera_facing,
+                            camera_rotation=self._camera_rotation,
                             preview_window=self._preview_window,
                         )
                         self._reconnect_status.update({"state": "running", "attempt": 0, "next_retry_in_ms": None})

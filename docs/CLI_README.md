@@ -48,7 +48,7 @@ avream start --mode usb --serial <USB_SERIAL> --lens back
 Camera controls:
 
 ```bash
-avream camera start --serial <ADB_SERIAL_OR_IPPORT> --lens front --preview-window
+avream camera start --serial <ADB_SERIAL_OR_IPPORT> --lens front --rotation 0 --preview-window
 avream camera stop
 avream camera reset
 ```

@@ -28,10 +28,11 @@ systemctl --user enable --now avreamd.service
 5. Click **Scan Phones**.
 6. Select the phone and click **Use Selected Phone**.
 7. Choose **Camera lens**: Front or Back.
-8. Optional: enable **Preview window** if you want a separate AVream preview window.
-9. Preview window mode can be changed only when camera is stopped.
-10. Click **Start Camera**.
-11. In Zoom/Meet/OBS select **AVream Camera**.
+8. Optional: choose **Rotation** (0/90/180/270).
+9. Optional: enable **Preview window** if you want a separate AVream preview window.
+10. Preview window mode and rotation can be changed only when camera is stopped.
+11. Click **Start Camera**.
+12. In Zoom/Meet/OBS select **AVream Camera**.
 
 AVream preview window uses scrcpy with AVream title and size settings.
 
@@ -93,9 +94,9 @@ If something fails, see `docs/TROUBLESHOOTING.md`.
 
 ## 8) Updates
 
-In **Advanced -> Updates**:
-
-1. Click **Check Now** to query latest release.
-2. If update is available, click **Install Update**.
-3. AVream asks for confirmation, can stop active camera/mic, verifies checksums, installs update, and schedules daemon restart.
-4. If install fails, use **Open Release** and manual package install.
+1. Click version label in bottom-left corner.
+2. AVream checks latest release and opens update modal.
+3. If update is available, modal shows **Install Update**.
+4. AVream asks for confirmation, can stop active camera/mic, verifies checksums, installs update, and schedules daemon restart.
+5. **Open Release** is always available in modal.
+6. When update is available, bottom-left version indicator turns red and shows `current -> latest`.

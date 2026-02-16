@@ -44,6 +44,17 @@ class ScrcpyAdapterTests(unittest.TestCase):
         self.assertIn("--audio-source=mic", cmd)
         self.assertNotIn("--no-audio", cmd)
 
+    def test_command_applies_capture_rotation_when_requested(self) -> None:
+        adapter = ScrcpyAdapter(scrcpy_bin="/usr/bin/scrcpy")
+        cmd = adapter.command_for_android_camera(
+            serial="ABC123",
+            sink_path="/dev/video10",
+            preset="balanced",
+            camera_rotation=270,
+            enable_audio=False,
+        )
+        self.assertIn("--capture-orientation=270", cmd)
+
 
 if __name__ == "__main__":
     unittest.main()

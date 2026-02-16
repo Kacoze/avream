@@ -85,6 +85,13 @@ class ApiContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status, 400)
         self._assert_error_envelope(body, code="E_VALIDATION")
 
+    async def test_video_start_camera_rotation_validation(self) -> None:
+        if not HAS_AIOHTTP:
+            self.skipTest("aiohttp not installed in this environment")
+        status, body = await self._request("POST", "/video/start", {"camera_rotation": 45})
+        self.assertEqual(status, 400)
+        self._assert_error_envelope(body, code="E_VALIDATION")
+
     async def test_android_devices_envelope(self) -> None:
         if not HAS_AIOHTTP:
             self.skipTest("aiohttp not installed in this environment")

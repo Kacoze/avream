@@ -11,7 +11,7 @@ Envelope:
 
 Implemented endpoints:
 - `GET /status`
-- `POST /video/start` body: `{ serial?: string, camera_facing?: "front" | "back", preview_window?: boolean }`
+- `POST /video/start` body: `{ serial?: string, camera_facing?: "front" | "back", camera_rotation?: 0 | 90 | 180 | 270, preview_window?: boolean }`
 - `POST /video/stop`
 - `POST /video/reset` body: `{ force?: boolean }`
 - `POST /audio/start` body: `{ backend?: "pipewire" | "snd_aloop" }`

@@ -141,8 +141,9 @@ def cmd_status(args: argparse.Namespace, api: CliApiClient) -> int:
     if isinstance(active_source, dict) and active_source:
         serial = active_source.get("serial")
         facing = active_source.get("camera_facing")
+        rotation = active_source.get("camera_rotation")
         preview = active_source.get("preview_window")
-        print(f"Active phone: {serial} | lens: {facing} | preview: {preview}")
+        print(f"Active phone: {serial} | lens: {facing} | rotation: {rotation} | preview: {preview}")
     runner = helper.get("effective_runner") if isinstance(helper, dict) else None
     if runner:
         print(f"Helper runner: {runner}")
@@ -237,6 +238,7 @@ def cmd_wifi_disconnect(args: argparse.Namespace, api: CliApiClient) -> int:
 def cmd_camera_start(args: argparse.Namespace, api: CliApiClient) -> int:
     payload: dict[str, Any] = {
         "camera_facing": args.lens,
+        "camera_rotation": int(args.rotation),
         "preview_window": bool(args.preview_window),
     }
     if args.serial:
@@ -323,6 +325,7 @@ def cmd_start(args: argparse.Namespace, api: CliApiClient) -> int:
 
     payload: dict[str, Any] = {
         "camera_facing": args.lens,
+        "camera_rotation": int(args.rotation),
         "preview_window": bool(args.preview_window),
     }
     if serial:
@@ -486,6 +489,7 @@ def build_parser() -> argparse.ArgumentParser:
     camera_start = camera_sub.add_parser("start", help="Start camera")
     camera_start.add_argument("--serial", help="ADB serial/endpoint to use")
     camera_start.add_argument("--lens", choices=["front", "back"], default="front")
+    camera_start.add_argument("--rotation", choices=["0", "90", "180", "270"], default="0")
     camera_start.add_argument("--preview-window", action="store_true", help="Show scrcpy preview window")
     camera_sub.add_parser("stop", help="Stop camera")
     camera_reset = camera_sub.add_parser("reset", help="Reset virtual camera")
@@ -502,6 +506,7 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--serial", help="Preferred serial. For Wi-Fi, USB serial is accepted too")
     start.add_argument("--port", type=int, default=5555, help="Wi-Fi setup port when --mode=wifi")
     start.add_argument("--lens", choices=["front", "back"], default="front")
+    start.add_argument("--rotation", choices=["0", "90", "180", "270"], default="0")
     start.add_argument("--preview-window", action="store_true", help="Show scrcpy preview window")
 
     update = sub.add_parser("update", help="Check and install AVream updates")

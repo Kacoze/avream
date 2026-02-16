@@ -33,6 +33,9 @@ class AvreamWindow(Adw.ApplicationWindow):
         self._busy = False
         self._selected_phone: dict[str, Any] | None = None
         self._daemon_locked = False
+        self._ignore_settings_events = False
+        self._saved_ui_settings: dict[str, Any] = {}
+        self._settings_path = self._ui_settings_path()
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         root.set_margin_top(16)
@@ -80,6 +83,13 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.camera_facing_dropdown.set_selected(0)
         camera_row.append(self.camera_facing_dropdown)
 
+        rotation_label = Gtk.Label(label="Rotation:")
+        rotation_label.set_xalign(0)
+        camera_row.append(rotation_label)
+        self.camera_rotation_dropdown = Gtk.DropDown.new_from_strings(["0°", "90°", "180°", "270°"])
+        self.camera_rotation_dropdown.set_selected(0)
+        camera_row.append(self.camera_rotation_dropdown)
+
         preview_label = Gtk.Label(label="Preview window:")
         preview_label.set_xalign(0)
         camera_row.append(preview_label)
@@ -110,10 +120,20 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.phone_wifi_endpoint_entry = Gtk.Entry()
         self.phone_wifi_endpoint_entry.set_placeholder_text("IP or IP:PORT (e.g. 192.168.1.10)")
         wifi_box.append(self.phone_wifi_endpoint_entry)
+        self.wifi_saved_status_label = Gtk.Label(label="Saved Wi-Fi endpoint: not set")
+        self.wifi_saved_status_label.set_xalign(0)
+        self.wifi_saved_status_label.add_css_class("dim-label")
+        wifi_box.append(self.wifi_saved_status_label)
         root.append(wifi_box)
 
-        auth_expander = Gtk.Expander(label="Advanced (Passwordless auth)")
-        auth_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        advanced_expander = Gtk.Expander(label="Advanced")
+        advanced_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+
+        auth_section_label = Gtk.Label(label="Passwordless auth")
+        auth_section_label.set_xalign(0)
+        auth_section_label.add_css_class("heading")
+        advanced_box.append(auth_section_label)
+
         auth_btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.passwordless_status_btn = Gtk.Button(label="Check")
         self.passwordless_enable_btn = Gtk.Button(label="Enable")
@@ -121,30 +141,32 @@ class AvreamWindow(Adw.ApplicationWindow):
         auth_btn_row.append(self.passwordless_status_btn)
         auth_btn_row.append(self.passwordless_enable_btn)
         auth_btn_row.append(self.passwordless_disable_btn)
-        auth_box.append(auth_btn_row)
+        advanced_box.append(auth_btn_row)
         self.passwordless_status_label = Gtk.Label(label="Passwordless helper actions: unknown")
         self.passwordless_status_label.set_xalign(0)
         self.passwordless_status_label.set_wrap(True)
-        auth_box.append(self.passwordless_status_label)
-        auth_expander.set_child(auth_box)
-        root.append(auth_expander)
+        advanced_box.append(self.passwordless_status_label)
 
-        update_expander = Gtk.Expander(label="Updates")
-        update_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        update_btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.update_check_btn = Gtk.Button(label="Check Now")
-        self.update_install_btn = Gtk.Button(label="Install Update")
-        self.update_open_release_btn = Gtk.Button(label="Open Release")
-        update_btn_row.append(self.update_check_btn)
-        update_btn_row.append(self.update_install_btn)
-        update_btn_row.append(self.update_open_release_btn)
-        update_box.append(update_btn_row)
-        self.update_status_label = Gtk.Label(label="Update status: unknown")
-        self.update_status_label.set_xalign(0)
-        self.update_status_label.set_wrap(True)
-        update_box.append(self.update_status_label)
-        update_expander.set_child(update_box)
-        root.append(update_expander)
+        advanced_box.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+
+        settings_section_label = Gtk.Label(label="UI settings")
+        settings_section_label.set_xalign(0)
+        settings_section_label.add_css_class("heading")
+        advanced_box.append(settings_section_label)
+
+        settings_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.ui_settings_save_btn = Gtk.Button(label="Save Settings")
+        self.ui_settings_reset_btn = Gtk.Button(label="Reset Saved")
+        settings_buttons.append(self.ui_settings_save_btn)
+        settings_buttons.append(self.ui_settings_reset_btn)
+        advanced_box.append(settings_buttons)
+        self.ui_settings_status_label = Gtk.Label(label="UI settings are auto-saved.")
+        self.ui_settings_status_label.set_xalign(0)
+        self.ui_settings_status_label.set_wrap(True)
+        advanced_box.append(self.ui_settings_status_label)
+
+        advanced_expander.set_child(advanced_box)
+        root.append(advanced_expander)
 
         controls = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         controls.append(self.phone_start_btn)
@@ -174,7 +196,7 @@ class AvreamWindow(Adw.ApplicationWindow):
         docs_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         docs_row.set_halign(Gtk.Align.FILL)
         docs_row.set_hexpand(True)
-        self.version_btn = Gtk.Button(label=f"Version: {AVREAM_VERSION}")
+        self.version_btn = Gtk.Button(label=AVREAM_VERSION)
         self.version_btn.add_css_class("flat")
         self.version_btn.set_halign(Gtk.Align.START)
         self.version_btn.set_tooltip_text("Click to check for updates")
@@ -230,9 +252,8 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.passwordless_status_btn.connect("clicked", self._on_passwordless_status)
         self.passwordless_enable_btn.connect("clicked", self._on_passwordless_enable)
         self.passwordless_disable_btn.connect("clicked", self._on_passwordless_disable)
-        self.update_check_btn.connect("clicked", self._on_update_check)
-        self.update_install_btn.connect("clicked", self._on_update_install)
-        self.update_open_release_btn.connect("clicked", self._on_update_open_release)
+        self.ui_settings_save_btn.connect("clicked", self._on_ui_settings_save)
+        self.ui_settings_reset_btn.connect("clicked", self._on_ui_settings_reset)
         self.version_btn.connect("clicked", self._on_version_clicked)
         self.open_cli_readme_btn.connect("clicked", self._on_open_cli_readme)
         self.video_stop_btn.connect("clicked", self._on_video_stop)
@@ -244,14 +265,22 @@ class AvreamWindow(Adw.ApplicationWindow):
         self.phone_list.connect("row-selected", self._on_phone_selected)
         self.phone_list.connect("row-activated", self._on_phone_activated)
         self.preview_window_switch.connect("notify::active", self._on_preview_window_toggled)
+        self.connection_mode_dropdown.connect("notify::selected", self._on_ui_setting_changed)
+        self.camera_facing_dropdown.connect("notify::selected", self._on_ui_setting_changed)
+        self.camera_rotation_dropdown.connect("notify::selected", self._on_ui_setting_changed)
+        self.phone_wifi_endpoint_entry.connect("changed", self._on_ui_setting_changed)
+        self.phone_wifi_endpoint_entry.connect("changed", self._on_wifi_endpoint_changed)
 
         self._video_running = False
-        self._update_available = False
         self._latest_release_url = "https://github.com/Kacoze/avream/releases/latest"
         self._ignore_preview_toggle_event = False
 
+        self._load_ui_settings()
+        self._apply_loaded_ui_settings()
+
         self._refresh_status()
         self._refresh_passwordless_status()
+        self._refresh_saved_wifi_endpoint_status()
 
         self.connect("close-request", self._on_close_request)
 
@@ -265,6 +294,228 @@ class AvreamWindow(Adw.ApplicationWindow):
 
     def _on_close_request(self, _window) -> bool:
         return False
+
+    def _ui_settings_path(self) -> Path:
+        cfg_home = os.getenv("XDG_CONFIG_HOME")
+        base = Path(cfg_home) if cfg_home else (Path.home() / ".config")
+        return base / "avream" / "ui-settings.json"
+
+    def _load_ui_settings(self) -> None:
+        self._saved_ui_settings = {}
+        try:
+            if not self._settings_path.exists():
+                return
+            payload = json.loads(self._settings_path.read_text(encoding="utf-8"))
+            if isinstance(payload, dict):
+                self._saved_ui_settings = payload
+        except Exception as exc:
+            self._append_log(f"UI settings load failed: {exc}")
+
+    def _save_ui_settings(self) -> None:
+        try:
+            self._settings_path.parent.mkdir(parents=True, exist_ok=True)
+            self._settings_path.write_text(
+                json.dumps(self._saved_ui_settings, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            if hasattr(self, "ui_settings_status_label") and not self._ignore_settings_events:
+                ts = datetime.utcnow().strftime("%H:%M:%S")
+                self.ui_settings_status_label.set_text(f"UI settings saved at {ts}.")
+        except Exception as exc:
+            self._append_log(f"UI settings save failed: {exc}")
+            if hasattr(self, "ui_settings_status_label"):
+                self.ui_settings_status_label.set_text(f"UI settings save failed: {exc}")
+
+    def _apply_default_ui_settings(self) -> None:
+        self._ignore_settings_events = True
+        try:
+            self.connection_mode_dropdown.set_selected(1)
+            self.camera_facing_dropdown.set_selected(0)
+            self.camera_rotation_dropdown.set_selected(0)
+            self.preview_window_switch.set_active(False)
+            self.phone_wifi_endpoint_entry.set_text("")
+            self._selected_phone = None
+        finally:
+            self._ignore_settings_events = False
+
+    def _apply_loaded_ui_settings(self) -> None:
+        self._ignore_settings_events = True
+        try:
+            mode = self._saved_ui_settings.get("connection_mode")
+            if mode == "usb":
+                self.connection_mode_dropdown.set_selected(0)
+            elif mode == "wifi":
+                self.connection_mode_dropdown.set_selected(1)
+
+            facing = self._saved_ui_settings.get("camera_facing")
+            if facing == "back":
+                self.camera_facing_dropdown.set_selected(1)
+            else:
+                self.camera_facing_dropdown.set_selected(0)
+
+            rotation = self._saved_ui_settings.get("camera_rotation")
+            rotation_to_idx = {0: 0, 90: 1, 180: 2, 270: 3}
+            if isinstance(rotation, int) and rotation in rotation_to_idx:
+                self.camera_rotation_dropdown.set_selected(rotation_to_idx[rotation])
+            else:
+                self.camera_rotation_dropdown.set_selected(0)
+
+            preview = self._saved_ui_settings.get("preview_window")
+            if isinstance(preview, bool):
+                self.preview_window_switch.set_active(preview)
+
+            endpoint = self._saved_ui_settings.get("wifi_endpoint")
+            if isinstance(endpoint, str) and endpoint.strip():
+                self.phone_wifi_endpoint_entry.set_text(endpoint.strip())
+        finally:
+            self._ignore_settings_events = False
+
+    def _persist_current_ui_settings(self) -> None:
+        if self._ignore_settings_events:
+            return
+        self._saved_ui_settings["schema_version"] = 1
+        self._saved_ui_settings["connection_mode"] = self._selected_connection_mode()
+        self._saved_ui_settings["camera_facing"] = self._selected_camera_facing()
+        self._saved_ui_settings["camera_rotation"] = self._selected_camera_rotation()
+        self._saved_ui_settings["preview_window"] = bool(self.preview_window_switch.get_active())
+
+        endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
+        if endpoint:
+            self._saved_ui_settings["wifi_endpoint"] = endpoint
+        else:
+            self._saved_ui_settings.pop("wifi_endpoint", None)
+
+        if isinstance(self._selected_phone, dict):
+            device_id = self._selected_phone.get("id")
+            if isinstance(device_id, str) and device_id:
+                self._saved_ui_settings["last_device_id"] = device_id
+            serials = self._selected_serials()
+            usb = serials.get("usb")
+            wifi = serials.get("wifi")
+            if usb:
+                self._saved_ui_settings["last_serial_usb"] = usb
+            if wifi:
+                self._saved_ui_settings["last_serial_wifi"] = wifi
+            cand = self._selected_phone.get("wifi_candidate_endpoint")
+            if isinstance(cand, str) and cand:
+                self._saved_ui_settings["last_wifi_candidate_endpoint"] = cand
+            ip = self._selected_phone.get("wifi_candidate_ip")
+            if isinstance(ip, str) and ip:
+                self._saved_ui_settings["last_wifi_candidate_ip"] = ip
+
+        self._save_ui_settings()
+
+    def _on_ui_setting_changed(self, *_args) -> None:
+        self._persist_current_ui_settings()
+
+    def _on_wifi_endpoint_changed(self, *_args) -> None:
+        self._refresh_saved_wifi_endpoint_status()
+
+    @staticmethod
+    def _normalize_wifi_endpoint(endpoint: str) -> str:
+        value = endpoint.strip()
+        if not value:
+            return ""
+        if ":" in value:
+            return value
+        return f"{value}:5555"
+
+    def _refresh_saved_wifi_endpoint_status(self) -> None:
+        endpoint_raw = self.phone_wifi_endpoint_entry.get_text().strip()
+        endpoint = self._normalize_wifi_endpoint(endpoint_raw)
+        if not endpoint:
+            self.wifi_saved_status_label.set_text("Saved Wi-Fi endpoint: not set")
+            return
+
+        resp = self._call("GET", "/android/devices")
+        body = resp.get("body", {}) if isinstance(resp, dict) else {}
+        if not isinstance(body, dict) or not body.get("ok"):
+            self.wifi_saved_status_label.set_text(f"✗ {endpoint} (status unknown: daemon/device scan unavailable)")
+            return
+
+        data = body.get("data", {}) if isinstance(body, dict) else {}
+        devices = data.get("devices", []) if isinstance(data, dict) else []
+        if not isinstance(devices, list):
+            devices = []
+
+        matched_state = None
+        for dev in devices:
+            if not isinstance(dev, dict):
+                continue
+            state = str(dev.get("state", "unknown"))
+            serials = dev.get("serials") if isinstance(dev.get("serials"), dict) else {}
+            wifi = str(serials.get("wifi", "")) if isinstance(serials, dict) else ""
+            cand = str(dev.get("wifi_candidate_endpoint", ""))
+            candidates = {
+                self._normalize_wifi_endpoint(wifi),
+                self._normalize_wifi_endpoint(cand),
+                wifi.strip(),
+                cand.strip(),
+            }
+            if endpoint in candidates or endpoint_raw in candidates:
+                matched_state = state
+                break
+
+        if matched_state == "device":
+            self.wifi_saved_status_label.set_text(f"✓ {endpoint} (connected)")
+            return
+        if isinstance(matched_state, str):
+            self.wifi_saved_status_label.set_text(f"✗ {endpoint} (state: {matched_state})")
+            return
+        self.wifi_saved_status_label.set_text(f"✗ {endpoint} (not found)")
+
+    def _on_ui_settings_save(self, _btn) -> None:
+        self._persist_current_ui_settings()
+        self._append_log("UI settings saved.")
+
+    def _on_ui_settings_reset(self, _btn) -> None:
+        def do_reset() -> None:
+            self._saved_ui_settings = {}
+            try:
+                if self._settings_path.exists():
+                    self._settings_path.unlink()
+            except Exception as exc:
+                self._append_log(f"UI settings reset failed: {exc}")
+                self.ui_settings_status_label.set_text(f"UI settings reset failed: {exc}")
+                return
+
+            self._apply_default_ui_settings()
+            self.ui_settings_status_label.set_text("Saved UI settings were reset to defaults.")
+            self._append_log("UI settings reset to defaults.")
+
+        self._confirm(
+            "Reset saved UI settings",
+            "This removes saved UI settings and restores defaults. Continue?",
+            do_reset,
+        )
+
+    def _restore_last_selected_device(self) -> None:
+        target_id = str(self._saved_ui_settings.get("last_device_id", "")).strip()
+        target_usb = str(self._saved_ui_settings.get("last_serial_usb", "")).strip()
+        target_wifi = str(self._saved_ui_settings.get("last_serial_wifi", "")).strip()
+        target_candidate = str(self._saved_ui_settings.get("last_wifi_candidate_endpoint", "")).strip()
+
+        if not any((target_id, target_usb, target_wifi, target_candidate)):
+            return
+
+        row = self.phone_list.get_first_child()
+        while row is not None:
+            phone = getattr(row, "_avream_phone", None)
+            if isinstance(phone, dict):
+                phone_id = str(phone.get("id", ""))
+                serials = phone.get("serials") if isinstance(phone.get("serials"), dict) else {}
+                usb = str(serials.get("usb", "")) if isinstance(serials, dict) else ""
+                wifi = str(serials.get("wifi", "")) if isinstance(serials, dict) else ""
+                cand = str(phone.get("wifi_candidate_endpoint", ""))
+                if (
+                    (target_id and phone_id and phone_id == target_id)
+                    or (target_usb and usb and usb == target_usb)
+                    or (target_wifi and wifi and wifi == target_wifi)
+                    or (target_candidate and cand and cand == target_candidate)
+                ):
+                    self.phone_list.select_row(row)
+                    return
+            row = row.get_next_sibling()
 
     def _show_error_dialog(self, title: str, message: str) -> None:
         dialog = Adw.MessageDialog.new(self, title, message)
@@ -345,9 +596,8 @@ class AvreamWindow(Adw.ApplicationWindow):
             self.passwordless_status_btn,
             self.passwordless_enable_btn,
             self.passwordless_disable_btn,
-            self.update_check_btn,
-            self.update_install_btn,
-            self.update_open_release_btn,
+            self.ui_settings_save_btn,
+            self.ui_settings_reset_btn,
             self.version_btn,
             self.open_cli_readme_btn,
             self.video_stop_btn,
@@ -356,6 +606,7 @@ class AvreamWindow(Adw.ApplicationWindow):
         ):
             btn.set_sensitive(not busy)
         self.camera_facing_dropdown.set_sensitive(not busy)
+        self.camera_rotation_dropdown.set_sensitive((not busy) and (not self._video_running))
         self.preview_window_switch.set_sensitive((not busy) and (not self._video_running))
 
     def _after_action(self, result: dict) -> bool:
@@ -387,6 +638,7 @@ class AvreamWindow(Adw.ApplicationWindow):
         self._set_busy(False)
         self.progress_label.set_text("")
         self._refresh_status()
+        self._refresh_saved_wifi_endpoint_status()
         return False
 
     def _extract_error_extra(self, details: dict[str, Any]) -> str:
@@ -416,6 +668,7 @@ class AvreamWindow(Adw.ApplicationWindow):
             source = data.get("source", {}) if isinstance(data, dict) else {}
             serial = source.get("serial") if isinstance(source, dict) else None
             facing = source.get("camera_facing") if isinstance(source, dict) else None
+            rotation = source.get("camera_rotation") if isinstance(source, dict) else None
             preview_window = source.get("preview_window") if isinstance(source, dict) else None
             audio = data.get("audio") if isinstance(data, dict) else None
             facing_label = None
@@ -432,7 +685,10 @@ class AvreamWindow(Adw.ApplicationWindow):
                     elif audio.get("state") == "ERROR":
                         audio_part = ", mic: failed"
                 if facing_label:
-                    return f"Camera started (device: {serial}, lens: {facing_label}{preview_part}{audio_part})."
+                    rotation_part = ""
+                    if isinstance(rotation, int):
+                        rotation_part = f", rotation: {rotation}°"
+                    return f"Camera started (device: {serial}, lens: {facing_label}{rotation_part}{preview_part}{audio_part})."
                 return f"Camera started (device: {serial}{preview_part}{audio_part})."
             return "Camera started."
 
@@ -533,40 +789,47 @@ class AvreamWindow(Adw.ApplicationWindow):
         if isinstance(update_rt, dict):
             current = str(update_rt.get("current_version", "unknown"))
             latest = str(update_rt.get("latest_version", "unknown"))
-            state = str(update_rt.get("install_state", "IDLE"))
             available = bool(update_rt.get("update_available", False))
-            self.version_btn.set_label(f"Version: {current}")
-            self._update_available = available
             latest_release_url = update_rt.get("latest_release_url")
             if isinstance(latest_release_url, str) and latest_release_url:
                 self._latest_release_url = latest_release_url
-            label = f"Update: {current} -> {latest} | state: {state}"
-            if available:
-                label += " | available"
-            self.update_status_label.set_text(label)
-            self.update_install_btn.set_sensitive((not self._busy) and available and (state in {"IDLE", "DONE", "FAILED"}))
+            self._apply_version_indicator(current=current, latest=latest, available=available)
         else:
-            self.version_btn.set_label(f"Version: {AVREAM_VERSION}")
-            self.update_status_label.set_text("Update status: unavailable")
-            self.update_install_btn.set_sensitive(False)
+            self._apply_version_indicator(current=AVREAM_VERSION, latest=None, available=False)
 
         active_source = video_rt.get("active_source", {}) if isinstance(video_rt, dict) else {}
         preview_window = False
+        active_rotation = None
         if isinstance(active_source, dict):
             preview_window = bool(active_source.get("preview_window", False))
+            rotation_val = active_source.get("camera_rotation")
+            if isinstance(rotation_val, int):
+                active_rotation = rotation_val
+
+        if active_rotation in {0, 90, 180, 270}:
+            idx = {0: 0, 90: 1, 180: 2, 270: 3}[active_rotation]
+            self.camera_rotation_dropdown.set_selected(idx)
 
         if self._video_running:
             self.preview_window_switch.set_sensitive(False)
+            self.camera_rotation_dropdown.set_sensitive(False)
             self.preview_window_switch.set_tooltip_text(
                 "Stop camera first to change preview window mode."
             )
+            self.camera_rotation_dropdown.set_tooltip_text(
+                "Stop camera first to change rotation."
+            )
             mode = "on" if preview_window else "off"
             self.preview_status_label.set_text(f"Preview window: {mode} (locked while camera is running)")
-            self.preview_mode_hint_label.set_text("Stop camera first to change preview window mode.")
+            self.preview_mode_hint_label.set_text("Stop camera first to change preview window mode and rotation.")
         else:
             self.preview_window_switch.set_sensitive(not self._busy)
+            self.camera_rotation_dropdown.set_sensitive(not self._busy)
             self.preview_window_switch.set_tooltip_text(
                 "Toggle to show or hide separate AVream Preview window on next camera start."
+            )
+            self.camera_rotation_dropdown.set_tooltip_text(
+                "Select camera rotation for next camera start."
             )
             mode = "on" if self.preview_window_switch.get_active() else "off"
             self.preview_status_label.set_text(f"Preview window: {mode}")
@@ -703,6 +966,7 @@ class AvreamWindow(Adw.ApplicationWindow):
         )
         self.progress_label.set_text("")
         self._append_log(f"Device scan complete: {len(devices)} device(s) found.")
+        self._refresh_saved_wifi_endpoint_status()
 
     def _populate_phone_list(
         self,
@@ -789,6 +1053,8 @@ class AvreamWindow(Adw.ApplicationWindow):
 
         if selected_row is not None:
             self.phone_list.select_row(selected_row)
+        else:
+            self._restore_last_selected_device()
 
     def _on_phone_selected(self, _lb, row) -> None:
         if row is None:
@@ -829,6 +1095,8 @@ class AvreamWindow(Adw.ApplicationWindow):
             else:
                 t_label = str(selected.get("transport") or "unknown")
             self.phone_status_label.set_text(f"Phone is ready ({t_label}). Click 'Start Camera' or choose another row.")
+
+        self._persist_current_ui_settings()
 
     def _on_phone_activated(self, _lb, row) -> None:
         # Double-click/Enter on row = immediate use for smoother USB/Wi-Fi switching.
@@ -880,6 +1148,7 @@ class AvreamWindow(Adw.ApplicationWindow):
                                 self.phone_status_label.set_text(
                                     f"Wi-Fi phone selected: {endpoint}. Click 'Start Camera' to begin streaming."
                                 )
+                                self._persist_current_ui_settings()
                             self._after_action(resp)
                             self._on_phone_scan(None)
                             return False
@@ -897,6 +1166,7 @@ class AvreamWindow(Adw.ApplicationWindow):
                                     self.phone_status_label.set_text(
                                         f"Wi-Fi ready: {endpoint2}. You can disconnect USB and start camera."
                                     )
+                                    self._persist_current_ui_settings()
                             self._after_action(resp2)
                             self._on_phone_scan(None)
                             return False
@@ -924,6 +1194,7 @@ class AvreamWindow(Adw.ApplicationWindow):
                             self.phone_status_label.set_text(
                                 f"Wi-Fi ready: {endpoint}. You can disconnect USB and start camera."
                             )
+                            self._persist_current_ui_settings()
                     self._after_action(resp)
                     self._on_phone_scan(None)
                     return False
@@ -943,6 +1214,7 @@ class AvreamWindow(Adw.ApplicationWindow):
                         self.phone_status_label.set_text(
                             f"Wi-Fi phone selected: {endpoint}. Click 'Start Camera' to begin streaming."
                         )
+                        self._persist_current_ui_settings()
                 self._after_action(resp)
                 return False
 
@@ -957,6 +1229,7 @@ class AvreamWindow(Adw.ApplicationWindow):
             )
             return
         self.phone_status_label.set_text("Phone selected. Click 'Start Camera' to begin streaming.")
+        self._persist_current_ui_settings()
 
     def _on_phone_start(self, _btn) -> None:
         self._set_busy(True)
@@ -969,6 +1242,7 @@ class AvreamWindow(Adw.ApplicationWindow):
             if isinstance(chosen, str) and chosen:
                 payload["serial"] = chosen
         payload["camera_facing"] = self._selected_camera_facing()
+        payload["camera_rotation"] = self._selected_camera_rotation()
         payload["preview_window"] = bool(self.preview_window_switch.get_active())
         self._call_async("POST", "/video/start", payload, self._after_action)
 
@@ -1026,6 +1300,16 @@ class AvreamWindow(Adw.ApplicationWindow):
         selected = int(self.camera_facing_dropdown.get_selected())
         return "back" if selected == 1 else "front"
 
+    def _selected_camera_rotation(self) -> int:
+        selected = int(self.camera_rotation_dropdown.get_selected())
+        if selected == 1:
+            return 90
+        if selected == 2:
+            return 180
+        if selected == 3:
+            return 270
+        return 0
+
     def _candidate_cli_readme_paths(self) -> list[Path]:
         cwd = Path.cwd()
         return [
@@ -1054,12 +1338,30 @@ class AvreamWindow(Adw.ApplicationWindow):
         except Exception as exc:
             self._show_error_dialog("Failed to open README", str(exc))
 
-    def _on_update_check(self, _btn) -> None:
-        self._set_busy(True)
-        self.progress_label.set_text("Checking for updates...")
-        self._call_async("POST", "/update/check", {"force": True}, self._after_action)
+    def _apply_version_indicator(self, *, current: str, latest: str | None, available: bool) -> None:
+        current_s = current if isinstance(current, str) and current else AVREAM_VERSION
+        if available and isinstance(latest, str) and latest:
+            self.version_btn.set_label(f"{current_s} -> {latest}")
+            self.version_btn.set_tooltip_text("Update available. Click to open update modal.")
+            self.version_btn.add_css_class("destructive-action")
+        else:
+            self.version_btn.set_label(current_s)
+            self.version_btn.set_tooltip_text("Click to check for updates")
+            self.version_btn.remove_css_class("destructive-action")
 
-    def _on_update_install(self, _btn) -> None:
+    def _open_release_url(self, url: str | None = None) -> None:
+        target = url if isinstance(url, str) and url else self._latest_release_url
+        opener = shutil.which("xdg-open")
+        if not opener:
+            self._show_error_dialog("xdg-open missing", f"Open this URL manually: {target}")
+            return
+        try:
+            subprocess.Popen([opener, target])
+            self._append_log(f"Opened release page: {target}")
+        except Exception as exc:
+            self._show_error_dialog("Failed to open release page", str(exc))
+
+    def _run_update_install_with_confirm(self) -> None:
         def do_install() -> None:
             self._set_busy(True)
             self.progress_label.set_text("Installing update...")
@@ -1075,17 +1377,6 @@ class AvreamWindow(Adw.ApplicationWindow):
             "AVream will stop camera/microphone if needed, install latest package, and restart daemon service. Continue?",
             do_install,
         )
-
-    def _on_update_open_release(self, _btn) -> None:
-        opener = shutil.which("xdg-open")
-        if not opener:
-            self._show_error_dialog("xdg-open missing", f"Open this URL manually: {self._latest_release_url}")
-            return
-        try:
-            subprocess.Popen([opener, self._latest_release_url])
-            self._append_log(f"Opened release page: {self._latest_release_url}")
-        except Exception as exc:
-            self._show_error_dialog("Failed to open release page", str(exc))
 
     def _on_version_clicked(self, _btn) -> None:
         self._set_busy(True)
@@ -1108,15 +1399,40 @@ class AvreamWindow(Adw.ApplicationWindow):
                 return False
 
             data = body.get("data", {}) if isinstance(body, dict) else {}
-            current = data.get("current_version", "unknown") if isinstance(data, dict) else "unknown"
-            latest = data.get("latest_version", "unknown") if isinstance(data, dict) else "unknown"
+            current = str(data.get("current_version", "unknown")) if isinstance(data, dict) else "unknown"
+            latest = str(data.get("latest_version", "unknown")) if isinstance(data, dict) else "unknown"
             available = bool(data.get("update_available", False)) if isinstance(data, dict) else False
+            release_url = data.get("latest_release_url") if isinstance(data, dict) else None
+            if isinstance(release_url, str) and release_url:
+                self._latest_release_url = release_url
+
+            self._apply_version_indicator(current=current, latest=latest, available=available)
+
+            dialog = Adw.MessageDialog.new(
+                self,
+                "Update available" if available else "No update",
+                (
+                    f"Current: {current}\nLatest: {latest}\n\n"
+                    + ("A newer release is available." if available else "You are up to date.")
+                ),
+            )
+            dialog.add_response("close", "Close")
+            dialog.add_response("open_release", "Open Release")
             if available:
-                release_url = data.get("latest_release_url") if isinstance(data, dict) else None
-                extra = f"\n\nRelease: {release_url}" if isinstance(release_url, str) and release_url else ""
-                self._show_info_dialog("Update available", f"Current: {current}\nLatest: {latest}{extra}")
-            else:
-                self._show_info_dialog("No update", f"Current: {current}\nLatest: {latest}\n\nYou are up to date.")
+                dialog.add_response("install", "Install Update")
+                dialog.set_response_appearance("install", Adw.ResponseAppearance.SUGGESTED)
+            dialog.set_default_response("close")
+            dialog.set_close_response("close")
+
+            def on_response(dlg, resp_id: str) -> None:
+                dlg.close()
+                if resp_id == "open_release":
+                    self._open_release_url(self._latest_release_url)
+                elif resp_id == "install" and available:
+                    self._run_update_install_with_confirm()
+
+            dialog.connect("response", on_response)
+            dialog.present()
             self._refresh_status()
             return False
 
@@ -1141,6 +1457,7 @@ class AvreamWindow(Adw.ApplicationWindow):
         state = "on" if enabled else "off"
         self.preview_status_label.set_text(f"Preview window: {state}")
         self._append_log(f"Preview window mode set to {state}.")
+        self._persist_current_ui_settings()
 
     def _selected_serials(self) -> dict[str, str]:
         if not self._selected_phone:

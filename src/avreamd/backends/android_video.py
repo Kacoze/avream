@@ -64,6 +64,7 @@ class AndroidVideoBackend:
         sink_path: str,
         preset: str = "balanced",
         camera_facing: str | None = None,
+        camera_rotation: int | None = None,
         preview_window: bool = False,
         enable_audio: bool = False,
     ) -> list[str]:
@@ -74,6 +75,7 @@ class AndroidVideoBackend:
             sink_path=sink_path,
             preset=preset,
             camera_facing=camera_facing,
+            camera_rotation=camera_rotation,
             preview_window=preview_window,
             enable_audio=enable_audio,
             extra_args=None,
