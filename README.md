@@ -1,9 +1,9 @@
 # AVream - Android Phone as Webcam and Microphone for Linux
 
-[![Release](https://img.shields.io/github/v/release/Kacoze/avream?display_name=tag)](https://github.com/Kacoze/avream/releases)
+[![Release](https://img.shields.io/github/v/release/kacoze/avream?sort=semver)](https://github.com/Kacoze/avream/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](docs/SUPPORTED_PLATFORMS.md)
-[![CI](https://img.shields.io/github/actions/workflow/status/Kacoze/avream/ci.yml?branch=main)](https://github.com/Kacoze/avream/actions)
+[![CI](https://github.com/Kacoze/avream/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/ci.yml)
 
 AVream turns your Android phone into a Linux virtual camera and microphone for real meetings and recordings.
 
