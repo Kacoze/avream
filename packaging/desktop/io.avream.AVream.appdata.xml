@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.avream.AVream</id>
+  <name>AVream</name>
+  <summary>Use Android phone as virtual camera and microphone</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>
+      AVream lets you use an Android phone as a virtual camera and microphone on Linux.
+      The app focuses on a short phone-first flow: detect device, start camera, and optionally enable microphone.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.avream.AVream.desktop</launchable>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Video</category>
+    <category>Settings</category>
+  </categories>
+</component>

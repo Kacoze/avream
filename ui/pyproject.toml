@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "avream-ui"
+version = "1.0.0"
+description = "AVream GTK UI"
+requires-python = ">=3.11"
+dependencies = [
+  "aiohttp>=3.9.0",
+]
+
+[project.scripts]
+avream-ui = "avream_ui.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

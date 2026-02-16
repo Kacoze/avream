@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Unit tests
+        run: |
+          PYTHONPATH=src python -m unittest \
+            tests.unit.daemon.test_state_store \
+            tests.unit.daemon.test_audio_manager \
+            tests.unit.daemon.test_adb_adapter \
+            tests.unit.daemon.test_android_backend \
+            tests.unit.daemon.test_scrcpy_adapter \
+            tests.unit.daemon.test_privilege_client
+
+      - name: Integration tests
+        run: |
+          PYTHONPATH=src python -m unittest \
+            tests.integration.test_api_status \
+            tests.integration.test_api_contract \
+            tests.integration.test_video_and_doctor
+
+  deb-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build .deb package
+        run: |
+          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb.sh
+
+      - name: Sanity check .deb package
+        run: |
+          bash scripts/check-deb-artifact.sh "dist/avream_1.0.0~ci.${GITHUB_RUN_NUMBER}_amd64.deb"
+
+      - name: Install .deb and run runtime smoke
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ./dist/avream_1.0.0~ci.${GITHUB_RUN_NUMBER}_amd64.deb curl
+          avreamd --help
+          avream-ui --help
+          mkdir -p /tmp/avream-smoke
+          AVREAM_SOCKET_PATH=/tmp/avream-smoke/daemon.sock avreamd --log-level INFO &
+          daemon_pid=$!
+          for i in $(seq 1 20); do
+            if [ -S /tmp/avream-smoke/daemon.sock ]; then
+              break
+            fi
+            sleep 0.5
+          done
+          curl --fail --unix-socket /tmp/avream-smoke/daemon.sock http://localhost/status
+          curl --fail --unix-socket /tmp/avream-smoke/daemon.sock http://localhost/android/devices
+          kill "$daemon_pid"
+          wait "$daemon_pid" || true
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: avream-deb-smoke-1.0.0~ci.${{ github.run_number }}
+          path: dist/*.deb
+          if-no-files-found: error
+
+  deb-install-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build split .deb packages
+        run: |
+          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb-split.sh
+          bash scripts/check-deb-split-artifacts.sh dist "1.0.0~ci.${GITHUB_RUN_NUMBER}"
+
+      - name: Install package set in container
+        run: |
+          image="${{ matrix.image }}"
+          ver="1.0.0~ci.${GITHUB_RUN_NUMBER}"
+          docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc "apt-get update && apt-get install -y curl ca-certificates && apt-get install -y /dist/avream-daemon_${ver}_amd64.deb /dist/avream-ui_${ver}_amd64.deb /dist/avream-helper_${ver}_amd64.deb && avreamd --help && avream-ui --help"
+
+  split-upgrade-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build monolithic and split packages
+        run: |
+          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb.sh
+          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb-split.sh
+
+      - name: Validate split upgrade path
+        run: |
+          bash scripts/test-split-upgrade.sh dist "1.0.0~ci.${GITHUB_RUN_NUMBER}"
+
+  rust-helper:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: helper
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: cargo check
+        run: cargo check
+
+      - name: cargo test
+        run: cargo test

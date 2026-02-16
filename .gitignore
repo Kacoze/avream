@@ -1,0 +1,35 @@
+.ci/
+dist/
+legacy/
+
+# Local long-term planning (not committed)
+docs/AVREAM_LONG_TERM_PLAN.md
+
+# Local roadmap + agent notes (not committed)
+ROADMAP.md
+LOCAL_AGENT_NOTES.md
+
+# Local workspace artifacts
+legacy/_local/
+
+# Keep v1 reference out of git
+legacy/
+
+# Python artifacts (AVream rewrite)
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# Packaging/build artifacts
+*.egg-info/
+
+# Rust artifacts
+helper/target/
+
+# Local scripts outputs
+scripts/.cache/
+
+# Build output
+dist/

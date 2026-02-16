@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=AVream
+Comment=Use Android phone as camera and microphone
+Exec=avream-ui
+Terminal=false
+Icon=io.avream.AVream
+Categories=AudioVideo;Video;Settings;
+StartupNotify=true

@@ -1,0 +1,45 @@
+name: Debian Artifact
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Determine package version
+        id: meta
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          if [[ "$ref" == v* ]]; then
+            ver="${ref#v}"
+          else
+            ver="1.0.0~ci.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: Build .deb package
+        run: |
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb.sh
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb-split.sh
+
+      - name: Sanity check .deb package
+        run: |
+          bash scripts/check-deb-artifact.sh dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
+          bash scripts/check-deb-split-artifacts.sh dist '${{ steps.meta.outputs.version }}'
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: avream-deb-${{ steps.meta.outputs.version }}
+          path: |
+            dist/*.deb
+            dist/*.md
+          if-no-files-found: error

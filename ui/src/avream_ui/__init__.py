@@ -1,0 +1,1 @@
+"""AVream GTK UI package."""

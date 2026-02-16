@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Determine package version from tag
+        id: meta
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          ver="${ref#v}"
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: Build package
+        run: |
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb.sh
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb-split.sh
+
+      - name: Verify package
+        run: |
+          bash scripts/check-deb-artifact.sh dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
+          bash scripts/check-deb-split-artifacts.sh dist '${{ steps.meta.outputs.version }}'
+
+      - name: Generate checksums
+        run: |
+          sha256sum dist/*.deb dist/*.md > dist/SHA256SUMS.txt
+
+      - name: Publish GitHub release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.deb
+            dist/*.md
+            dist/SHA256SUMS.txt
+          generate_release_notes: true

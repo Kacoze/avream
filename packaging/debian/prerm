@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+cat <<'EOF'
+AVream package is being removed.
+
+If avreamd is running in your user session, stop it manually:
+  systemctl --user disable --now avreamd.service
+EOF
+
+exit 0

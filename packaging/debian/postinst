@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+cat <<'EOF'
+AVream package installed.
+
+To enable the user daemon for your account:
+  mkdir -p ~/.config/avream
+  cp -n /usr/lib/systemd/user/avreamd.env ~/.config/avream/avreamd.env
+  systemctl --user daemon-reload
+  systemctl --user enable --now avreamd.service
+
+GUI launcher:
+  avream-ui
+EOF
+
+exit 0

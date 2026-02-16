@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+"http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
+<policyconfig>
+  <vendor>AVream</vendor>
+  <vendor_url>https://github.com/Kacoze/avream</vendor_url>
+  <icon_name>camera-web</icon_name>
+
+  <action id="io.avream.helper.run">
+    <description>Run AVream privileged helper</description>
+    <message>Authentication is required to run AVream privileged helper actions.</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <!--
+        Default policy requires a fresh admin authentication.
+        If you prefer caching the authorization prompt, switch to: auth_admin_keep
+      -->
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/avream-helper</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+</policyconfig>
