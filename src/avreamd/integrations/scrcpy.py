@@ -51,6 +51,8 @@ class ScrcpyAdapter:
         if camera_rotation in {0, 90, 180, 270}:
             cmd.append(f"--capture-orientation={camera_rotation}")
 
+        cmd.append("--camera-ar=16:9")
+
         if enable_audio:
             cmd.append("--audio-source=mic")
         else:
