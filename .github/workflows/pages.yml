@@ -108,6 +108,13 @@ jobs:
           print(out.read_text(encoding="utf-8"))
           PY
 
+      - name: Verify site folder
+        run: |
+          test -f site/index.html
+          touch site/.nojekyll
+          echo "Site files:"
+          ls -la site | sed -n '1,200p'
+
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
