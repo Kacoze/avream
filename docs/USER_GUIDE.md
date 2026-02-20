@@ -2,6 +2,8 @@
 
 This guide covers the stable AVream flow for using an Android phone as webcam and microphone on Linux.
 
+![AVream UI preview](assets/ui-stream-overview.svg)
+
 ## 1) Install
 
 Install AVream (recommended):

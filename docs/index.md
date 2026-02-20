@@ -7,6 +7,8 @@ Turn your Android phone into a Linux virtual camera and microphone for real meet
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](SUPPORTED_PLATFORMS.md)
 [![CI](https://github.com/Kacoze/avream/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/ci.yml)
 
+![AVream UI preview](assets/ui-stream-overview.svg)
+
 ## Why AVream
 
 - No dedicated app required on the phone.
@@ -42,6 +44,11 @@ Launch:
 ```bash
 avream-ui
 ```
+
+Then:
+1. Go to **Devices** and click **Scan Phones**.
+2. Select your phone and click **Connect**.
+3. Go to **Stream** and click **Start Camera**.
 
 ## CLI Quickstart
 

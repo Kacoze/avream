@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-label="AVream UI preview">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f2228"/>
+      <stop offset="100%" stop-color="#262a31"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="760" fill="url(#bg)"/>
+  <rect x="16" y="16" width="1248" height="728" rx="16" fill="#2b2f36" stroke="#3d4149"/>
+  <text x="640" y="54" text-anchor="middle" fill="#e9edf2" font-size="32" font-family="Ubuntu, Noto Sans, Arial">AVream</text>
+
+  <rect x="52" y="96" width="1176" height="54" rx="10" fill="#3b4048"/>
+  <rect x="52" y="96" width="294" height="54" rx="10" fill="#676c75"/>
+  <g fill="#f2f4f8" font-size="28" font-family="Ubuntu, Noto Sans, Arial" font-weight="700">
+    <text x="198" y="132" text-anchor="middle">Stream</text>
+    <text x="492" y="132" text-anchor="middle">Devices</text>
+    <text x="786" y="132" text-anchor="middle">Advanced</text>
+    <text x="1080" y="132" text-anchor="middle">Diagnostics</text>
+  </g>
+
+  <rect x="52" y="176" width="1176" height="144" rx="16" fill="#2f333a" stroke="#555b64"/>
+  <text x="72" y="224" fill="#f0f3f7" font-size="36" font-weight="700" font-family="Ubuntu, Noto Sans, Arial">Stream</text>
+  <text x="72" y="274" fill="#e0e5eb" font-size="34" font-family="Ubuntu, Noto Sans, Arial">Camera: RUNNING • Microphone: RUNNING</text>
+
+  <rect x="52" y="344" width="1176" height="188" rx="16" fill="#2f333a" stroke="#555b64"/>
+  <text x="72" y="396" fill="#c2c8d0" font-size="32" font-family="Ubuntu, Noto Sans, Arial">Open Devices to choose a source, then start streaming here.</text>
+  <text x="72" y="442" fill="#949aa5" font-size="32" font-family="Ubuntu, Noto Sans, Arial">Active source: not selected</text>
+  <rect x="72" y="468" width="220" height="56" rx="12" fill="#c73346"/>
+  <text x="182" y="506" text-anchor="middle" fill="#ffffff" font-size="30" font-weight="700" font-family="Ubuntu, Noto Sans, Arial">Stop Camera</text>
+  <text x="330" y="506" fill="#f4f6fa" font-size="32" font-weight="700" font-family="Ubuntu, Noto Sans, Arial">Open Devices</text>
+
+  <rect x="52" y="556" width="1176" height="168" rx="16" fill="#2f333a" stroke="#555b64"/>
+  <text x="72" y="604" fill="#f0f3f7" font-size="34" font-weight="700" font-family="Ubuntu, Noto Sans, Arial">Stream settings</text>
+  <text x="72" y="648" fill="#e0e5eb" font-size="32" font-family="Ubuntu, Noto Sans, Arial">Camera lens  Front    Rotation  0°    Preview window</text>
+  <rect x="748" y="618" width="74" height="48" rx="24" fill="#a65026"/>
+  <rect x="784" y="622" width="34" height="40" rx="18" fill="#b8bec9"/>
+  <text x="72" y="694" fill="#9ca3af" font-size="31" font-family="Ubuntu, Noto Sans, Arial">Preview window: off (locked while camera is running)</text>
+</svg>

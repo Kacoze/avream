@@ -13,14 +13,16 @@ Official website: https://kacoze.github.io/avream/
 
 Website and documentation are generated from Markdown files in `docs/`.
 
-## Why AVream
+![AVream UI preview](docs/assets/ui-stream-overview.svg)
+
+## Why Users Pick AVream
 
 - No dedicated app required on the phone.
-- Phone-first UX: scan phone, select device, start camera.
+- Clean phone-first UX: scan phone, connect, start camera.
 - USB and Wi-Fi modes with practical reconnect flow.
 - Works as standard Linux devices: `AVream Camera` and `AVream Mic`.
-- Includes both GUI (`avream-ui`) and CLI (`avream`).
-- Security model based on polkit helper actions (no `sudo` in GUI controls).
+- Stable Linux-native pipeline (daemon + UI + helper), built for real calls.
+- Security model based on polkit helper actions (no random `sudo` commands in GUI).
 
 ## Works With
 
@@ -49,33 +51,17 @@ Then launch:
 avream-ui
 ```
 
-If phone is not detected, open `Devices`, click `Scan Phones`, connect your phone via USB, unlock it, and accept USB debugging.
+Done. In the app:
+1. Open `Devices`, click `Scan Phones`, connect your phone.
+2. Click `Connect`.
+3. Switch to `Stream` and click `Start Camera`.
 
-## CLI Quickstart
+## What You Get
 
-```bash
-avream status
-avream devices
-avream start --mode wifi --lens front
-avream camera stop
-```
-
-See `docs/CLI_README.md` for full command reference.
-
-## Updates
-
-- GUI: click version indicator in bottom-left to check updates and open update modal.
-- CLI:
-
-```bash
-avream update status
-avream update check --force
-avream update install --allow-stop-streams
-```
-
-Update install verifies checksums from release assets before installing.
-
-When an update is available, version indicator turns red and shows `current -> latest`.
+- GUI app with tabs for `Stream`, `Devices`, `Advanced`, `Diagnostics`.
+- One-click update check from the version indicator.
+- Auto-connect to last used device on startup (when available).
+- Optional CLI for automation and debugging.
 
 ## Install Options
 
@@ -85,17 +71,6 @@ When an update is available, version indicator turns red and shows `current -> l
 - Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz` (contains `avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`).
 
 Full install, upgrade, and uninstall guide: `docs/INSTALL.md`.
-
-## Feature Snapshot
-
-| Capability | AVream |
-| --- | --- |
-| Android phone webcam on Linux | Yes |
-| Android phone microphone on Linux | Yes |
-| USB and Wi-Fi workflows | Yes |
-| GUI and CLI control | Yes |
-| User daemon + structured API | Yes |
-| No phone-side companion app required | Yes |
 
 ## Documentation
 
@@ -114,22 +89,19 @@ Release and security references:
 - `docs/RC_DRILL.md`
 - `docs/SECURITY_DECISIONS.md`
 
-## Architecture
-
-- `avreamd`: user daemon exposing JSON API over UNIX socket.
-- `avream-ui`: GTK4/libadwaita desktop application.
-- `avream-helper`: privileged helper for selected system actions via polkit.
-- Modular services:
-  - `VideoManager` now delegates process supervision, reconnect logic, and V4L2 reset to dedicated helpers, so the API-facing class stays lean (`src/avreamd/managers/video_manager.py`).
-  - `UpdateManager` orchestrates reusable components that fetch releases, download assets, verify checksums, install updates, and schedule daemon restarts (`src/avreamd/managers/update/`).
-  - Audio routing/backends live behind `AudioManager`, which now composes `PipeWireAudioBackend`, `SndAloopAudioBackend`, and a router that moves `scrcpy` output into the virtual sink (`src/avreamd/managers/audio/`).
-  - CLI integrations reuse the new `CommandRunner` to capture stdout/stderr consistently (`src/avreamd/integrations/command_runner.py`).
-- UI behavior is organized into mixins (`window_behavior_*.py`), so `ui/src/avream_ui/window.py` only wires widgets and delegates actions.
-
 ## Known Limits
 
 - PC audio output to phone speaker is not in stable baseline.
 - Preview runs as a separate `scrcpy` window, not embedded in GTK content.
+
+## CLI (Optional)
+
+```bash
+avream status
+avream devices
+avream start --mode wifi --lens front
+avream camera stop
+```
 
 ## For Developers
 
