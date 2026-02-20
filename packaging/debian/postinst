@@ -1,6 +1,31 @@
 #!/bin/sh
 set -e
 
+restart_user_daemon() {
+  if [ -z "${SUDO_USER:-}" ] || [ "${SUDO_USER}" = "root" ]; then
+    return 1
+  fi
+
+  uid="$(id -u "${SUDO_USER}" 2>/dev/null || true)"
+  if [ -z "${uid}" ] || [ ! -d "/run/user/${uid}" ]; then
+    return 1
+  fi
+
+  export XDG_RUNTIME_DIR="/run/user/${uid}"
+  export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${uid}/bus"
+
+  runuser -u "${SUDO_USER}" -- systemctl --user daemon-reload >/dev/null 2>&1 || return 1
+  runuser -u "${SUDO_USER}" -- systemctl --user try-restart avreamd.service >/dev/null 2>&1 || return 1
+  return 0
+}
+
+did_restart=0
+if [ "${1:-}" = "configure" ]; then
+  if restart_user_daemon; then
+    did_restart=1
+  fi
+fi
+
 cat <<'EOF'
 AVream package installed.
 
@@ -13,5 +38,11 @@ To enable the user daemon for your account:
 GUI launcher:
   avream-ui
 EOF
+
+if [ "$did_restart" -eq 1 ]; then
+  echo "Detected active user session for ${SUDO_USER}; avreamd.service was reloaded/restarted."
+else
+  echo "Automatic daemon restart was skipped (no active sudo user session detected)."
+fi
 
 exit 0

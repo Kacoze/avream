@@ -6,6 +6,17 @@ import shutil
 
 
 class WindowPasswordlessMixin:
+    def _sync_passwordless_toggle(self) -> None:
+        enabled = bool(getattr(self, "_passwordless_enabled", False))
+        if enabled:
+            self.passwordless_toggle_btn.set_label("Disable")
+            self.passwordless_toggle_btn.add_css_class("destructive-action")
+            self.passwordless_toggle_btn.set_tooltip_text("Disable passwordless helper actions.")
+        else:
+            self.passwordless_toggle_btn.set_label("Enable")
+            self.passwordless_toggle_btn.remove_css_class("destructive-action")
+            self.passwordless_toggle_btn.set_tooltip_text("Enable passwordless helper actions.")
+
     def _set_passwordless_status(self, text: str) -> None:
         value = str(text or "").strip() or "Status: unknown"
         if hasattr(self, "passwordless_status_row"):
@@ -79,14 +90,20 @@ class WindowPasswordlessMixin:
                         runner = str(helper.get("effective_runner", "unknown"))
 
                 if enabled and runner == "pkexec":
+                    self._passwordless_enabled = True
+                    self._sync_passwordless_toggle()
                     self._set_passwordless_status("Passwordless helper actions are enabled (runner: pkexec).")
                     self._append_log("passwordless status: enabled, runner=pkexec")
                 elif enabled and runner != "pkexec":
+                    self._passwordless_enabled = True
+                    self._sync_passwordless_toggle()
                     self._set_passwordless_status(
                         f"Passwordless is enabled but daemon runner is '{runner}'. Set AVREAM_HELPER_MODE=pkexec and restart avreamd."
                     )
                     self._append_log(f"passwordless status: enabled but runner={runner}")
                 else:
+                    self._passwordless_enabled = False
+                    self._sync_passwordless_toggle()
                     self._set_passwordless_status("Passwordless helper actions are disabled.")
                     self._append_log("passwordless status: disabled")
                 return False
@@ -98,6 +115,12 @@ class WindowPasswordlessMixin:
 
     def _on_passwordless_status(self, _btn) -> None:
         self._refresh_passwordless_status()
+
+    def _on_passwordless_toggle(self, _btn) -> None:
+        if bool(getattr(self, "_passwordless_enabled", False)):
+            self._on_passwordless_disable(_btn)
+            return
+        self._on_passwordless_enable(_btn)
 
     def _on_passwordless_enable(self, _btn) -> None:
         tool = self._passwordless_tool()
@@ -124,6 +147,8 @@ class WindowPasswordlessMixin:
                     msg = str(result.get("stderr", "")).strip() or "enable failed"
                     self._show_error_dialog("Enable failed", msg)
                     return False
+                self._passwordless_enabled = True
+                self._sync_passwordless_toggle()
                 self._append_log("Passwordless helper actions enabled")
                 self._show_error_dialog(
                     "Enabled",
@@ -165,6 +190,8 @@ class WindowPasswordlessMixin:
                     msg = str(result.get("stderr", "")).strip() or "disable failed"
                     self._show_error_dialog("Disable failed", msg)
                     return False
+                self._passwordless_enabled = False
+                self._sync_passwordless_toggle()
                 self._append_log("Passwordless helper actions disabled")
                 self._show_error_dialog("Disabled", "Passwordless helper actions were disabled.")
                 self._refresh_passwordless_status()

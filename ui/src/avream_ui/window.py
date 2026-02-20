@@ -246,9 +246,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         devices_page.append(wifi_frame)
         devices_page.set_vexpand(True)
 
-        self.passwordless_status_btn = Gtk.Button(label="Check")
-        self.passwordless_enable_btn = Gtk.Button(label="Enable")
-        self.passwordless_disable_btn = Gtk.Button(label="Disable")
+        self.passwordless_toggle_btn = Gtk.Button(label="Enable")
 
         self.ui_settings_reset_btn = Gtk.Button(label="Reset Saved")
         self.video_reset_btn = Gtk.Button(label="Reset Camera")
@@ -265,12 +263,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
             subtitle="Status: unknown",
         )
         passwordless_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.passwordless_status_btn = Gtk.Button(label="Check")
-        self.passwordless_enable_btn = Gtk.Button(label="Enable")
-        self.passwordless_disable_btn = Gtk.Button(label="Disable")
-        passwordless_buttons.append(self.passwordless_status_btn)
-        passwordless_buttons.append(self.passwordless_enable_btn)
-        passwordless_buttons.append(self.passwordless_disable_btn)
+        passwordless_buttons.append(self.passwordless_toggle_btn)
         passwordless_row.add_suffix(passwordless_buttons)
         passwordless_row.set_activatable(False)
         security_group.add(passwordless_row)
@@ -398,9 +391,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self.phone_connect_toggle_btn.connect("clicked", self._on_phone_connect_toggle)
         self.stream_toggle_btn.connect("clicked", self._on_stream_toggle)
         self.open_devices_btn.connect("clicked", lambda *_args: self.workspace_stack.set_visible_child_name("devices"))
-        self.passwordless_status_btn.connect("clicked", self._on_passwordless_status)
-        self.passwordless_enable_btn.connect("clicked", self._on_passwordless_enable)
-        self.passwordless_disable_btn.connect("clicked", self._on_passwordless_disable)
+        self.passwordless_toggle_btn.connect("clicked", self._on_passwordless_toggle)
         self.ui_settings_reset_btn.connect("clicked", self._on_ui_settings_reset)
         self.version_btn.connect("clicked", self._on_version_clicked)
         self.open_cli_readme_btn.connect("clicked", self._on_open_cli_readme)
@@ -423,6 +414,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self._video_running = False
         self._latest_release_url = "https://github.com/Kacoze/avream/releases/latest"
         self._ignore_preview_toggle_event = False
+        self._passwordless_enabled = False
         self._sync_stream_toggle_button()
 
         self._load_ui_settings()
