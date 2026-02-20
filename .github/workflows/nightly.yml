@@ -115,7 +115,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: ["fedora:41", "opensuse/leap:15.6"]
+        image: ["fedora:41", "opensuse/tumbleweed:latest"]
     steps:
       - name: Download nightly RPM package
         uses: actions/download-artifact@v5

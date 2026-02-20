@@ -16,13 +16,19 @@
           pyDeps = with pkgs.python3Packages; [ aiohttp pygobject3 ];
           pyDepPath = lib.makeSearchPath "lib/${python.libPrefix}/site-packages" pyDeps;
           version = lib.strings.removeSuffix "\n" (builtins.readFile ./src/avreamd/VERSION);
+          helper = pkgs.rustPlatform.buildRustPackage {
+            pname = "avream-helper";
+            inherit version;
+            src = ./helper;
+            cargoLock.lockFile = ./helper/Cargo.lock;
+          };
         in {
           avream = pkgs.stdenv.mkDerivation {
             pname = "avream";
             inherit version;
             src = ./.;
 
-            nativeBuildInputs = [ pkgs.makeWrapper pkgs.cargo pkgs.rustc pkgs.pkg-config ];
+            nativeBuildInputs = [ pkgs.makeWrapper ];
             buildInputs = [ python pkgs.gtk4 pkgs.libadwaita pkgs.polkit ] ++ pyDeps;
 
             dontConfigure = true;
@@ -30,7 +36,6 @@
             buildPhase = ''
               runHook preBuild
               bash scripts/generate-dist-docs.sh
-              cargo build --release --manifest-path helper/Cargo.toml
               runHook postBuild
             '';
 
@@ -45,7 +50,7 @@
               install -D -m0644 packaging/desktop/io.avream.AVream.svg $out/share/icons/hicolor/scalable/apps/io.avream.AVream.svg
               install -D -m0644 dist/README_USER.md $out/share/doc/avream/README_USER.md
               install -D -m0644 dist/CLI_README.md $out/share/doc/avream/CLI_README.md
-              install -D -m0755 helper/target/release/avream-helper $out/libexec/avream-helper
+              install -D -m0755 ${helper}/bin/avream-helper $out/libexec/avream-helper
               install -D -m0755 scripts/avream-passwordless-setup.sh $out/bin/avream-passwordless-setup
 
               mkdir -p $out/lib/avream/python
