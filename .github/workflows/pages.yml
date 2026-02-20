@@ -7,8 +7,6 @@ on:
       - "mkdocs.yml"
       - ".github/workflows/pages.yml"
       - "docs/**"
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -22,6 +20,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
