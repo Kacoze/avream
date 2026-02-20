@@ -1,0 +1,88 @@
+Package: avream-daemon
+Architecture: amd64
+Version: 1.0.6
+Priority: optional
+Section: video
+Maintainer: AVream contributors
+Depends: python3 (>= 3.10), python3-aiohttp, systemd
+Recommends: scrcpy, android-tools-adb, pipewire, pipewire-pulse
+Conflicts: avream
+Replaces: avream
+Filename: dist/apt/pool/main/avream-daemon_1.0.6_amd64.deb
+Size: 30542
+MD5sum: 352ff7af30f113d35e4028dbd3140902
+SHA1: 8f3a72b1f28dcf15d0de8b994b2ff569c44c4979
+SHA256: 13da4aa6e9d4e00b88e715e9e8cc2ee37aa99eb5f237f66eff39579a24e267f3
+SHA512: 714515497c4ef39082de026ec7e02e0a0974d1927f87b93afbcf90c16ad06c97903eb77443eeb7066f8755ce86c1f536b6c8826bd5f29a84df597ac7e0730902
+Description: AVream user daemon and API service
+
+Package: avream-helper
+Architecture: amd64
+Version: 1.0.6
+Priority: optional
+Section: video
+Maintainer: AVream contributors
+Depends: polkitd, policykit-1, kmod, psmisc
+Recommends:
+Conflicts: avream
+Replaces: avream
+Filename: dist/apt/pool/main/avream-helper_1.0.6_amd64.deb
+Size: 284128
+MD5sum: d5801e4709605045c0f97a04989c8d76
+SHA1: 6187e2860e625c460e47f45063ff21d664232089
+SHA256: 8a39294e95473fa0421991bc57880001bc42c7e87d2e0b48d154397bb2db03dc
+SHA512: f1ca3187be75d1ed5a77a1c252d3f91c60b4bb9a69e0759a2eb75912a7f9ca954f6741a3ca54096dc76a7572dab9eff854ae1ba1a8bdd0b62876ff532386ed3d
+Description: AVream privileged helper and polkit policy
+
+Package: avream-meta
+Architecture: amd64
+Version: 1.0.6
+Priority: optional
+Section: video
+Maintainer: AVream contributors
+Depends: avream-daemon (= 1.0.6), avream-ui (= 1.0.6), avream-helper (= 1.0.6)
+Recommends:
+Filename: dist/apt/pool/main/avream-meta_1.0.6_amd64.deb
+Size: 536
+MD5sum: ec2e727d42e306c1ffc8c89b84e3ed2b
+SHA1: fc3d8e47f28ddb0709d5e354ec6277f6d300ad8b
+SHA256: 5618a349ae341d6c304806bece5a22b8d67d75d3491d8bcdfcc23435790e9b16
+SHA512: c0ce7a5452f55b2b8221ebc33b12af19dcea85f6a7a4d314be6651e6069e1e8d1b35362f569188fa4a21334c47c927b0a08dd0cf6f93b1ac3e89894ca6e7f375
+Description: AVream transitional meta package
+
+Package: avream-ui
+Architecture: amd64
+Version: 1.0.6
+Priority: optional
+Section: video
+Maintainer: AVream contributors
+Depends: python3 (>= 3.10), python3-aiohttp, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1
+Recommends: avream-daemon
+Conflicts: avream
+Replaces: avream
+Filename: dist/apt/pool/main/avream-ui_1.0.6_amd64.deb
+Size: 21386
+MD5sum: 0b8681f0d0f913991250eeef0fe35c5c
+SHA1: bbc24465c2f8d482cf4e42996e57c8c87ba895af
+SHA256: eb7e629f071af413489925a4f4673849cb9907b91f0f325bd2127e01486caa30
+SHA512: 322052531f813ea5831000f423bec836939551c4981cf202d9d479c893e010a371dcef1e1cc45b2612f09867812929547777c614462507617021d1c870ea6fb4
+Description: AVream GTK desktop application
+
+Package: avream
+Architecture: amd64
+Version: 1.0.6
+Priority: optional
+Section: video
+Maintainer: AVream contributors
+Depends: python3 (>= 3.10), python3-aiohttp, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1, polkitd, policykit-1, kmod, psmisc
+Recommends: scrcpy, android-tools-adb, pipewire, pipewire-pulse
+Filename: dist/apt/pool/main/avream_1.0.6_amd64.deb
+Size: 331508
+MD5sum: 1679e10ade3e5e0b4b9c676872b7f0d4
+SHA1: d2813a5c4df8c1dec545ac665e14c06f5397ac79
+SHA256: cc31c7a0a5b214b9232f98491224f15c53fa5eec8ba89ab0b39b31de2afadc1f
+SHA512: 3e09f5955a4151896bf5bdc0a3bc0050698504de0047fc7b96edf74ef42282c69155713d6c3ce244fd030ced438b5b5be11bcdcd71f552ab08524cdeae340fea
+Description: AVream daemon, GUI, and privileged helper
+ AVream provides a user daemon managing virtual A/V devices,
+ a GTK/libadwaita GUI, and a privileged helper invoked via polkit.
+
