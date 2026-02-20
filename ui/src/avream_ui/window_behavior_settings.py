@@ -9,6 +9,40 @@ from gi.repository import Adw, Gdk, GLib  # type: ignore[import-not-found]
 
 
 class WindowSettingsMixin:
+    def _has_auto_connect_target(self) -> bool:
+        if not isinstance(self._saved_ui_settings, dict):
+            return False
+        mode = str(self._saved_ui_settings.get("connection_mode", "")).strip()
+        if mode == "wifi":
+            endpoint = str(self._saved_ui_settings.get("wifi_endpoint", "")).strip()
+            if endpoint:
+                return True
+        for key in (
+            "last_device_id",
+            "last_serial_usb",
+            "last_serial_wifi",
+            "last_wifi_candidate_endpoint",
+        ):
+            value = str(self._saved_ui_settings.get(key, "")).strip()
+            if value:
+                return True
+        return False
+
+    def _trigger_startup_auto_connect(self) -> None:
+        if not getattr(self, "_startup_auto_connect_pending", False):
+            return
+        if getattr(self, "_daemon_locked", False):
+            return
+
+        self._startup_auto_connect_pending = False
+        if not self._has_auto_connect_target():
+            self._startup_auto_connect_completed = True
+            return
+
+        self._startup_auto_connect_attempted = True
+        self._append_log("Auto-connect: scanning for last used device...")
+        self._on_phone_scan(None)
+
     def _set_ui_settings_status(self, text: str) -> None:
         value = str(text or "").strip() or "Auto-saved."
         if hasattr(self, "ui_settings_status_row"):

@@ -95,6 +95,7 @@ class WindowPhoneMixin:
             self.progress_label.set_text("")
             self._append_log(f"Device scan complete: {len(devices)} device(s) found.")
             self._refresh_saved_wifi_endpoint_status()
+            self._maybe_complete_startup_auto_connect()
             self._sync_phone_connect_toggle_button()
             if self._devices_scan_pending:
                 self._devices_scan_pending = False
@@ -102,6 +103,26 @@ class WindowPhoneMixin:
             return False
 
         self._call_async("GET", "/android/devices", None, done)
+
+    def _maybe_complete_startup_auto_connect(self) -> None:
+        if not getattr(self, "_startup_auto_connect_attempted", False):
+            return
+        if getattr(self, "_startup_auto_connect_completed", False):
+            return
+        if self._busy:
+            return
+
+        mode = self._selected_connection_mode()
+        endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
+        has_target = bool(self._selected_phone) or (mode == "wifi" and bool(endpoint))
+        self._startup_auto_connect_completed = True
+
+        if has_target:
+            self._append_log("Auto-connect: attempting connection to last used device.")
+            self._on_phone_use_selected(None)
+            return
+
+        self._append_log("Auto-connect: last used device is not available.")
 
     def _populate_phone_list(
         self,

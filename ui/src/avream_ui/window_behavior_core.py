@@ -301,6 +301,9 @@ class WindowCoreMixin:
             return
 
         self._set_daemon_lock(False)
+        trigger_auto_connect = getattr(self, "_trigger_startup_auto_connect", None)
+        if callable(trigger_auto_connect):
+            trigger_auto_connect()
 
         data = body.get("data", {}) if isinstance(body, dict) else {}
         runtime = data.get("runtime", {}) if isinstance(data, dict) else {}

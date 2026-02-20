@@ -39,6 +39,9 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self._wifi_status_refresh_inflight = False
         self._wifi_status_refresh_pending = False
         self._wifi_status_refresh_source_id = 0
+        self._startup_auto_connect_pending = True
+        self._startup_auto_connect_attempted = False
+        self._startup_auto_connect_completed = False
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         root.set_margin_top(16)
