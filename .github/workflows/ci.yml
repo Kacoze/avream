@@ -92,7 +92,7 @@ jobs:
           wait "$daemon_pid" || true
 
       - name: Upload .deb artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: avream-deb-smoke-1.0.0~ci.${{ github.run_number }}
           path: dist/*.deb
