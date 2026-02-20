@@ -6,11 +6,16 @@ import os
 import re
 import shutil
 
+from avreamd.domain.models import AdbCommandResult
+from avreamd.integrations.command_runner import CommandRunner
+
 
 class AdbAdapter:
     def __init__(self, adb_bin: str | None = None) -> None:
         env_bin = os.getenv("AVREAM_ADB_BIN")
         self.adb_bin = adb_bin or env_bin or shutil.which("adb")
+        self._runner = CommandRunner()
+        self._adb_lock = asyncio.Lock()
 
     @property
     def available(self) -> bool:
@@ -20,18 +25,13 @@ class AdbAdapter:
         if not self.adb_bin:
             return []
 
-        proc = await asyncio.create_subprocess_exec(
-            self.adb_bin,
-            "devices",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, _stderr = await proc.communicate()
-        if proc.returncode != 0:
+        result = await self._run(["devices"])
+        if self._as_int(result.get("returncode"), 1) != 0:
             return []
 
         devices: list[dict[str, str]] = []
-        for line in stdout.decode("utf-8", errors="replace").splitlines():
+        stdout = str(result.get("stdout", ""))
+        for line in stdout.splitlines():
             line = line.strip()
             if not line or line.startswith("List of devices"):
                 continue
@@ -200,19 +200,15 @@ class AdbAdapter:
         if not self.adb_bin:
             return {"returncode": 127, "stdout": "", "stderr": "adb not found"}
 
-        proc = await asyncio.create_subprocess_exec(
-            self.adb_bin,
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+        async with self._adb_lock:
+            result = await self._runner.run_async([self.adb_bin, *args])
+        result = AdbCommandResult(
+            returncode=int(result.returncode),
+            stdout=result.stdout,
+            stderr=result.stderr,
+            args=result.args,
         )
-        stdout, stderr = await proc.communicate()
-        return {
-            "returncode": int(proc.returncode or 0),
-            "stdout": stdout.decode("utf-8", errors="replace"),
-            "stderr": stderr.decode("utf-8", errors="replace"),
-            "args": [self.adb_bin, *args],
-        }
+        return result.as_dict()
 
     @staticmethod
     def transport_of(serial: str) -> str:

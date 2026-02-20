@@ -1,10 +1,25 @@
 from __future__ import annotations
 
 import shutil
+from dataclasses import dataclass
 from typing import Sequence
 
 
+@dataclass(frozen=True)
+class ScrcpyPreset:
+    video_bit_rate: str
+    max_size: int | None
+    max_fps: int | None
+    v4l2_buffer: int
+
+
 class ScrcpyAdapter:
+    PRESETS: dict[str, ScrcpyPreset] = {
+        "low_latency": ScrcpyPreset(video_bit_rate="6M", max_size=None, max_fps=30, v4l2_buffer=200),
+        "balanced": ScrcpyPreset(video_bit_rate="8M", max_size=1080, max_fps=None, v4l2_buffer=400),
+        "high_quality": ScrcpyPreset(video_bit_rate="12M", max_size=1440, max_fps=None, v4l2_buffer=600),
+    }
+
     def __init__(self, scrcpy_bin: str | None = None) -> None:
         self.scrcpy_bin = scrcpy_bin or shutil.which("scrcpy")
 
@@ -58,12 +73,13 @@ class ScrcpyAdapter:
         else:
             cmd.append("--no-audio")
 
-        if preset == "low_latency":
-            cmd.extend(["--max-fps=30", "--video-bit-rate=6M", "--v4l2-buffer=200"])
-        elif preset == "high_quality":
-            cmd.extend(["--video-bit-rate=12M", "--max-size=1440", "--v4l2-buffer=600"])
-        else:
-            cmd.extend(["--video-bit-rate=8M", "--max-size=1080", "--v4l2-buffer=400"])
+        selected = self.PRESETS.get(preset, self.PRESETS["balanced"])
+        cmd.append(f"--video-bit-rate={selected.video_bit_rate}")
+        if selected.max_size is not None:
+            cmd.append(f"--max-size={selected.max_size}")
+        if selected.max_fps is not None:
+            cmd.append(f"--max-fps={selected.max_fps}")
+        cmd.append(f"--v4l2-buffer={selected.v4l2_buffer}")
 
         if extra_args:
             cmd.extend(extra_args)

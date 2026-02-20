@@ -113,6 +113,12 @@ Release and security references:
 - `avreamd`: user daemon exposing JSON API over UNIX socket.
 - `avream-ui`: GTK4/libadwaita desktop application.
 - `avream-helper`: privileged helper for selected system actions via polkit.
+- Modular services:
+  - `VideoManager` now delegates process supervision, reconnect logic, and V4L2 reset to dedicated helpers, so the API-facing class stays lean (`src/avreamd/managers/video_manager.py`).
+  - `UpdateManager` orchestrates reusable components that fetch releases, download assets, verify checksums, install updates, and schedule daemon restarts (`src/avreamd/managers/update/`).
+  - Audio routing/backends live behind `AudioManager`, which now composes `PipeWireAudioBackend`, `SndAloopAudioBackend`, and a router that moves `scrcpy` output into the virtual sink (`src/avreamd/managers/audio/`).
+  - CLI integrations reuse the new `CommandRunner` to capture stdout/stderr consistently (`src/avreamd/integrations/command_runner.py`).
+- UI behavior is organized into mixins (`window_behavior_*.py`), so `ui/src/avream_ui/window.py` only wires widgets and delegates actions.
 
 ## Known Limits
 

@@ -6,19 +6,8 @@ import logging
 from aiohttp import web
 
 from avreamd.api.server import create_api_app
-from avreamd.backends.android_video import AndroidVideoBackend
+from avreamd.bootstrap import build_daemon_deps
 from avreamd.config import ensure_directories, remove_stale_socket
-from avreamd.core.process_supervisor import ProcessSupervisor
-from avreamd.core.state_store import DaemonStateStore
-from avreamd.integrations.adb import AdbAdapter
-from avreamd.integrations.pactl import PactlIntegration
-from avreamd.integrations.pipewire import PipeWireIntegration
-from avreamd.integrations.scrcpy import ScrcpyAdapter
-from avreamd.integrations.v4l2loopback import V4L2LoopbackIntegration
-from avreamd.managers.audio_manager import AudioManager
-from avreamd.managers.privilege_client import PrivilegeClient
-from avreamd.managers.update_manager import UpdateManager
-from avreamd.managers.video_manager import VideoManager
 
 
 logger = logging.getLogger(__name__)
@@ -27,35 +16,18 @@ logger = logging.getLogger(__name__)
 class AvreamDaemon:
     def __init__(self, paths) -> None:
         self.paths = paths
-        self.state_store = DaemonStateStore()
-        self.supervisor = ProcessSupervisor(log_dir=paths.log_dir)
-        self.privilege_client = PrivilegeClient()
-        self.pipewire = PipeWireIntegration()
-        self.pactl = PactlIntegration()
-        self.v4l2 = V4L2LoopbackIntegration(video_nr=10)
-        self.adb = AdbAdapter()
-        self.audio_manager = AudioManager(
-            state_store=self.state_store,
-            pipewire=self.pipewire,
-            pactl=self.pactl,
-            privilege_client=self.privilege_client,
-            state_dir=paths.state_dir,
-        )
-        self.android_backend = AndroidVideoBackend(adb=self.adb, scrcpy=ScrcpyAdapter())
-        self.video_manager = VideoManager(
-            state_store=self.state_store,
-            backend=self.android_backend,
-            supervisor=self.supervisor,
-            privilege_client=self.privilege_client,
-            v4l2=self.v4l2,
-            audio_manager=self.audio_manager,
-        )
-        self.update_manager = UpdateManager(
-            paths=paths,
-            state_store=self.state_store,
-            video_manager=self.video_manager,
-            audio_manager=self.audio_manager,
-        )
+        deps = build_daemon_deps(paths)
+        self.state_store = deps.state_store
+        self.supervisor = deps.supervisor
+        self.privilege_client = deps.privilege_client
+        self.pipewire = deps.pipewire
+        self.pactl = deps.pactl
+        self.v4l2 = deps.v4l2
+        self.adb = deps.adb
+        self.audio_manager = deps.audio_manager
+        self.android_backend = deps.android_backend
+        self.video_manager = deps.video_manager
+        self.update_manager = deps.update_manager
         self._runner: web.AppRunner | None = None
         self._site: web.UnixSite | None = None
         self._shutdown_event = asyncio.Event()

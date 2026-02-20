@@ -1,59 +1,42 @@
 from __future__ import annotations
 
-import os
 import shutil
-import subprocess
+
+from avreamd.integrations.command_runner import CommandRunner
 
 
 class PactlIntegration:
     def __init__(self) -> None:
         self.pactl = shutil.which("pactl")
+        self._runner = CommandRunner(env_overrides={"LC_ALL": "C", "LANG": "C"})
 
     @property
     def available(self) -> bool:
         return bool(self.pactl)
 
-    def _c_env(self) -> dict[str, str]:
-        env = os.environ.copy()
-        env["LC_ALL"] = "C"
-        env["LANG"] = "C"
-        return env
-
     def load_module(self, name: str, args: list[str]) -> int:
         if not self.pactl:
             raise FileNotFoundError("pactl not found")
-        proc = subprocess.run(
-            [self.pactl, "load-module", name, *args],
-            check=False,
-            capture_output=True,
-            text=True,
-            env=self._c_env(),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError((proc.stderr or proc.stdout or "").strip() or "pactl load-module failed")
-        out = (proc.stdout or "").strip()
+        result = self._runner.run_sync([self.pactl, "load-module", name, *args])
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout or "").strip() or "pactl load-module failed")
+        out = (result.stdout or "").strip()
         return int(out)
 
     def unload_module(self, module_id: int) -> None:
         if not self.pactl:
             raise FileNotFoundError("pactl not found")
-        subprocess.run([self.pactl, "unload-module", str(module_id)], check=False, env=self._c_env())
+        _ = self._runner.run_sync([self.pactl, "unload-module", str(module_id)])
 
     def list_modules(self) -> list[dict[str, str]]:
         if not self.pactl:
             raise FileNotFoundError("pactl not found")
-        proc = subprocess.run(
-            [self.pactl, "list", "short", "modules"],
-            check=False,
-            capture_output=True,
-            text=True,
-            env=self._c_env(),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError((proc.stderr or proc.stdout or "").strip() or "pactl list modules failed")
+        result = self._runner.run_sync([self.pactl, "list", "short", "modules"])
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout or "").strip() or "pactl list modules failed")
 
         modules: list[dict[str, str]] = []
-        for line in (proc.stdout or "").splitlines():
+        for line in (result.stdout or "").splitlines():
             line = line.strip()
             if not line:
                 continue
@@ -69,18 +52,12 @@ class PactlIntegration:
     def info(self) -> dict[str, str]:
         if not self.pactl:
             raise FileNotFoundError("pactl not found")
-        proc = subprocess.run(
-            [self.pactl, "info"],
-            check=False,
-            capture_output=True,
-            text=True,
-            env=self._c_env(),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError((proc.stderr or proc.stdout or "").strip() or "pactl info failed")
+        result = self._runner.run_sync([self.pactl, "info"])
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout or "").strip() or "pactl info failed")
 
         out: dict[str, str] = {}
-        for line in (proc.stdout or "").splitlines():
+        for line in (result.stdout or "").splitlines():
             if ":" not in line:
                 continue
             key, value = line.split(":", 1)
@@ -100,18 +77,12 @@ class PactlIntegration:
     def list_sources(self) -> list[str]:
         if not self.pactl:
             raise FileNotFoundError("pactl not found")
-        proc = subprocess.run(
-            [self.pactl, "list", "short", "sources"],
-            check=False,
-            capture_output=True,
-            text=True,
-            env=self._c_env(),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError((proc.stderr or proc.stdout or "").strip() or "pactl list sources failed")
+        result = self._runner.run_sync([self.pactl, "list", "short", "sources"])
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout or "").strip() or "pactl list sources failed")
 
         names: list[str] = []
-        for line in (proc.stdout or "").splitlines():
+        for line in (result.stdout or "").splitlines():
             line = line.strip()
             if not line:
                 continue
@@ -126,20 +97,14 @@ class PactlIntegration:
     def list_sink_inputs_detailed(self) -> list[dict[str, object]]:
         if not self.pactl:
             raise FileNotFoundError("pactl not found")
-        proc = subprocess.run(
-            [self.pactl, "list", "sink-inputs"],
-            check=False,
-            capture_output=True,
-            text=True,
-            env=self._c_env(),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError((proc.stderr or proc.stdout or "").strip() or "pactl list sink-inputs failed")
+        result = self._runner.run_sync([self.pactl, "list", "sink-inputs"])
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout or "").strip() or "pactl list sink-inputs failed")
 
         inputs: list[dict[str, object]] = []
         current: dict[str, object] | None = None
         in_props = False
-        for raw in (proc.stdout or "").splitlines():
+        for raw in (result.stdout or "").splitlines():
             line = raw.rstrip("\n")
             stripped = line.strip()
             if not stripped:
@@ -181,12 +146,6 @@ class PactlIntegration:
     def move_sink_input(self, sink_input_id: int, sink_name: str) -> None:
         if not self.pactl:
             raise FileNotFoundError("pactl not found")
-        proc = subprocess.run(
-            [self.pactl, "move-sink-input", str(int(sink_input_id)), sink_name],
-            check=False,
-            capture_output=True,
-            text=True,
-            env=self._c_env(),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError((proc.stderr or proc.stdout or "").strip() or "pactl move-sink-input failed")
+        result = self._runner.run_sync([self.pactl, "move-sink-input", str(int(sink_input_id)), sink_name])
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout or "").strip() or "pactl move-sink-input failed")

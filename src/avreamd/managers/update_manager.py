@@ -1,22 +1,18 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import logging
 import os
 import re
-import shutil
-import subprocess
 from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from aiohttp import ClientSession, ClientTimeout
-
 from avreamd import __version__
-from avreamd.api.errors import backend_error, conflict_error, dependency_error, validation_error
+from avreamd.api.errors import backend_error, conflict_error, validation_error
+from avreamd.managers.update import AssetDownloader, ChecksumVerifier, PackageInstaller, ReleaseClient, RestartScheduler
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +39,12 @@ class UpdateManager:
         self._repo = os.getenv("AVREAM_UPDATE_REPO", "Kacoze/avream")
         self._api_base = os.getenv("AVREAM_UPDATE_API_BASE", "https://api.github.com")
         self._install_tool = os.getenv("AVREAM_UPDATE_INSTALL_TOOL", "apt")
+
+        self._release_client = ReleaseClient(api_base=self._api_base, repo=self._repo)
+        self._downloader = AssetDownloader()
+        self._verifier = ChecksumVerifier()
+        self._installer = PackageInstaller(install_tool=self._install_tool)
+        self._restart_scheduler = RestartScheduler()
 
         self._cfg_path = self._paths.config_dir / "update.json"
         self._state_path = self._paths.state_dir / "update-state.json"
@@ -124,7 +126,7 @@ class UpdateManager:
             self._append_log("update.check.start", {"force": bool(force)})
 
         try:
-            release = await self._fetch_latest_release()
+            release = await self._release_client.fetch_latest_release()
             latest_version = str(release["version"])
             current_version = str(__version__)
             update_available = self._is_newer_version(latest_version, current_version)
@@ -236,22 +238,22 @@ class UpdateManager:
 
         deb_path = self._cache_dir / asset_name
         sums_path = self._cache_dir / "SHA256SUMS.txt"
-        await self._download_file(asset_url, deb_path)
-        await self._download_file(checksum_url, sums_path)
+        await self._downloader.download_file(asset_url, deb_path)
+        await self._downloader.download_file(checksum_url, sums_path)
 
         async with self._lock:
             self._runtime["install_state"] = "VERIFYING"
             self._runtime["progress"] = 55
             self._save_state()
 
-        self._verify_checksum(asset_name=asset_name, deb_path=deb_path, sums_path=sums_path)
+        self._verifier.verify_checksum(asset_name=asset_name, deb_path=deb_path, sums_path=sums_path)
 
         async with self._lock:
             self._runtime["install_state"] = "INSTALLING"
             self._runtime["progress"] = 75
             self._save_state()
 
-        install_result = await self._run_install(deb_path)
+        install_result = await self._installer.run_install(deb_path)
 
         async with self._lock:
             self._runtime["install_state"] = "DONE"
@@ -260,7 +262,11 @@ class UpdateManager:
             self._save_state()
             self._append_log("update.install.done", {"result": install_result})
 
-        self._schedule_daemon_restart()
+        try:
+            self._restart_scheduler.schedule_daemon_restart()
+        except Exception:
+            logger.exception("failed to schedule avreamd restart after update")
+
         return {
             "state": "DONE",
             "already_up_to_date": False,
@@ -328,148 +334,12 @@ class UpdateManager:
             return 7 * 24 * 3600
         return 24 * 3600
 
-    async def _fetch_latest_release(self) -> dict[str, Any]:
-        url = f"{self._api_base}/repos/{self._repo}/releases/latest"
-        timeout = ClientTimeout(total=20, connect=10, sock_read=20)
-        headers = {
-            "Accept": "application/vnd.github+json",
-            "User-Agent": "avream-updater",
-        }
-        async with ClientSession(timeout=timeout, headers=headers) as session:
-            async with session.get(url) as resp:
-                if resp.status >= 400:
-                    text = await resp.text()
-                    raise backend_error("release API returned error", {"status": resp.status, "body": text[:1000]})
-                payload = await resp.json(content_type=None)
-
-        if not isinstance(payload, dict):
-            raise backend_error("invalid release metadata response")
-
-        tag_name = str(payload.get("tag_name", "")).strip()
-        version = tag_name[1:] if tag_name.startswith("v") else tag_name
-        if not version:
-            raise backend_error("release tag is missing")
-
-        assets = payload.get("assets")
-        if not isinstance(assets, list):
-            assets = []
-
-        by_name: dict[str, dict[str, str]] = {}
-        for asset in assets:
-            if not isinstance(asset, dict):
-                continue
-            name = asset.get("name")
-            dl = asset.get("browser_download_url")
-            if isinstance(name, str) and isinstance(dl, str):
-                by_name[name] = {"name": name, "url": dl}
-
-        monolith = by_name.get(f"avream_{version}_amd64.deb")
-        if not monolith:
-            raise backend_error("monolithic .deb asset not found", {"version": version})
-
-        checksums = by_name.get("SHA256SUMS.txt")
-        if not checksums:
-            raise backend_error("SHA256SUMS.txt asset not found", {"version": version})
-
-        release_url = payload.get("html_url")
-        if not isinstance(release_url, str) or not release_url:
-            release_url = f"https://github.com/{self._repo}/releases/latest"
-
-        return {
-            "version": version,
-            "release_url": release_url,
-            "recommended_asset": monolith,
-            "assets": {
-                "checksums": checksums["url"],
-                "monolith": monolith["url"],
-                "split_archive": by_name.get(f"avream-deb-split_{version}_amd64.tar.gz", {}).get("url", ""),
-            },
-        }
-
-    async def _download_file(self, url: str, path: Path) -> None:
-        timeout = ClientTimeout(total=120, connect=20, sock_read=120)
-        headers = {"Accept": "application/octet-stream", "User-Agent": "avream-updater"}
-        async with ClientSession(timeout=timeout, headers=headers) as session:
-            async with session.get(url) as resp:
-                if resp.status >= 400:
-                    text = await resp.text()
-                    raise backend_error("download failed", {"url": url, "status": resp.status, "body": text[:1000]})
-                with path.open("wb") as handle:
-                    async for chunk in resp.content.iter_chunked(1024 * 64):
-                        handle.write(chunk)
-
-    def _verify_checksum(self, *, asset_name: str, deb_path: Path, sums_path: Path) -> None:
-        sums_text = sums_path.read_text(encoding="utf-8", errors="replace")
-        expected = None
-        for line in sums_text.splitlines():
-            parts = line.strip().split()
-            if len(parts) >= 2 and parts[-1].endswith(asset_name):
-                expected = parts[0]
-                break
-        if not expected:
-            raise backend_error("checksum entry for asset not found", {"asset": asset_name})
-
-        digest = hashlib.sha256(deb_path.read_bytes()).hexdigest()
-        if digest.lower() != expected.lower():
-            raise backend_error(
-                "checksum mismatch",
-                {"asset": asset_name, "expected": expected, "actual": digest},
-                retryable=False,
-            )
-
-    async def _run_install(self, deb_path: Path) -> dict[str, Any]:
-        pkexec = shutil.which("pkexec")
-        if not pkexec:
-            raise dependency_error("pkexec is missing", {"tool": "pkexec", "package": "policykit-1"})
-
-        if self._install_tool not in {"apt", "apt-get"}:
-            raise validation_error("unsupported install tool", {"install_tool": self._install_tool})
-
-        install_bin = shutil.which(self._install_tool)
-        if not install_bin:
-            raise dependency_error(f"{self._install_tool} is missing", {"tool": self._install_tool})
-
-        cmd = [pkexec, install_bin, "install", "-y", str(deb_path)]
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout_b, stderr_b = await proc.communicate()
-        stdout = stdout_b.decode("utf-8", errors="replace")
-        stderr = stderr_b.decode("utf-8", errors="replace")
-        rc = int(proc.returncode or 0)
-        if rc != 0:
-            raise backend_error(
-                "update installation failed",
-                {
-                    "returncode": rc,
-                    "stdout": stdout[-3000:],
-                    "stderr": stderr[-3000:],
-                },
-                retryable=False,
-            )
-        return {"returncode": rc, "stdout": stdout[-1000:], "stderr": stderr[-1000:]}
-
-    def _schedule_daemon_restart(self) -> None:
-        cmd = [
-            "bash",
-            "-lc",
-            "(sleep 1; systemctl --user restart avreamd.service) >/dev/null 2>&1 &",
-        ]
-        try:
-            subprocess.Popen(cmd)
-        except Exception:
-            logger.exception("failed to schedule avreamd restart after update")
-
     @staticmethod
     def _now_iso() -> str:
         return datetime.now(timezone.utc).isoformat()
 
     @staticmethod
     def _version_key(version: str) -> tuple[int, int, int, int, str]:
-        # (major, minor, patch, prerelease_flag, prerelease_text)
-        # prerelease_flag: 1 = final, 0 = prerelease
         text = version.strip().lstrip("v")
         m = re.match(r"^(\d+)\.(\d+)\.(\d+)(?:[-~]?([0-9A-Za-z.-]+))?$", text)
         if not m:

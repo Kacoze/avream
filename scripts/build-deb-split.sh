@@ -2,7 +2,14 @@
 set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-VERSION=${AVREAM_VERSION:-"1.0.0~dev"}
+VERSION_FILE="$ROOT_DIR/src/avreamd/VERSION"
+if [ -n "${AVREAM_VERSION:-}" ]; then
+  VERSION="$AVREAM_VERSION"
+elif [ -f "$VERSION_FILE" ]; then
+  VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
+else
+  VERSION="0.0.0~dev"
+fi
 ARCH=${AVREAM_DEB_ARCH:-"amd64"}
 OUT_DIR=${AVREAM_DEB_OUT_DIR:-"$ROOT_DIR/dist"}
 

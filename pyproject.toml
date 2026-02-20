@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "avream"
-version = "1.0.2"
+dynamic = ["version"]
 description = "AVream daemon, UI, and helper workspace"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -19,6 +19,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
+  "ruff>=0.6.0",
+  "mypy>=1.10.0",
 ]
 
 [project.scripts]
@@ -30,3 +32,20 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {file = ["src/avreamd/VERSION"]}
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
