@@ -16,6 +16,9 @@ permissions:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    env:
+      AVREAM_APT_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY }}
+      AVREAM_APT_GPG_PASSPHRASE: ${{ secrets.AVREAM_APT_GPG_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v6
 
@@ -114,17 +117,14 @@ jobs:
           body_path: dist/RELEASE_NOTES.md
 
       - name: Build APT repository
-        if: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY != '' && secrets.AVREAM_APT_GPG_PASSPHRASE != '' }}
+        if: ${{ env.AVREAM_APT_GPG_PRIVATE_KEY != '' && env.AVREAM_APT_GPG_PASSPHRASE != '' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y apt-utils gnupg
           bash scripts/build-apt-repo.sh dist dist/apt
 
       - name: Sign APT repository metadata
-        if: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY != '' && secrets.AVREAM_APT_GPG_PASSPHRASE != '' }}
-        env:
-          AVREAM_APT_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY }}
-          AVREAM_APT_GPG_PASSPHRASE: ${{ secrets.AVREAM_APT_GPG_PASSPHRASE }}
+        if: ${{ env.AVREAM_APT_GPG_PRIVATE_KEY != '' && env.AVREAM_APT_GPG_PASSPHRASE != '' }}
         run: |
           export GNUPGHOME="$(mktemp -d)"
           trap 'rm -rf "$GNUPGHOME"' EXIT
@@ -154,7 +154,7 @@ jobs:
           EOF
 
       - name: Publish APT repository branch
-        if: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY != '' && secrets.AVREAM_APT_GPG_PASSPHRASE != '' }}
+        if: ${{ env.AVREAM_APT_GPG_PRIVATE_KEY != '' && env.AVREAM_APT_GPG_PASSPHRASE != '' }}
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
