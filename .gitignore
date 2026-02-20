@@ -26,3 +26,4 @@ scripts/.cache/
 
 # Build output
 dist/
+site/

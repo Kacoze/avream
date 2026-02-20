@@ -1,0 +1,41 @@
+site_name: AVream
+site_url: https://kacoze.github.io/avream/
+site_description: Android phone as webcam and microphone for Linux.
+repo_url: https://github.com/Kacoze/avream
+repo_name: Kacoze/avream
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Install and Upgrade: INSTALL.md
+  - User Guide: USER_GUIDE.md
+  - CLI Reference: CLI_README.md
+  - Troubleshooting: TROUBLESHOOTING.md
+  - FAQ: FAQ.md
+  - Supported Platforms: SUPPORTED_PLATFORMS.md
+  - API v1: API_V1.md
+  - Security Decisions: SECURITY_DECISIONS.md
+  - Release Docs:
+      - Release Checklist: RELEASE_CHECKLIST.md
+      - Release Template: RELEASE_TEMPLATE.md
+      - RC Drill: RC_DRILL.md
