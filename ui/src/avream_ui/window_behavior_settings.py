@@ -5,10 +5,18 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from gi.repository import Adw  # type: ignore[import-not-found]
+from gi.repository import Adw, Gdk, GLib  # type: ignore[import-not-found]
 
 
 class WindowSettingsMixin:
+    def _set_ui_settings_status(self, text: str) -> None:
+        value = str(text or "").strip() or "Auto-saved."
+        if hasattr(self, "ui_settings_status_row"):
+            self.ui_settings_status_row.set_subtitle(value)
+            return
+        if hasattr(self, "ui_settings_status_label"):
+            self.ui_settings_status_label.set_text(value)
+
     def _append_log(self, text: str) -> None:
         ts = datetime.utcnow().strftime("%H:%M:%S")
         line = f"[{ts}] {text}\n"
@@ -17,6 +25,10 @@ class WindowSettingsMixin:
         buf.insert(end_iter, line)
 
     def _on_close_request(self, _window) -> bool:
+        source_id = int(getattr(self, "_wifi_status_refresh_source_id", 0))
+        if source_id:
+            GLib.source_remove(source_id)
+            self._wifi_status_refresh_source_id = 0
         return False
 
     def _ui_settings_path(self) -> Path:
@@ -42,13 +54,12 @@ class WindowSettingsMixin:
                 json.dumps(self._saved_ui_settings, indent=2, sort_keys=True) + "\n",
                 encoding="utf-8",
             )
-            if hasattr(self, "ui_settings_status_label") and not self._ignore_settings_events:
+            if not self._ignore_settings_events:
                 ts = datetime.utcnow().strftime("%H:%M:%S")
-                self.ui_settings_status_label.set_text(f"UI settings saved at {ts}.")
+                self._set_ui_settings_status(f"Saved at {ts}.")
         except Exception as exc:
             self._append_log(f"UI settings save failed: {exc}")
-            if hasattr(self, "ui_settings_status_label"):
-                self.ui_settings_status_label.set_text(f"UI settings save failed: {exc}")
+            self._set_ui_settings_status(f"Save failed: {exc}")
 
     def _apply_default_ui_settings(self) -> None:
         self._ignore_settings_events = True
@@ -133,7 +144,7 @@ class WindowSettingsMixin:
         self._persist_current_ui_settings()
 
     def _on_wifi_endpoint_changed(self, *_args) -> None:
-        self._refresh_saved_wifi_endpoint_status()
+        self._schedule_saved_wifi_endpoint_status_refresh()
 
     @staticmethod
     def _normalize_wifi_endpoint(endpoint: str) -> str:
@@ -148,13 +159,36 @@ class WindowSettingsMixin:
         endpoint_raw = self.phone_wifi_endpoint_entry.get_text().strip()
         endpoint = self._normalize_wifi_endpoint(endpoint_raw)
         if not endpoint:
-            self.wifi_saved_status_label.set_text("Saved Wi-Fi endpoint: not set")
+            self.wifi_saved_status_label.set_text("Endpoint status: not set")
+            sync = getattr(self, "_sync_phone_connect_toggle_button", None)
+            if callable(sync):
+                sync()
             return
 
+        if self._wifi_status_refresh_inflight:
+            self._wifi_status_refresh_pending = True
+            return
+
+        self._wifi_status_refresh_inflight = True
+
         def done(resp: dict) -> bool:
+            self._wifi_status_refresh_inflight = False
+            current_raw = self.phone_wifi_endpoint_entry.get_text().strip()
+            current_endpoint = self._normalize_wifi_endpoint(current_raw)
+            if current_endpoint != endpoint:
+                self._wifi_status_refresh_pending = False
+                self._refresh_saved_wifi_endpoint_status()
+                return False
+
             body = resp.get("body", {}) if isinstance(resp, dict) else {}
             if not isinstance(body, dict) or not body.get("ok"):
-                self.wifi_saved_status_label.set_text(f"✗ {endpoint} (status unknown: daemon/device scan unavailable)")
+                self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} unavailable (scan/daemon error)")
+                sync = getattr(self, "_sync_phone_connect_toggle_button", None)
+                if callable(sync):
+                    sync()
+                if self._wifi_status_refresh_pending:
+                    self._wifi_status_refresh_pending = False
+                    self._refresh_saved_wifi_endpoint_status()
                 return False
 
             data = body.get("data", {}) if isinstance(body, dict) else {}
@@ -181,19 +215,62 @@ class WindowSettingsMixin:
                     break
 
             if matched_state == "device":
-                self.wifi_saved_status_label.set_text(f"✓ {endpoint} (connected)")
+                self.wifi_saved_status_label.set_text(f"Endpoint status: connected ({endpoint})")
+                sync = getattr(self, "_sync_phone_connect_toggle_button", None)
+                if callable(sync):
+                    sync()
+                if self._wifi_status_refresh_pending:
+                    self._wifi_status_refresh_pending = False
+                    self._refresh_saved_wifi_endpoint_status()
                 return False
             if isinstance(matched_state, str):
-                self.wifi_saved_status_label.set_text(f"✗ {endpoint} (state: {matched_state})")
+                self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} state={matched_state}")
+                sync = getattr(self, "_sync_phone_connect_toggle_button", None)
+                if callable(sync):
+                    sync()
+                if self._wifi_status_refresh_pending:
+                    self._wifi_status_refresh_pending = False
+                    self._refresh_saved_wifi_endpoint_status()
                 return False
-            self.wifi_saved_status_label.set_text(f"✗ {endpoint} (not found)")
+            self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} not found")
+            sync = getattr(self, "_sync_phone_connect_toggle_button", None)
+            if callable(sync):
+                sync()
+            if self._wifi_status_refresh_pending:
+                self._wifi_status_refresh_pending = False
+                self._refresh_saved_wifi_endpoint_status()
             return False
 
         self._call_async("GET", "/android/devices", None, done)
 
-    def _on_ui_settings_save(self, _btn) -> None:
-        self._persist_current_ui_settings()
-        self._append_log("UI settings saved.")
+    def _schedule_saved_wifi_endpoint_status_refresh(self, delay_ms: int = 250) -> None:
+        source_id = int(getattr(self, "_wifi_status_refresh_source_id", 0))
+        if source_id:
+            GLib.source_remove(source_id)
+
+        def run_refresh() -> bool:
+            self._wifi_status_refresh_source_id = 0
+            self._refresh_saved_wifi_endpoint_status()
+            return False
+
+        self._wifi_status_refresh_source_id = GLib.timeout_add(delay_ms, run_refresh)
+
+    def _on_copy_logs(self, _btn) -> None:
+        buf = self.log_view.get_buffer()
+        start = buf.get_start_iter()
+        end = buf.get_end_iter()
+        content = buf.get_text(start, end, False)
+        display = Gdk.Display.get_default()
+        if display is None:
+            self._show_error_dialog("Clipboard unavailable", "No active display. Could not copy logs.")
+            return
+        clipboard = display.get_clipboard()
+        clipboard.set(content)
+        self._append_log("Logs copied to clipboard.")
+
+    def _on_clear_logs(self, _btn) -> None:
+        buf = self.log_view.get_buffer()
+        buf.set_text("")
 
     def _on_ui_settings_reset(self, _btn) -> None:
         def do_reset() -> None:
@@ -203,11 +280,11 @@ class WindowSettingsMixin:
                     self._settings_path.unlink()
             except Exception as exc:
                 self._append_log(f"UI settings reset failed: {exc}")
-                self.ui_settings_status_label.set_text(f"UI settings reset failed: {exc}")
+                self._set_ui_settings_status(f"Reset failed: {exc}")
                 return
 
             self._apply_default_ui_settings()
-            self.ui_settings_status_label.set_text("Saved UI settings were reset to defaults.")
+            self._set_ui_settings_status("Saved settings were reset to defaults.")
             self._append_log("UI settings reset to defaults.")
 
         self._confirm(
@@ -244,12 +321,19 @@ class WindowSettingsMixin:
                     return
             row = row.get_next_sibling()
 
-    def _show_error_dialog(self, title: str, message: str) -> None:
+    def _show_error_dialog(self, title: str, message: str, action_label: str | None = None, action=None) -> None:
         dialog = Adw.MessageDialog.new(self, title, message)
         dialog.add_response("close", "Close")
+        if isinstance(action_label, str) and action_label.strip():
+            dialog.add_response("action", action_label.strip())
         dialog.set_default_response("close")
         dialog.set_close_response("close")
-        dialog.connect("response", lambda d, _r: d.close())
+        def on_response(d, resp_id: str) -> None:
+            d.close()
+            if resp_id == "action" and callable(action):
+                action()
+
+        dialog.connect("response", on_response)
         dialog.present()
 
     def _show_info_dialog(self, title: str, message: str) -> None:

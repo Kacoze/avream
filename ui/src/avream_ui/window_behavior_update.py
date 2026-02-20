@@ -96,7 +96,7 @@ class WindowUpdateMixin:
                 if code == "E_DAEMON_UNREACHABLE":
                     self._set_daemon_lock(True, "AVream cannot reach daemon socket. Enable service and retry.")
                     return False
-                self._show_error_dialog("Update check failed", f"{code}: {msg}")
+                self._show_error_dialog("Update check failed", f"{msg}\n\nError code: {code}")
                 self._append_log(f"Update check failed: {code}: {msg}")
                 self._refresh_status()
                 return False
@@ -161,4 +161,3 @@ class WindowUpdateMixin:
         self.preview_status_label.set_text(f"Preview window: {state}")
         self._append_log(f"Preview window mode set to {state}.")
         self._persist_current_ui_settings()
-

@@ -11,6 +11,58 @@ except Exception:
 
 
 class WindowCoreMixin:
+    @staticmethod
+    def _normalize_err_text(value: Any) -> str:
+        text = str(value or "").strip()
+        if not text:
+            return "Request failed."
+        # Avoid starting with raw code prefix if caller already passed it.
+        return text[0].upper() + text[1:]
+
+    def _format_api_error(self, *, code: str, msg: str, details: dict[str, Any]) -> tuple[str, str, str | None, Any]:
+        code_s = str(code or "E_UNKNOWN")
+        msg_s = self._normalize_err_text(msg)
+        hint = details.get("hint") if isinstance(details, dict) else None
+        extra = self._extract_error_extra(details if isinstance(details, dict) else {})
+
+        action_label: str | None = None
+        action = None
+
+        lower_msg = msg_s.lower()
+        title = "Request failed"
+        body = msg_s
+
+        # Common, high-friction case: phone not authorized/available.
+        if code_s == "E_BACKEND_FAILED" and ("no authorized android device" in lower_msg or "authorized android device" in lower_msg):
+            title = "No authorized phone"
+            body = (
+                "No authorized Android device is available.\n\n"
+                "What to do:\n"
+                "1. Open Devices and click Scan Phones.\n"
+                "2. Unlock the phone and accept the USB debugging prompt.\n"
+                "3. If you prefer Wi-Fi, connect an endpoint in Devices.\n"
+            )
+            action_label = "Open Devices"
+            action = lambda: self.workspace_stack.set_visible_child_name("devices")
+
+        elif code_s == "E_DAEMON_UNREACHABLE":
+            title = "Daemon unavailable"
+            body = (
+                "AVream cannot reach the daemon service for this user session.\n\n"
+                "What to do:\n"
+                "1. Click Enable AVream Service.\n"
+                "2. Then click Retry.\n"
+            )
+
+        if extra:
+            body = f"{body}\nDetails:\n{extra}"
+        if isinstance(hint, str) and hint.strip():
+            body = f"{body}\n\nHint:\n{hint.strip()}"
+
+        # Keep raw code for troubleshooting, but do not lead with it.
+        body = f"{body}\n\nError code: {code_s}"
+        return title, body, action_label, action
+
     def _call(self, method: str, path: str, payload: dict | None = None) -> dict:
         return self.services.call(method, path, payload)
 
@@ -24,28 +76,43 @@ class WindowCoreMixin:
             self.enable_service_btn.set_sensitive(not busy)
             self.retry_service_btn.set_sensitive(not busy)
             self.manual_service_btn.set_sensitive(True)
+            self._sync_stream_toggle_button()
             return
 
         for btn in (
             self.phone_scan_btn,
             self.phone_use_btn,
             self.phone_disconnect_btn,
-            self.phone_start_btn,
+            self.stream_toggle_btn,
             self.passwordless_status_btn,
             self.passwordless_enable_btn,
             self.passwordless_disable_btn,
-            self.ui_settings_save_btn,
             self.ui_settings_reset_btn,
             self.version_btn,
             self.open_cli_readme_btn,
-            self.video_stop_btn,
             self.video_reset_btn,
             self.refresh_btn,
+            self.copy_logs_btn,
+            self.clear_logs_btn,
         ):
             btn.set_sensitive(not busy)
         self.camera_facing_dropdown.set_sensitive(not busy)
         self.camera_rotation_dropdown.set_sensitive((not busy) and (not self._video_running))
         self.preview_window_switch.set_sensitive((not busy) and (not self._video_running))
+        self._sync_stream_toggle_button()
+
+    def _sync_stream_toggle_button(self) -> None:
+        if self._video_running:
+            self.stream_toggle_btn.set_label("Stop Camera")
+            self.stream_toggle_btn.set_tooltip_text("Stop currently running camera stream.")
+            self.stream_toggle_btn.add_css_class("destructive-action")
+            self.stream_toggle_btn.remove_css_class("suggested-action")
+        else:
+            self.stream_toggle_btn.set_label("Start Camera")
+            self.stream_toggle_btn.set_tooltip_text("Start camera stream from selected device.")
+            self.stream_toggle_btn.remove_css_class("destructive-action")
+            self.stream_toggle_btn.add_css_class("suggested-action")
+        self.stream_toggle_btn.set_sensitive((not self._busy) and (not self._daemon_locked))
 
     def _after_action(self, result: dict) -> bool:
         body = result.get("body", {})
@@ -54,21 +121,19 @@ class WindowCoreMixin:
             code = err.get("code", "E_UNKNOWN")
             msg = err.get("message", "request failed")
             details = err.get("details", {}) if isinstance(err, dict) else {}
-            hint = details.get("hint") if isinstance(details, dict) else None
-            composed = f"{code}: {msg}"
-            extra = self._extract_error_extra(details)
-            if extra:
-                composed += f"\n{extra}"
-            if hint:
-                composed += f"\nHint: {hint}"
-            self._append_log(f"Error: {composed}")
+            title, message, action_label, action = self._format_api_error(
+                code=str(code),
+                msg=str(msg),
+                details=details if isinstance(details, dict) else {},
+            )
+            self._append_log(f"Error: {code}: {msg}")
             if code == "E_DAEMON_UNREACHABLE":
                 self._set_daemon_lock(
                     True,
                     "AVream cannot reach daemon socket. Enable service and retry.",
                 )
             else:
-                self._show_error_dialog("AVream request failed", composed)
+                self._show_error_dialog(title, message, action_label, action)
         else:
             success = self._describe_success(result)
             if success:
@@ -194,8 +259,18 @@ class WindowCoreMixin:
         return ""
 
     def _refresh_status(self) -> None:
+        if self._status_refresh_inflight:
+            self._status_refresh_pending = True
+            return
+
+        self._status_refresh_inflight = True
+
         def done(resp: dict) -> bool:
+            self._status_refresh_inflight = False
             self._apply_status_response(resp)
+            if self._status_refresh_pending:
+                self._status_refresh_pending = False
+                self._refresh_status()
             return False
 
         self._call_async("GET", "/status", None, done)
@@ -207,15 +282,22 @@ class WindowCoreMixin:
             code = err.get("code", "E_UNKNOWN")
             msg = err.get("message", "unknown error")
             if code == "E_DAEMON_UNREACHABLE":
+                self._video_running = False
                 self._set_daemon_lock(
                     True,
                     "AVream daemon service is not active for this user session.",
                 )
                 self.status_label.set_text("Status: daemon unavailable")
+                if hasattr(self, "stream_source_label"):
+                    self.stream_source_label.set_text("Active source: unavailable (daemon offline)")
                 return
 
+            self._video_running = False
             self._set_daemon_lock(False)
             self.status_label.set_text(f"Status error: {code}: {msg}")
+            if hasattr(self, "stream_source_label"):
+                self.stream_source_label.set_text("Active source: unknown")
+            self._sync_stream_toggle_button()
             return
 
         self._set_daemon_lock(False)
@@ -227,8 +309,9 @@ class WindowCoreMixin:
         update_rt = data.get("update_runtime", {}) if isinstance(data, dict) else {}
         video_state = video_rt.get("state", "unknown") if isinstance(video_rt, dict) else "unknown"
         audio_state = audio_rt.get("state", "unknown") if isinstance(audio_rt, dict) else "unknown"
-        self.status_label.set_text(f"Camera: {video_state} | Microphone: {audio_state}")
+        self.status_label.set_text(f"Camera: {video_state}  •  Microphone: {audio_state}")
         self._video_running = video_state == "RUNNING"
+        self._sync_stream_toggle_button()
 
         if isinstance(update_rt, dict):
             current = str(update_rt.get("current_version", "unknown"))
@@ -244,11 +327,21 @@ class WindowCoreMixin:
         active_source = video_rt.get("active_source", {}) if isinstance(video_rt, dict) else {}
         preview_window = False
         active_rotation = None
+        source_desc = "not selected"
         if isinstance(active_source, dict):
             preview_window = bool(active_source.get("preview_window", False))
             rotation_val = active_source.get("camera_rotation")
             if isinstance(rotation_val, int):
                 active_rotation = rotation_val
+            serial = active_source.get("serial")
+            transport = active_source.get("transport")
+            if isinstance(serial, str) and serial:
+                if isinstance(transport, str) and transport:
+                    source_desc = f"{serial} ({transport})"
+                else:
+                    source_desc = serial
+        if hasattr(self, "stream_source_label"):
+            self.stream_source_label.set_text(f"Active source: {source_desc}")
 
         if active_rotation in {0, 90, 180, 270}:
             idx = {0: 0, 90: 1, 180: 2, 270: 3}[active_rotation]

@@ -98,6 +98,12 @@ class WindowServiceMixin:
     def _on_refresh(self, _btn) -> None:
         self._refresh_status()
 
+    def _on_stream_toggle(self, _btn) -> None:
+        if self._video_running:
+            self._on_video_stop(_btn)
+            return
+        self._on_phone_start(_btn)
+
     def _on_video_stop(self, _btn) -> None:
         self._set_busy(True)
         self.progress_label.set_text("Stopping camera...")

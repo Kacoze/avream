@@ -6,6 +6,14 @@ import shutil
 
 
 class WindowPasswordlessMixin:
+    def _set_passwordless_status(self, text: str) -> None:
+        value = str(text or "").strip() or "Status: unknown"
+        if hasattr(self, "passwordless_status_row"):
+            self.passwordless_status_row.set_subtitle(value)
+            return
+        if hasattr(self, "passwordless_status_label"):
+            self.passwordless_status_label.set_text(value)
+
     def _passwordless_tool(self) -> str | None:
         env_path = os.getenv("AVREAM_PASSWORDLESS_TOOL")
         if env_path and os.path.isfile(env_path) and os.access(env_path, os.X_OK):
@@ -30,12 +38,12 @@ class WindowPasswordlessMixin:
     def _refresh_passwordless_status(self) -> None:
         tool = self._passwordless_tool()
         if not tool:
-            self.passwordless_status_label.set_text("Passwordless setup tool is not installed.")
+            self._set_passwordless_status("Passwordless setup tool is not installed.")
             self._append_log("passwordless status: tool not found")
             return
         user = self._username()
         if not user:
-            self.passwordless_status_label.set_text("Cannot detect current username.")
+            self._set_passwordless_status("Cannot detect current username.")
             self._append_log("passwordless status: username missing")
             return
 
@@ -46,14 +54,14 @@ class WindowPasswordlessMixin:
             self.progress_label.set_text("")
             if not result.get("ok"):
                 stderr = str(result.get("stderr", "")).strip() or "status command failed"
-                self.passwordless_status_label.set_text(f"Passwordless status error: {stderr}")
+                self._set_passwordless_status(f"Passwordless status error: {stderr}")
                 self._append_log(f"passwordless status failed: {stderr}")
                 self._show_error_dialog("Passwordless status failed", stderr)
                 return False
             try:
                 payload = json.loads(str(result.get("stdout", "{}")))
             except Exception:
-                self.passwordless_status_label.set_text("Passwordless status parse error.")
+                self._set_passwordless_status("Passwordless status parse error.")
                 self._append_log("passwordless status parse error")
                 self._show_error_dialog("Passwordless status failed", "Could not parse status output.")
                 return False
@@ -71,15 +79,15 @@ class WindowPasswordlessMixin:
                         runner = str(helper.get("effective_runner", "unknown"))
 
                 if enabled and runner == "pkexec":
-                    self.passwordless_status_label.set_text("Passwordless helper actions are enabled (runner: pkexec).")
+                    self._set_passwordless_status("Passwordless helper actions are enabled (runner: pkexec).")
                     self._append_log("passwordless status: enabled, runner=pkexec")
                 elif enabled and runner != "pkexec":
-                    self.passwordless_status_label.set_text(
+                    self._set_passwordless_status(
                         f"Passwordless is enabled but daemon runner is '{runner}'. Set AVREAM_HELPER_MODE=pkexec and restart avreamd."
                     )
                     self._append_log(f"passwordless status: enabled but runner={runner}")
                 else:
-                    self.passwordless_status_label.set_text("Passwordless helper actions are disabled.")
+                    self._set_passwordless_status("Passwordless helper actions are disabled.")
                     self._append_log("passwordless status: disabled")
                 return False
 

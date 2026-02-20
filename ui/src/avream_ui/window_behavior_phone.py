@@ -11,14 +11,72 @@ from gi.repository import Gtk  # type: ignore[import-not-found]
 
 
 class WindowPhoneMixin:
+    @staticmethod
+    def _wifi_status_connected(status_text: str) -> bool:
+        normalized = str(status_text or "").strip().lower()
+        return normalized.startswith("endpoint status: connected")
+
+    def _sync_phone_connect_toggle_button(self) -> None:
+        mode = self._selected_connection_mode()
+        endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
+        wifi_label = self.wifi_saved_status_label.get_text().strip()
+        wifi_connected = self._wifi_status_connected(wifi_label)
+
+        if mode == "wifi":
+            if endpoint and wifi_connected:
+                self.phone_connect_toggle_btn.set_label("Disconnect")
+                self.phone_connect_toggle_btn.set_tooltip_text("Disconnect Wi-Fi endpoint from AVream session.")
+            else:
+                self.phone_connect_toggle_btn.set_label("Connect")
+                self.phone_connect_toggle_btn.set_tooltip_text("Connect selected Wi-Fi device or manual endpoint.")
+            return
+
+        # USB mode: "connect" really means "use selected phone"; keep wording clear.
+        if self._selected_phone:
+            self.phone_connect_toggle_btn.set_label("Disconnect")
+            self.phone_connect_toggle_btn.set_tooltip_text("Stop stream and disconnect selected phone from AVream session.")
+        else:
+            self.phone_connect_toggle_btn.set_label("Connect")
+            self.phone_connect_toggle_btn.set_tooltip_text("Mark selected USB phone as active for streaming.")
+
+    def _on_phone_connect_toggle(self, _btn) -> None:
+        mode = self._selected_connection_mode()
+        endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
+        wifi_label = self.wifi_saved_status_label.get_text().strip()
+        wifi_connected = self._wifi_status_connected(wifi_label)
+
+        if mode == "wifi":
+            # Prefer disconnect when we know it's connected, or when user has an endpoint and wants to stop it.
+            if endpoint and wifi_connected:
+                self._on_phone_disconnect_selected(_btn)
+                return
+            self._on_phone_use_selected(_btn)
+            return
+
+        # USB mode: if a phone is selected, "Disconnect" is meaningful (stops stream first).
+        if self._selected_phone:
+            self._on_phone_disconnect_selected(_btn)
+            return
+        self._on_phone_use_selected(_btn)
+
     def _on_phone_scan(self, _btn) -> None:
+        if self._devices_scan_inflight:
+            self._devices_scan_pending = True
+            self.progress_label.set_text("Scanning devices...")
+            return
+
+        self._devices_scan_inflight = True
         self.progress_label.set_text("Scanning devices...")
 
         def done(resp: dict) -> bool:
+            self._devices_scan_inflight = False
             body = resp.get("body", {})
             if not body.get("ok"):
                 self.progress_label.set_text("")
                 self._after_action(resp)
+                if self._devices_scan_pending:
+                    self._devices_scan_pending = False
+                    self._on_phone_scan(None)
                 return False
 
             data = body.get("data", {}) if isinstance(body, dict) else {}
@@ -37,6 +95,10 @@ class WindowPhoneMixin:
             self.progress_label.set_text("")
             self._append_log(f"Device scan complete: {len(devices)} device(s) found.")
             self._refresh_saved_wifi_endpoint_status()
+            self._sync_phone_connect_toggle_button()
+            if self._devices_scan_pending:
+                self._devices_scan_pending = False
+                self._on_phone_scan(None)
             return False
 
         self._call_async("GET", "/android/devices", None, done)
@@ -50,10 +112,11 @@ class WindowPhoneMixin:
         self._listbox_clear(self.phone_list)
         self._selected_phone = None
         self._apply_mode_from_available_transports(available_transports)
+        self._sync_phone_connect_toggle_button()
         if not devices:
-            self.phone_status_label.set_text("No phones detected. Plug USB cable, enable USB debugging, and unlock phone.")
+            self.phone_status_label.set_text("No phones detected. Connect USB phone and click Scan.")
             return
-        self.phone_status_label.set_text("Select your phone (USB or Wi-Fi). If unauthorized, unlock and accept the USB debugging prompt.")
+        self.phone_status_label.set_text("Select a phone to connect (USB or Wi-Fi).")
 
         selected_row: Gtk.ListBoxRow | None = None
         for d in devices:
@@ -132,18 +195,31 @@ class WindowPhoneMixin:
     def _on_phone_selected(self, _lb, row) -> None:
         if row is None:
             self._selected_phone = None
+            if hasattr(self, "stream_source_label"):
+                self.stream_source_label.set_text("Active source: not selected")
+            self._sync_phone_connect_toggle_button()
             return
         phone = getattr(row, "_avream_phone", None)
         if not isinstance(phone, dict):
             self._selected_phone = None
+            if hasattr(self, "stream_source_label"):
+                self.stream_source_label.set_text("Active source: not selected")
+            self._sync_phone_connect_toggle_button()
             return
         selected = SelectedPhone.from_payload(phone)
         if not selected.serial:
             self._selected_phone = None
+            if hasattr(self, "stream_source_label"):
+                self.stream_source_label.set_text("Active source: not selected")
+            self._sync_phone_connect_toggle_button()
             return
         self._selected_phone = selected.as_dict()
+        if hasattr(self, "stream_source_label"):
+            mode = self._selected_connection_mode()
+            self.stream_source_label.set_text(f"Active source: {selected.serial} ({mode})")
 
         self._apply_mode_from_selected_phone()
+        self._sync_phone_connect_toggle_button()
         selected = self._selected_phone
         if not isinstance(selected, dict):
             return
@@ -158,7 +234,7 @@ class WindowPhoneMixin:
                 t_label = ",".join(str(t) for t in transports)
             else:
                 t_label = str(selected.get("transport") or "unknown")
-            self.phone_status_label.set_text(f"Phone is ready ({t_label}). Click 'Start Camera' or choose another row.")
+            self.phone_status_label.set_text(f"Phone is ready ({t_label}). Click Connect.")
 
         self._persist_current_ui_settings()
 
@@ -210,7 +286,7 @@ class WindowPhoneMixin:
                             if isinstance(endpoint, str) and endpoint:
                                 self.phone_wifi_endpoint_entry.set_text(endpoint)
                                 self.phone_status_label.set_text(
-                                    f"Wi-Fi phone selected: {endpoint}. Click 'Start Camera' to begin streaming."
+                                    f"Wi-Fi device connected: {endpoint}. Open Stream tab to start camera."
                                 )
                                 self._persist_current_ui_settings()
                             self._after_action(resp)
@@ -228,7 +304,7 @@ class WindowPhoneMixin:
                                 if isinstance(endpoint2, str) and endpoint2:
                                     self.phone_wifi_endpoint_entry.set_text(endpoint2)
                                     self.phone_status_label.set_text(
-                                        f"Wi-Fi ready: {endpoint2}. You can disconnect USB and start camera."
+                                        f"Wi-Fi ready: {endpoint2}. You can disconnect USB and start camera in Stream."
                                     )
                                     self._persist_current_ui_settings()
                             self._after_action(resp2)
@@ -256,7 +332,7 @@ class WindowPhoneMixin:
                         if isinstance(endpoint, str) and endpoint:
                             self.phone_wifi_endpoint_entry.set_text(endpoint)
                             self.phone_status_label.set_text(
-                                f"Wi-Fi ready: {endpoint}. You can disconnect USB and start camera."
+                                f"Wi-Fi ready: {endpoint}. You can disconnect USB and start camera in Stream."
                             )
                             self._persist_current_ui_settings()
                     self._after_action(resp)
@@ -276,7 +352,7 @@ class WindowPhoneMixin:
                     if isinstance(endpoint, str) and endpoint:
                         self.phone_wifi_endpoint_entry.set_text(endpoint)
                         self.phone_status_label.set_text(
-                            f"Wi-Fi phone selected: {endpoint}. Click 'Start Camera' to begin streaming."
+                            f"Wi-Fi device connected: {endpoint}. Open Stream tab to start camera."
                         )
                         self._persist_current_ui_settings()
                 self._after_action(resp)
@@ -292,7 +368,7 @@ class WindowPhoneMixin:
                 "Selected phone is Wi-Fi. Either switch connection mode to Wi-Fi or select a USB device.",
             )
             return
-        self.phone_status_label.set_text("Phone selected. Click 'Start Camera' to begin streaming.")
+        self.phone_status_label.set_text("Phone selected and connected. Open Stream tab to start camera.")
         self._persist_current_ui_settings()
 
     def _on_phone_start(self, _btn) -> None:
@@ -388,14 +464,17 @@ class WindowPhoneMixin:
         if transports == {"usb"}:
             self.connection_mode_dropdown.set_selected(1)
             self.connection_mode_dropdown.set_sensitive(True)
+            self._sync_phone_connect_toggle_button()
             return
         if transports == {"wifi"}:
             self.connection_mode_dropdown.set_selected(1)
             self.connection_mode_dropdown.set_sensitive(False)
+            self._sync_phone_connect_toggle_button()
             return
         if transports == {"usb", "wifi"}:
             self.connection_mode_dropdown.set_selected(1)
         self.connection_mode_dropdown.set_sensitive(len(transports) > 1)
+        self._sync_phone_connect_toggle_button()
 
     def _apply_mode_from_selected_phone(self) -> None:
         if not self._selected_phone:
@@ -413,6 +492,7 @@ class WindowPhoneMixin:
         elif available == {"usb", "wifi"}:
             self.connection_mode_dropdown.set_selected(1)
             self.connection_mode_dropdown.set_sensitive(True)
+        self._sync_phone_connect_toggle_button()
     def _listbox_clear(self, lb: Gtk.ListBox) -> None:
         row = lb.get_first_child()
         while row is not None:
