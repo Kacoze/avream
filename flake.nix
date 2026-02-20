@@ -12,9 +12,7 @@
       packages = forAllSystems (system:
         let
           pkgs = import nixpkgs { inherit system; };
-          python = pkgs.python3;
-          pyDeps = with pkgs.python3Packages; [ aiohttp pygobject3 ];
-          pyDepPath = lib.makeSearchPath "lib/${python.libPrefix}/site-packages" pyDeps;
+          pythonEnv = pkgs.python3.withPackages (ps: with ps; [ aiohttp pygobject3 ]);
           version = lib.strings.removeSuffix "\n" (builtins.readFile ./src/avreamd/VERSION);
           helper = pkgs.rustPlatform.buildRustPackage {
             pname = "avream-helper";
@@ -29,7 +27,7 @@
             src = ./.;
 
             nativeBuildInputs = [ pkgs.makeWrapper ];
-            buildInputs = [ python pkgs.gtk4 pkgs.libadwaita pkgs.polkit ] ++ pyDeps;
+            buildInputs = [ pythonEnv pkgs.gtk4 pkgs.libadwaita pkgs.polkit ];
 
             dontConfigure = true;
 
@@ -57,16 +55,16 @@
               cp -r src/avreamd $out/lib/avream/python/
               cp -r ui/src/avream_ui $out/lib/avream/python/
 
-              makeWrapper ${python}/bin/python3 $out/bin/avreamd \
-                --set PYTHONPATH "$out/lib/avream/python:${pyDepPath}" \
+              makeWrapper ${pythonEnv}/bin/python3 $out/bin/avreamd \
+                --set PYTHONPATH "$out/lib/avream/python" \
                 --add-flags "-m" --add-flags "avreamd.main"
 
-              makeWrapper ${python}/bin/python3 $out/bin/avream \
-                --set PYTHONPATH "$out/lib/avream/python:${pyDepPath}" \
+              makeWrapper ${pythonEnv}/bin/python3 $out/bin/avream \
+                --set PYTHONPATH "$out/lib/avream/python" \
                 --add-flags "-m" --add-flags "avreamd.cli"
 
-              makeWrapper ${python}/bin/python3 $out/bin/avream-ui \
-                --set PYTHONPATH "$out/lib/avream/python:${pyDepPath}" \
+              makeWrapper ${pythonEnv}/bin/python3 $out/bin/avream-ui \
+                --set PYTHONPATH "$out/lib/avream/python" \
                 --add-flags "-m" --add-flags "avream_ui.main"
 
               runHook postInstall

@@ -229,7 +229,7 @@ jobs:
                 ;;
               *)
                 zypper --non-interactive install python3-aiohttp || true
-                zypper --non-interactive install /dist/'"$rpm_file"'
+                zypper --non-interactive --no-gpg-checks install /dist/'"$rpm_file"'
                 ;;
             esac
             avreamd --help >/dev/null
@@ -241,9 +241,9 @@ jobs:
                 dnf install -y /dist/'"$rpm_file"'
                 ;;
               *)
-                zypper --non-interactive install /dist/'"$rpm_file"'
+                zypper --non-interactive --no-gpg-checks install /dist/'"$rpm_file"'
                 zypper --non-interactive remove avream || true
-                zypper --non-interactive install /dist/'"$rpm_file"'
+                zypper --non-interactive --no-gpg-checks install /dist/'"$rpm_file"'
                 ;;
             esac
             avream --help >/dev/null
