@@ -50,9 +50,15 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Determine CI package version
+        id: meta
+        run: |
+          base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+          echo "version=${base}~ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
       - name: Build .deb package
         run: |
-          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb.sh
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb.sh
 
       - name: Validate installer scripts
         run: |
@@ -69,12 +75,12 @@ jobs:
 
       - name: Sanity check .deb package
         run: |
-          bash scripts/check-deb-artifact.sh "dist/avream_1.0.0~ci.${GITHUB_RUN_NUMBER}_amd64.deb"
+          bash scripts/check-deb-artifact.sh "dist/avream_${{ steps.meta.outputs.version }}_amd64.deb"
 
       - name: Install .deb and run runtime smoke
         run: |
           sudo apt-get update
-          sudo apt-get install -y ./dist/avream_1.0.0~ci.${GITHUB_RUN_NUMBER}_amd64.deb curl
+          sudo apt-get install -y ./dist/avream_${{ steps.meta.outputs.version }}_amd64.deb curl
           avreamd --help
           avream-ui --help
           mkdir -p /tmp/avream-smoke
@@ -94,7 +100,7 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v6
         with:
-          name: avream-deb-smoke-1.0.0~ci.${{ github.run_number }}
+          name: avream-deb-smoke-${{ steps.meta.outputs.version }}
           path: dist/*.deb
           if-no-files-found: error
 
@@ -109,15 +115,21 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Determine CI package version
+        id: meta
+        run: |
+          base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+          echo "version=${base}~ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
       - name: Build split .deb packages
         run: |
-          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb-split.sh
-          bash scripts/check-deb-split-artifacts.sh dist "1.0.0~ci.${GITHUB_RUN_NUMBER}"
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb-split.sh
+          bash scripts/check-deb-split-artifacts.sh dist '${{ steps.meta.outputs.version }}'
 
       - name: Install package set in container
         run: |
           image="${{ matrix.image }}"
-          ver="1.0.0~ci.${GITHUB_RUN_NUMBER}"
+          ver='${{ steps.meta.outputs.version }}'
           docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc "apt-get update && apt-get install -y curl ca-certificates && apt-get install -y /dist/avream-daemon_${ver}_amd64.deb /dist/avream-ui_${ver}_amd64.deb /dist/avream-helper_${ver}_amd64.deb && avreamd --help && avream-ui --help"
 
   split-upgrade-smoke:
@@ -127,14 +139,20 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Determine CI package version
+        id: meta
+        run: |
+          base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+          echo "version=${base}~ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
       - name: Build monolithic and split packages
         run: |
-          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb.sh
-          AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb-split.sh
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb.sh
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb-split.sh
 
       - name: Validate split upgrade path
         run: |
-          bash scripts/test-split-upgrade.sh dist "1.0.0~ci.${GITHUB_RUN_NUMBER}"
+          bash scripts/test-split-upgrade.sh dist '${{ steps.meta.outputs.version }}'
 
   rust-helper:
     runs-on: ubuntu-latest

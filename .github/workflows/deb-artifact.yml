@@ -21,7 +21,8 @@ jobs:
           if [[ "$ref" == v* ]]; then
             ver="${ref#v}"
           else
-            ver="1.0.0~ci.${GITHUB_RUN_NUMBER}"
+            base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+            ver="${base}~ci.${GITHUB_RUN_NUMBER}"
           fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"
 

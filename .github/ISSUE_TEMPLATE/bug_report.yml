@@ -11,7 +11,7 @@ body:
     attributes:
       label: AVream version
       description: Output of `avream --version` and app version shown in footer.
-      placeholder: 1.0.3
+      placeholder: X.Y.Z
     validations:
       required: true
   - type: input

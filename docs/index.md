@@ -36,7 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.
 Install specific version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | AVREAM_VERSION=1.0.4 bash
+curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | AVREAM_VERSION=<version> bash
 ```
 
 Launch:
