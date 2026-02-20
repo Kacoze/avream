@@ -1,0 +1,70 @@
+name: Bug report
+about: Report a reproducible problem in AVream
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please provide concrete steps and environment details.
+  - type: input
+    id: version
+    attributes:
+      label: AVream version
+      description: Output of `avream --version` and app version shown in footer.
+      placeholder: 1.0.3
+    validations:
+      required: true
+  - type: input
+    id: distro
+    attributes:
+      label: Linux distribution
+      description: Include version (e.g. Ubuntu 24.04, Debian 12).
+      placeholder: Ubuntu 24.04
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Install method
+      options:
+        - One-liner script
+        - .deb from Releases
+        - APT repository
+        - Built from source
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps, minimal and deterministic.
+      placeholder: |
+        1. Open AVream
+        2. Go to Devices
+        3. Click Connect
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste output from diagnostics or terminal logs.
+      render: shell
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra context
+      description: Optional screenshots, hardware details, or temporary workaround.

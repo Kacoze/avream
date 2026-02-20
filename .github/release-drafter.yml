@@ -1,0 +1,35 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+change-template: "- $TITLE (#$NUMBER)"
+no-changes-template: "- No user-facing changes in this cycle."
+categories:
+  - title: "User Experience"
+    labels: ["ui", "ux"]
+  - title: "Devices & Streaming"
+    labels: ["devices", "stream", "backend"]
+  - title: "Packaging & Release"
+    labels: ["packaging", "release"]
+  - title: "Documentation"
+    labels: ["documentation"]
+  - title: "Maintenance"
+    labels: ["chore", "dependencies"]
+version-resolver:
+  major:
+    labels: ["major"]
+  minor:
+    labels: ["minor"]
+  patch:
+    labels: ["patch", "bug", "enhancement"]
+  default: patch
+template: |
+  ## What's changed
+
+  $CHANGES
+
+  ## Install
+
+  Latest one-liner:
+
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | bash
+  ```

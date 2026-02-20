@@ -3,6 +3,12 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (without v prefix), e.g. 1.0.4"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -18,8 +24,16 @@ jobs:
       - name: Determine package version from tag
         id: meta
         run: |
-          ref="${GITHUB_REF_NAME}"
-          ver="${ref#v}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            ver="${{ github.event.inputs.version }}"
+          else
+            ref="${GITHUB_REF_NAME}"
+            ver="${ref#v}"
+          fi
+          if ! [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version format: $ver" >&2
+            exit 1
+          fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"
 
       - name: Build package

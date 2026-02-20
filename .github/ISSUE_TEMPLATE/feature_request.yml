@@ -1,0 +1,37 @@
+name: Feature request
+about: Suggest an improvement for AVream users
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Focus on user impact, not implementation details.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe how the feature should work from user perspective.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - UI/UX
+        - Devices/connection
+        - Streaming quality
+        - Install/update
+        - CLI/automation
+        - Diagnostics
+        - Documentation
+        - Other
+    validations:
+      required: true
