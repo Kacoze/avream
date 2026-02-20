@@ -23,25 +23,25 @@ Turn your Android phone into a Linux virtual camera and microphone for real meet
 - OBS Studio
 - Other apps that support Linux V4L2 camera and Pulse/PipeWire microphone devices
 
-## Quickstart (Recommended)
+## Quickstart (One-liner)
 
-1. Download the latest monolithic package from Releases and install it:
+Install latest AVream:
 
 ```bash
-sudo apt install ./avream_<version>_amd64.deb
+curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | bash
 ```
 
-2. Launch AVream GUI:
+Install specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | AVREAM_VERSION=1.0.4 bash
+```
+
+Launch:
 
 ```bash
 avream-ui
 ```
-
-3. On first launch, if daemon lock screen appears, click `Enable AVream Service`.
-4. Connect phone with USB, unlock it, and accept USB debugging authorization.
-5. Click `Scan Phones`, select your device, then click `Use Selected Phone`.
-6. Click `Start Camera`.
-7. In your conferencing app, choose `AVream Camera` (and optionally `AVream Mic`).
 
 ## CLI Quickstart
 
@@ -56,7 +56,9 @@ Full command reference: [CLI Reference](CLI_README.md).
 
 ## Install Options
 
-- Recommended: `avream_<version>_amd64.deb` (single package).
+- Recommended: one-liner installer (`scripts/install.sh`).
+- APT repository install (`apt install avream`) when available.
+- Manual monolithic package: `avream_<version>_amd64.deb`.
 - Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz`.
 
 Full guide: [Install and Upgrade](INSTALL.md).

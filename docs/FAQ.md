@@ -2,7 +2,7 @@
 
 ## How do I use my Android phone as a webcam on Linux?
 
-Install AVream `.deb`, enable `avreamd` user service, connect phone with USB debugging enabled, then in AVream click `Scan Phones` -> `Use Selected Phone` -> `Start Camera`.
+Run one-liner installer (`curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | bash`), connect phone with USB debugging enabled, then in AVream click `Scan Phones` -> `Connect` -> `Start Camera`.
 
 ## How do I use Android phone microphone on Linux?
 

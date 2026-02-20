@@ -54,6 +54,19 @@ jobs:
         run: |
           AVREAM_VERSION="1.0.0~ci.${GITHUB_RUN_NUMBER}" bash scripts/build-deb.sh
 
+      - name: Validate installer scripts
+        run: |
+          bash -n scripts/install.sh
+          bash -n scripts/uninstall.sh
+          bash -n scripts/doctor.sh
+          bash -n scripts/build-apt-repo.sh
+
+      - name: Build APT repository structure
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-utils
+          bash scripts/build-apt-repo.sh dist dist/apt-ci
+
       - name: Sanity check .deb package
         run: |
           bash scripts/check-deb-artifact.sh "dist/avream_1.0.0~ci.${GITHUB_RUN_NUMBER}_amd64.deb"

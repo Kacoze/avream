@@ -30,3 +30,8 @@ Use this checklist before cutting a stable tag.
 - `.deb` contains daemon, UI, helper, desktop entry, metainfo, icon, policy.
 - Release notes include upgrade notes for removed API endpoints.
 - SHA256 checksum file is generated and published with release assets.
+- `scripts/install.sh` one-liner path validated on clean host.
+- APT repository metadata generated (`Packages`, `Release`, `InRelease`).
+- APT signing secrets configured in GitHub Actions:
+  - `AVREAM_APT_GPG_PRIVATE_KEY`
+  - `AVREAM_APT_GPG_PASSPHRASE`

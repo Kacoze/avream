@@ -39,7 +39,7 @@ adb devices
 
 ## Wi-Fi setup/connect fails
 
-- Select USB phone, switch mode to **Wi-Fi**, then click **Use Selected Phone**.
+- Select USB phone, switch mode to **Wi-Fi**, then click **Connect**.
 - Ensure phone and computer are on the same local network.
 - Verify endpoint manually:
 
@@ -48,7 +48,7 @@ adb connect <IP>:5555
 adb devices
 ```
 
-- If endpoint changed (DHCP), reconnect using **Use Selected Phone** in Wi-Fi mode or run `avream wifi setup` again.
+- If endpoint changed (DHCP), reconnect using **Connect** in Wi-Fi mode or run `avream wifi setup` again.
 
 CLI fallback:
 

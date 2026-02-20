@@ -98,3 +98,53 @@ jobs:
             dist/*.md
             dist/SHA256SUMS.txt
           body_path: dist/RELEASE_NOTES.md
+
+      - name: Build APT repository
+        if: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY != '' && secrets.AVREAM_APT_GPG_PASSPHRASE != '' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-utils gnupg
+          bash scripts/build-apt-repo.sh dist dist/apt
+
+      - name: Sign APT repository metadata
+        if: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY != '' && secrets.AVREAM_APT_GPG_PASSPHRASE != '' }}
+        env:
+          AVREAM_APT_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY }}
+          AVREAM_APT_GPG_PASSPHRASE: ${{ secrets.AVREAM_APT_GPG_PASSPHRASE }}
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          printf '%s' "$AVREAM_APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          key_fpr="$(gpg --batch --with-colons --list-secret-keys | awk -F: '/^fpr:/ {print $10; exit}')"
+          if [ -z "$key_fpr" ]; then
+            echo "Could not import APT signing key." >&2
+            exit 1
+          fi
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase "$AVREAM_APT_GPG_PASSPHRASE" \
+            --default-key "$key_fpr" \
+            --detach-sign \
+            -o dist/apt/dists/stable/Release.gpg \
+            dist/apt/dists/stable/Release
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase "$AVREAM_APT_GPG_PASSPHRASE" \
+            --default-key "$key_fpr" \
+            --clearsign \
+            -o dist/apt/dists/stable/InRelease \
+            dist/apt/dists/stable/Release
+          gpg --batch --yes --output dist/apt/avream-archive-keyring.gpg --export "$key_fpr"
+          cat > dist/apt/README.txt <<'EOF'
+          AVream APT repository branch content.
+          Add this source on Debian/Ubuntu:
+            deb [arch=amd64 signed-by=/usr/share/keyrings/avream-archive-keyring.gpg] https://raw.githubusercontent.com/Kacoze/avream/apt-repo/apt stable main
+          EOF
+
+      - name: Publish APT repository branch
+        if: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY != '' && secrets.AVREAM_APT_GPG_PASSPHRASE != '' }}
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist/apt
+          publish_branch: apt-repo
+          destination_dir: apt
+          keep_files: false

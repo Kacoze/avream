@@ -4,13 +4,15 @@ This guide covers the stable AVream flow for using an Android phone as webcam an
 
 ## 1) Install
 
-Install the `.deb` package:
+Install AVream (recommended):
 
 ```bash
-sudo apt install ./avream_<version>_amd64.deb
+curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | bash
 ```
 
 ## 2) Enable daemon service (one-time)
+
+If one-liner could not enable service automatically, run:
 
 ```bash
 mkdir -p ~/.config/avream
@@ -26,7 +28,7 @@ systemctl --user enable --now avreamd.service
 3. Open AVream.
 4. If daemon lock screen appears, click **Enable AVream Service**.
 5. Click **Scan Phones**.
-6. Select the phone and click **Use Selected Phone**.
+6. Select the phone and click **Connect**.
 7. Choose **Camera lens**: Front or Back.
 8. Optional: choose **Rotation** (0/90/180/270).
 9. Optional: enable **Preview window** if you want a separate AVream preview window.
@@ -49,10 +51,10 @@ AVream starts virtual microphone automatically when camera starts.
 ## 5) Optional: Wi-Fi mode
 
 1. Select a USB-connected phone.
-2. In **Connection mode**, choose **Wi-Fi** and click **Use Selected Phone** (AVream enables tcpip, detects phone IP, and connects).
+2. In **Connection mode**, choose **Wi-Fi** and click **Connect** (AVream enables tcpip, detects phone IP, and connects).
 3. Wait for endpoint to appear (for example `192.168.1.10:5555`).
 4. You can disconnect USB and start camera with the Wi-Fi device.
-5. If needed, fill endpoint field manually and use **Use Selected Phone** / **Disconnect Selected** (`IP` or `IP:PORT`).
+5. If needed, fill endpoint field manually and use **Connect** / **Disconnect** (`IP` or `IP:PORT`).
 
 CLI alternative for Wi-Fi setup:
 
@@ -67,9 +69,9 @@ By default, AVream may show a polkit password prompt for privileged actions (cam
 
 Use GUI:
 1. Open **Advanced** and use **Passwordless auth** section.
-2. Click **Enable**.
+2. Click **Enable** (same button later changes to **Disable**).
 3. Approve the polkit prompt.
-4. Click **Check** to confirm status.
+4. Status is refreshed automatically and shown in the subtitle.
 
 Use CLI:
 
@@ -113,7 +115,6 @@ Saved fields include:
 - last selected phone identifiers (id/serial/ip hints).
 
 In **Advanced -> UI settings**:
-- **Save Settings** writes current values immediately,
 - **Reset Saved** clears saved values and restores defaults.
 
-Wi-Fi section also shows status of saved endpoint (`✓ connected` or `✗ not found/state`).
+Wi-Fi section shows endpoint status (`connected`, `not found`, or specific state).
