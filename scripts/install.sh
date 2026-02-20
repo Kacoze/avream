@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/install-platform.sh"
+
 REPO="${AVREAM_REPO:-Kacoze/avream}"
 VERSION="${AVREAM_VERSION:-latest}"
 METHOD="${AVREAM_INSTALL_METHOD:-auto}" # auto|repo|release
@@ -8,6 +11,7 @@ ARCH_EXPECTED="${AVREAM_DEB_ARCH:-amd64}"
 APT_SUITE="${AVREAM_APT_SUITE:-stable}"
 APT_COMPONENT="${AVREAM_APT_COMPONENT:-main}"
 APT_BRANCH="${AVREAM_APT_BRANCH:-apt-repo}"
+OS_RELEASE_PATH="${AVREAM_OS_RELEASE_PATH:-/etc/os-release}"
 
 if ! command -v apt-get >/dev/null 2>&1; then
   echo "This installer supports Debian/Ubuntu (apt) only." >&2
@@ -18,6 +22,23 @@ if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required." >&2
   exit 1
 fi
+
+if ! avream_detect_platform_support "$OS_RELEASE_PATH"; then
+  echo "Could not read ${OS_RELEASE_PATH}. Cannot detect Linux distribution." >&2
+  exit 1
+fi
+
+case "${AVREAM_PLATFORM_STATUS}" in
+  official)
+    ;;
+  compatible)
+    printf 'WARN: Detected %s (%s); using Debian-family compatibility mode.\n' "${AVREAM_PLATFORM_LABEL}" "${AVREAM_OS_ID}" >&2
+    ;;
+  *)
+    echo "Unsupported distribution: ${AVREAM_PLATFORM_LABEL} (${AVREAM_OS_ID:-unknown}). Debian-family systems only." >&2
+    exit 1
+    ;;
+esac
 
 arch="$(dpkg --print-architecture)"
 if [ "$arch" != "$ARCH_EXPECTED" ]; then
@@ -118,25 +139,27 @@ run_smoke_checks() {
 }
 
 main() {
-  case "$METHOD" in
-    repo)
-      install_from_repo
-      ;;
-    release)
-      install_from_release
-      ;;
-    auto)
-      if ! install_from_repo; then
+  if ! avream_resolve_install_method "$METHOD"; then
+    echo "Unknown AVREAM_INSTALL_METHOD: $METHOD" >&2
+    exit 1
+  fi
+
+  if [ "$AVREAM_INSTALL_PRIMARY" = "repo" ]; then
+    if ! install_from_repo; then
+      if [ "$AVREAM_INSTALL_FALLBACK" = "release" ]; then
         warn "APT repository install failed; falling back to GitHub Release package."
         "${SUDO[@]}" rm -f "$apt_list" "$apt_keyring" >/dev/null 2>&1 || true
         install_from_release
+      else
+        exit 1
       fi
-      ;;
-    *)
-      echo "Unknown AVREAM_INSTALL_METHOD: $METHOD" >&2
-      exit 1
-      ;;
-  esac
+    fi
+  elif [ "$AVREAM_INSTALL_PRIMARY" = "release" ]; then
+    install_from_release
+  else
+    echo "Unsupported installer strategy: ${AVREAM_INSTALL_PRIMARY}" >&2
+    exit 1
+  fi
 
   setup_user_service
   run_smoke_checks

@@ -1,0 +1,7 @@
+NAME="Zorin OS"
+VERSION="17"
+ID=zorin
+ID_LIKE="ubuntu debian"
+PRETTY_NAME="Zorin OS 17"
+VERSION_ID="17"
+HOME_URL="https://zorin.com/os/"

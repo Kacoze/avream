@@ -14,17 +14,21 @@ permissions:
   contents: write
 
 jobs:
-  build-and-publish:
+  release-gate:
     runs-on: ubuntu-latest
-    env:
-      AVREAM_APT_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY }}
-      AVREAM_APT_GPG_PASSPHRASE: ${{ secrets.AVREAM_APT_GPG_PASSPHRASE }}
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Determine package version from tag
+      - name: Determine release version
         id: meta
         run: |
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
@@ -38,24 +42,90 @@ jobs:
             exit 1
           fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "tag=v$ver" >> "$GITHUB_OUTPUT"
 
-      - name: Build package
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run automated release gate tests
+        run: |
+          PYTHONPATH=src python -m unittest \
+            tests.unit.daemon.test_state_store \
+            tests.unit.daemon.test_audio_manager \
+            tests.unit.daemon.test_adb_adapter \
+            tests.unit.daemon.test_android_backend \
+            tests.unit.daemon.test_scrcpy_adapter \
+            tests.unit.daemon.test_privilege_client \
+            tests.unit.daemon.test_cli \
+            tests.unit.daemon.test_update_manager \
+            tests.unit.scripts.test_install_platform
+          PYTHONPATH=src python -m unittest \
+            tests.integration.test_api_status \
+            tests.integration.test_api_contract \
+            tests.integration.test_video_and_doctor
+
+      - name: Validate installer scripts
+        run: |
+          bash -n scripts/install.sh
+          bash -n scripts/lib/install-platform.sh
+          bash -n scripts/uninstall.sh
+          bash -n scripts/doctor.sh
+          bash -n scripts/build-apt-repo.sh
+
+      - name: Build and verify release packages
         run: |
           AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb.sh
           AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb-split.sh
+          bash scripts/check-deb-artifact.sh dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
+          bash scripts/check-deb-split-artifacts.sh dist '${{ steps.meta.outputs.version }}'
+
+      - name: Smoke test install idempotence
+        run: |
+          ver='${{ steps.meta.outputs.version }}'
+          docker run --rm -v "$PWD/dist:/dist" ubuntu:24.04 bash -lc '
+            set -euo pipefail
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y ca-certificates curl
+            apt-get install -y /dist/avream_'"$ver"'_amd64.deb
+            avreamd --help >/dev/null
+            avream-ui --help >/dev/null
+            apt-get install -y /dist/avream_'"$ver"'_amd64.deb
+            apt-get remove -y avream avream-meta avream-daemon avream-ui avream-helper || true
+            apt-get install -y /dist/avream_'"$ver"'_amd64.deb
+            avream --help >/dev/null
+          '
+
+  build-and-publish:
+    needs: release-gate
+    runs-on: ubuntu-latest
+    env:
+      AVREAM_APT_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_APT_GPG_PRIVATE_KEY }}
+      AVREAM_APT_GPG_PASSPHRASE: ${{ secrets.AVREAM_APT_GPG_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build package
+        run: |
+          AVREAM_VERSION='${{ needs.release-gate.outputs.version }}' bash scripts/build-deb.sh
+          AVREAM_VERSION='${{ needs.release-gate.outputs.version }}' bash scripts/build-deb-split.sh
 
       - name: Verify package
         run: |
-          bash scripts/check-deb-artifact.sh dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
-          bash scripts/check-deb-split-artifacts.sh dist '${{ steps.meta.outputs.version }}'
+          bash scripts/check-deb-artifact.sh dist/avream_${{ needs.release-gate.outputs.version }}_amd64.deb
+          bash scripts/check-deb-split-artifacts.sh dist '${{ needs.release-gate.outputs.version }}'
 
       - name: Generate checksums
         run: |
           mkdir -p dist/release-split
-          cp "dist/avream-daemon_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
-          cp "dist/avream-ui_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
-          cp "dist/avream-helper_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
-          cp "dist/avream-meta_${{ steps.meta.outputs.version }}_amd64.deb" dist/release-split/
+          cp "dist/avream-daemon_${{ needs.release-gate.outputs.version }}_amd64.deb" dist/release-split/
+          cp "dist/avream-ui_${{ needs.release-gate.outputs.version }}_amd64.deb" dist/release-split/
+          cp "dist/avream-helper_${{ needs.release-gate.outputs.version }}_amd64.deb" dist/release-split/
+          cp "dist/avream-meta_${{ needs.release-gate.outputs.version }}_amd64.deb" dist/release-split/
           cat > dist/release-split/README.txt <<'EOF'
           Advanced Debian package bundle for AVream.
 
@@ -71,36 +141,38 @@ jobs:
           Install split packages with:
             sudo apt install ./avream-daemon_<version>_amd64.deb ./avream-ui_<version>_amd64.deb ./avream-helper_<version>_amd64.deb
           EOF
-          tar -C dist/release-split -czf "dist/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz" .
+          tar -C dist/release-split -czf "dist/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz" .
           rm -rf dist/release-split
-          sha256sum "dist/avream_${{ steps.meta.outputs.version }}_amd64.deb" "dist/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz" dist/*.md > dist/SHA256SUMS.txt
+          sha256sum "dist/avream_${{ needs.release-gate.outputs.version }}_amd64.deb" "dist/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz" dist/*.md > dist/SHA256SUMS.txt
 
       - name: Generate release summary
         run: |
+          tag='${{ needs.release-gate.outputs.tag }}'
           cat > dist/RELEASE_NOTES.md <<EOF
           ## Recommended Download
 
           Most users should install the monolithic package:
 
-          - [avream_${{ steps.meta.outputs.version }}_amd64.deb](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream_${{ steps.meta.outputs.version }}_amd64.deb)
+          - [avream_${{ needs.release-gate.outputs.version }}_amd64.deb](https://github.com/${{ github.repository }}/releases/download/${tag}/avream_${{ needs.release-gate.outputs.version }}_amd64.deb)
 
           ## Advanced Packages
 
           Split Debian packages are bundled for advanced setups:
 
-          - [avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz)
+          - [avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${tag}/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz)
           EOF
 
       - name: Generate release manifest
         run: |
+          tag='${{ needs.release-gate.outputs.tag }}'
           cat > dist/release-manifest.json <<EOF
           {
-            "version": "${{ steps.meta.outputs.version }}",
-            "release_url": "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}",
+            "version": "${{ needs.release-gate.outputs.version }}",
+            "release_url": "https://github.com/${{ github.repository }}/releases/tag/${tag}",
             "assets": {
-              "monolith": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream_${{ steps.meta.outputs.version }}_amd64.deb",
-              "deb_split_archive": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz",
-              "checksums": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/SHA256SUMS.txt"
+              "monolith": "https://github.com/${{ github.repository }}/releases/download/${tag}/avream_${{ needs.release-gate.outputs.version }}_amd64.deb",
+              "deb_split_archive": "https://github.com/${{ github.repository }}/releases/download/${tag}/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz",
+              "checksums": "https://github.com/${{ github.repository }}/releases/download/${tag}/SHA256SUMS.txt"
             }
           }
           EOF
@@ -108,9 +180,11 @@ jobs:
       - name: Publish GitHub release assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.release-gate.outputs.tag }}
+          name: ${{ needs.release-gate.outputs.tag }}
           files: |
-            dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
-            dist/avream-deb-split_${{ steps.meta.outputs.version }}_amd64.tar.gz
+            dist/avream_${{ needs.release-gate.outputs.version }}_amd64.deb
+            dist/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz
             dist/release-manifest.json
             dist/*.md
             dist/SHA256SUMS.txt

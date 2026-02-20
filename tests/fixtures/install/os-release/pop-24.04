@@ -1,0 +1,7 @@
+NAME="Pop!_OS"
+VERSION="24.04 LTS"
+ID=pop
+ID_LIKE="ubuntu debian"
+PRETTY_NAME="Pop!_OS 24.04 LTS"
+VERSION_ID="24.04"
+HOME_URL="https://system76.com/pop"

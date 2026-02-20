@@ -1,0 +1,78 @@
+name: Nightly Debian Family
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-debian-family
+  cancel-in-progress: true
+
+jobs:
+  build-package:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Determine nightly package version
+        id: meta
+        run: |
+          base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+          echo "version=${base}~nightly.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build monolithic package
+        run: |
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb.sh
+          bash scripts/check-deb-artifact.sh dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
+
+      - name: Upload nightly package
+        uses: actions/upload-artifact@v6
+        with:
+          name: avream-nightly-${{ steps.meta.outputs.version }}
+          path: dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
+          if-no-files-found: error
+
+  install-idempotence-matrix:
+    needs: build-package
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12", "debian:13"]
+    steps:
+      - name: Download nightly package
+        uses: actions/download-artifact@v5
+        with:
+          name: avream-nightly-${{ needs.build-package.outputs.version }}
+          path: dist
+
+      - name: Verify install idempotence
+        run: |
+          image="${{ matrix.image }}"
+          ver='${{ needs.build-package.outputs.version }}'
+          docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc '
+            set -euo pipefail
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y ca-certificates curl
+            apt-get install -y /dist/avream_'"$ver"'_amd64.deb
+            avreamd --help >/dev/null
+            avream-ui --help >/dev/null
+
+            # Reinstall same package (idempotence).
+            apt-get install -y /dist/avream_'"$ver"'_amd64.deb
+            avreamd --help >/dev/null
+
+            # Remove and install again.
+            apt-get remove -y avream avream-meta avream-daemon avream-ui avream-helper || true
+            apt-get install -y /dist/avream_'"$ver"'_amd64.deb
+            avream --help >/dev/null
+          '

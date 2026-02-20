@@ -34,7 +34,8 @@ jobs:
             tests.unit.daemon.test_scrcpy_adapter \
             tests.unit.daemon.test_privilege_client \
             tests.unit.daemon.test_cli \
-            tests.unit.daemon.test_update_manager
+            tests.unit.daemon.test_update_manager \
+            tests.unit.scripts.test_install_platform
 
       - name: Integration tests
         run: |

@@ -1,13 +1,23 @@
 # Supported Platforms
 
-## Stable target (normal users)
+## Tier A (officially gated)
 
 - Ubuntu 22.04 (GNOME)
 - Ubuntu 24.04 (GNOME)
 - Debian 12
+- Debian 13
 
 Architecture:
 - amd64
+
+## Tier B (compatible Debian-family, best effort)
+
+- Linux Mint 22+
+- Pop!_OS 22.04+
+- Zorin OS 17+
+- Other Debian/Ubuntu derivatives with `ID_LIKE` containing `debian` or `ubuntu`
+
+Tier B support is validated primarily by automated installer compatibility tests and package smoke checks, not by per-release manual desktop QA.
 
 ## Tested usage profile
 
@@ -36,3 +46,4 @@ Architecture:
 - Unsupported desktop stacks without auth agent
 - Non-Linux platforms
 - Non-amd64 builds (until explicitly added)
+- Non-Debian package ecosystems (RPM/pacman) until explicitly added
