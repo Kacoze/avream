@@ -64,9 +64,30 @@ avream_detect_platform_support() {
   elif _avream_has_token "${AVREAM_OS_ID}" "linuxmint pop zorin neon elementary lmde mx"; then
     AVREAM_PLATFORM_STATUS="compatible"
     AVREAM_PLATFORM_FAMILY="debian"
+  elif _avream_has_token "${AVREAM_OS_ID}" "fedora"; then
+    AVREAM_PLATFORM_STATUS="official"
+    AVREAM_PLATFORM_FAMILY="rpm"
+  elif _avream_has_token "${AVREAM_OS_ID}" "opensuse opensuse-leap opensuse-tumbleweed sles rhel rocky almalinux"; then
+    AVREAM_PLATFORM_STATUS="compatible"
+    AVREAM_PLATFORM_FAMILY="rpm"
+  elif _avream_has_token "${AVREAM_OS_ID}" "arch manjaro endeavouros"; then
+    AVREAM_PLATFORM_STATUS="compatible"
+    AVREAM_PLATFORM_FAMILY="arch"
+  elif _avream_has_token "${AVREAM_OS_ID}" "nixos"; then
+    AVREAM_PLATFORM_STATUS="compatible"
+    AVREAM_PLATFORM_FAMILY="nix"
   elif _avream_has_token "debian" "$id_like" || _avream_has_token "ubuntu" "$id_like"; then
     AVREAM_PLATFORM_STATUS="compatible"
     AVREAM_PLATFORM_FAMILY="debian"
+  elif _avream_has_token "rhel" "$id_like" || _avream_has_token "fedora" "$id_like" || _avream_has_token "suse" "$id_like"; then
+    AVREAM_PLATFORM_STATUS="compatible"
+    AVREAM_PLATFORM_FAMILY="rpm"
+  elif _avream_has_token "arch" "$id_like"; then
+    AVREAM_PLATFORM_STATUS="compatible"
+    AVREAM_PLATFORM_FAMILY="arch"
+  elif _avream_has_token "nixos" "$id_like"; then
+    AVREAM_PLATFORM_STATUS="compatible"
+    AVREAM_PLATFORM_FAMILY="nix"
   fi
 
   if [ -n "${AVREAM_OS_PRETTY_NAME:-}" ]; then
@@ -80,6 +101,7 @@ avream_detect_platform_support() {
 
 avream_resolve_install_method() {
   local method="$1"
+  local backend="${2:-unknown}"
   AVREAM_INSTALL_PRIMARY=""
   AVREAM_INSTALL_FALLBACK=""
 
@@ -91,8 +113,24 @@ avream_resolve_install_method() {
       AVREAM_INSTALL_PRIMARY="release"
       ;;
     auto)
-      AVREAM_INSTALL_PRIMARY="repo"
-      AVREAM_INSTALL_FALLBACK="release"
+      case "$backend" in
+        apt)
+          AVREAM_INSTALL_PRIMARY="repo"
+          AVREAM_INSTALL_FALLBACK="release"
+          ;;
+        dnf|zypper)
+          AVREAM_INSTALL_PRIMARY="release"
+          ;;
+        pacman)
+          AVREAM_INSTALL_PRIMARY="aur"
+          ;;
+        nix)
+          AVREAM_INSTALL_PRIMARY="nix"
+          ;;
+        *)
+          return 1
+          ;;
+      esac
       ;;
     *)
       return 1

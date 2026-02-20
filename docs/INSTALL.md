@@ -1,6 +1,6 @@
 # AVream Installation and Upgrade
 
-This page covers Debian/Ubuntu installation with one-liner, APT repository, and manual package paths.
+This page covers Debian-family, RPM-family, Arch, and Nix installation paths.
 
 ## Recommended: one-liner installer
 
@@ -16,14 +16,14 @@ Install specific version:
 curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | AVREAM_VERSION=<version> bash
 ```
 
-The installer:
-- Tries APT repository first (if available for your release).
-- Falls back to GitHub Release `.deb` package.
-- Enables/restarts `avreamd.service` for the current user session when possible.
+Installer behavior by platform:
+- Debian/Ubuntu: APT repository first, fallback to `.deb` release package.
+- Fedora/openSUSE: install from `.rpm` release package.
+- Arch/Nix: installer prints the recommended native path (AUR / flake).
 
-## Manual APT repository setup
+## Debian / Ubuntu
 
-Use this when you want regular `apt upgrade` updates.
+### APT repository (recommended)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/apt-repo/apt/avream-archive-keyring.gpg \
@@ -35,15 +35,13 @@ sudo apt update
 sudo apt install avream
 ```
 
-## Manual package install
-
-Monolithic package:
+### Manual `.deb`
 
 ```bash
 sudo apt install ./avream_<version>_amd64.deb
 ```
 
-Split packages (advanced):
+Split bundle (advanced):
 
 ```bash
 tar -xzf avream-deb-split_<version>_amd64.tar.gz
@@ -52,26 +50,51 @@ sudo apt install ./avream-daemon_<version>_amd64.deb \
   ./avream-helper_<version>_amd64.deb
 ```
 
-Or transitional meta package:
+## Fedora / openSUSE
+
+Install from release RPM:
 
 ```bash
-sudo apt install ./avream-meta_<version>_amd64.deb
+# Fedora
+sudo dnf install ./avream-<version>-1.x86_64.rpm
+
+# openSUSE
+sudo zypper --non-interactive install ./avream-<version>-1.x86_64.rpm
+```
+
+## Arch Linux (AUR)
+
+Use your AUR helper:
+
+```bash
+yay -S avream
+# or
+paru -S avream
+```
+
+Repository package sources are in `packaging/arch/`.
+
+## Nix / NixOS
+
+Install from flake:
+
+```bash
+nix profile install github:Kacoze/avream#avream
+```
+
+Run without installing profile:
+
+```bash
+nix run github:Kacoze/avream#avream-ui
 ```
 
 ## Upgrade
 
-If installed from APT repository:
-
-```bash
-sudo apt update
-sudo apt upgrade avream
-```
-
-If installed from local `.deb`:
-
-```bash
-sudo apt install ./avream_<new-version>_amd64.deb
-```
+- APT: `sudo apt update && sudo apt upgrade avream`
+- DNF: `sudo dnf upgrade avream`
+- zypper: `sudo zypper update avream`
+- AUR: update via your helper (`yay -Syu` / `paru -Syu`)
+- Nix: re-run `nix profile install ...#avream`
 
 ## Uninstall
 
@@ -79,19 +102,6 @@ Use helper script:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/uninstall.sh | bash
-```
-
-Or manually:
-
-```bash
-sudo apt remove avream avream-meta avream-daemon avream-ui avream-helper
-sudo rm -f /etc/apt/sources.list.d/avream.list /usr/share/keyrings/avream-archive-keyring.gpg
-```
-
-Optional local cleanup:
-
-```bash
-rm -rf ~/.config/avream ~/.local/state/avream "$XDG_RUNTIME_DIR/avream"
 ```
 
 ## Verify installation

@@ -1,0 +1,35 @@
+name: Nix Build
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "flake.nix"
+      - "src/**"
+      - "ui/src/**"
+      - "scripts/**"
+      - "packaging/**"
+      - ".github/workflows/nix.yml"
+  workflow_dispatch:
+
+jobs:
+  nix-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Nix flake check
+        run: |
+          nix flake check --accept-flake-config
+
+      - name: Build Nix package
+        run: |
+          nix build .#avream --accept-flake-config
+
+      - name: Nix smoke checks
+        run: |
+          ./result/bin/avream --help >/dev/null
+          ./result/bin/avreamd --help >/dev/null

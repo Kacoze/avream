@@ -7,16 +7,13 @@ source "${SCRIPT_DIR}/lib/install-platform.sh"
 REPO="${AVREAM_REPO:-Kacoze/avream}"
 VERSION="${AVREAM_VERSION:-latest}"
 METHOD="${AVREAM_INSTALL_METHOD:-auto}" # auto|repo|release
-ARCH_EXPECTED="${AVREAM_DEB_ARCH:-amd64}"
+BACKEND_OVERRIDE="${AVREAM_INSTALL_BACKEND:-auto}"
+DEB_ARCH_EXPECTED="${AVREAM_DEB_ARCH:-amd64}"
+RPM_ARCH_EXPECTED="${AVREAM_RPM_ARCH:-x86_64}"
 APT_SUITE="${AVREAM_APT_SUITE:-stable}"
 APT_COMPONENT="${AVREAM_APT_COMPONENT:-main}"
 APT_BRANCH="${AVREAM_APT_BRANCH:-apt-repo}"
 OS_RELEASE_PATH="${AVREAM_OS_RELEASE_PATH:-/etc/os-release}"
-
-if ! command -v apt-get >/dev/null 2>&1; then
-  echo "This installer supports Debian/Ubuntu (apt) only." >&2
-  exit 1
-fi
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required." >&2
@@ -32,17 +29,17 @@ case "${AVREAM_PLATFORM_STATUS}" in
   official)
     ;;
   compatible)
-    printf 'WARN: Detected %s (%s); using Debian-family compatibility mode.\n' "${AVREAM_PLATFORM_LABEL}" "${AVREAM_OS_ID}" >&2
+    printf 'WARN: Detected %s (%s); using compatibility mode for %s systems.\n' "${AVREAM_PLATFORM_LABEL}" "${AVREAM_OS_ID}" "${AVREAM_PLATFORM_FAMILY}" >&2
     ;;
   *)
-    echo "Unsupported distribution: ${AVREAM_PLATFORM_LABEL} (${AVREAM_OS_ID:-unknown}). Debian-family systems only." >&2
+    echo "Unsupported distribution: ${AVREAM_PLATFORM_LABEL} (${AVREAM_OS_ID:-unknown})." >&2
     exit 1
     ;;
 esac
 
-arch="$(dpkg --print-architecture)"
-if [ "$arch" != "$ARCH_EXPECTED" ]; then
-  echo "Unsupported architecture: $arch (expected: $ARCH_EXPECTED)." >&2
+machine_arch="$(uname -m)"
+if [ "$machine_arch" != "x86_64" ] && [ "$machine_arch" != "amd64" ]; then
+  echo "Unsupported architecture: $machine_arch (expected x86_64/amd64)." >&2
   exit 1
 fi
 
@@ -60,6 +57,7 @@ trap cleanup EXIT
 apt_repo_base="https://raw.githubusercontent.com/${REPO}/${APT_BRANCH}/apt"
 apt_keyring="/usr/share/keyrings/avream-archive-keyring.gpg"
 apt_list="/etc/apt/sources.list.d/avream.list"
+PACKAGE_BACKEND="unknown"
 
 log() {
   printf '%s\n' "$*"
@@ -67,6 +65,51 @@ log() {
 
 warn() {
   printf 'WARN: %s\n' "$*" >&2
+}
+
+detect_package_backend() {
+  if [ "$BACKEND_OVERRIDE" != "auto" ]; then
+    PACKAGE_BACKEND="$BACKEND_OVERRIDE"
+    return 0
+  fi
+
+  if command -v apt-get >/dev/null 2>&1; then
+    PACKAGE_BACKEND="apt"
+  elif command -v dnf >/dev/null 2>&1; then
+    PACKAGE_BACKEND="dnf"
+  elif command -v zypper >/dev/null 2>&1; then
+    PACKAGE_BACKEND="zypper"
+  elif command -v pacman >/dev/null 2>&1; then
+    PACKAGE_BACKEND="pacman"
+  elif command -v nix >/dev/null 2>&1 || command -v nix-env >/dev/null 2>&1; then
+    PACKAGE_BACKEND="nix"
+  fi
+}
+
+resolve_release_api_url() {
+  if [ "$VERSION" = "latest" ]; then
+    printf '%s\n' "https://api.github.com/repos/${REPO}/releases/latest"
+  else
+    case "$VERSION" in
+      v*) printf '%s\n' "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" ;;
+      *) printf '%s\n' "https://api.github.com/repos/${REPO}/releases/tags/v${VERSION}" ;;
+    esac
+  fi
+}
+
+resolve_release_asset_url() {
+  local payload="$1"
+  case "$PACKAGE_BACKEND" in
+    apt)
+      printf '%s\n' "$payload" | grep -Eo "https://[^\"]*/avream_[^\"]*_${DEB_ARCH_EXPECTED}\\.deb" | head -n1 || true
+      ;;
+    dnf|zypper)
+      printf '%s\n' "$payload" | grep -Eo "https://[^\"]*/avream[-_][^\"]*\\.${RPM_ARCH_EXPECTED}\\.rpm" | head -n1 || true
+      ;;
+    *)
+      printf '\n'
+      ;;
+  esac
 }
 
 setup_user_service() {
@@ -97,52 +140,84 @@ setup_user_service() {
 }
 
 install_from_release() {
-  local api_url payload deb_url deb_path version_hint
-  if [ "$VERSION" = "latest" ]; then
-    api_url="https://api.github.com/repos/${REPO}/releases/latest"
-    version_hint="latest"
-  else
-    case "$VERSION" in
-      v*) api_url="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" ;;
-      *) api_url="https://api.github.com/repos/${REPO}/releases/tags/v${VERSION}" ;;
-    esac
-    version_hint="$VERSION"
-  fi
+  local api_url payload pkg_url pkg_path version_hint
+  api_url="$(resolve_release_api_url)"
+  version_hint="${VERSION}"
 
   log "Resolving AVream release (${version_hint})..."
   payload="$(curl -fsSL "$api_url")"
-  deb_url="$(printf '%s\n' "$payload" | grep -Eo 'https://[^"]*/avream_[^"]*_amd64\.deb' | head -n1 || true)"
-  if [ -z "$deb_url" ]; then
-    echo "Could not find monolithic .deb asset in release metadata." >&2
+  pkg_url="$(resolve_release_asset_url "$payload")"
+  if [ -z "$pkg_url" ]; then
+    echo "Could not find a compatible release package for backend ${PACKAGE_BACKEND}." >&2
     return 1
   fi
 
-  deb_path="${tmpdir}/avream_${ARCH_EXPECTED}.deb"
+  pkg_path="${tmpdir}/$(basename "$pkg_url")"
   log "Downloading package..."
-  curl -fsSL "$deb_url" -o "$deb_path"
-  "${SUDO[@]}" apt-get update -y
-  "${SUDO[@]}" apt-get install -y "$deb_path"
+  curl -fsSL "$pkg_url" -o "$pkg_path"
+  case "$PACKAGE_BACKEND" in
+    apt)
+      "${SUDO[@]}" apt-get update -y
+      "${SUDO[@]}" apt-get install -y "$pkg_path"
+      ;;
+    dnf)
+      "${SUDO[@]}" dnf install -y python3-aiohttp || true
+      "${SUDO[@]}" dnf install -y "$pkg_path"
+      ;;
+    zypper)
+      "${SUDO[@]}" zypper --non-interactive install python3-aiohttp || true
+      "${SUDO[@]}" zypper --non-interactive install "$pkg_path"
+      ;;
+    *)
+      echo "Release install is not supported for backend ${PACKAGE_BACKEND}." >&2
+      return 1
+      ;;
+  esac
 }
 
 install_from_repo() {
+  if [ "$PACKAGE_BACKEND" != "apt" ]; then
+    echo "Repository install currently supports apt only." >&2
+    return 1
+  fi
   log "Configuring AVream APT repository..."
   "${SUDO[@]}" mkdir -p /usr/share/keyrings /etc/apt/sources.list.d
   curl -fsSL "${apt_repo_base}/avream-archive-keyring.gpg" | "${SUDO[@]}" tee "$apt_keyring" >/dev/null
-  echo "deb [arch=${ARCH_EXPECTED} signed-by=${apt_keyring}] ${apt_repo_base} ${APT_SUITE} ${APT_COMPONENT}" | "${SUDO[@]}" tee "$apt_list" >/dev/null
+  echo "deb [arch=${DEB_ARCH_EXPECTED} signed-by=${apt_keyring}] ${apt_repo_base} ${APT_SUITE} ${APT_COMPONENT}" | "${SUDO[@]}" tee "$apt_list" >/dev/null
   "${SUDO[@]}" apt-get update -y
   "${SUDO[@]}" apt-get install -y avream
 }
 
 run_smoke_checks() {
   avreamd --help >/dev/null
-  avream-ui --help >/dev/null
+  avream --help >/dev/null
+  if [ "$PACKAGE_BACKEND" = "apt" ]; then
+    avream-ui --help >/dev/null
+  fi
 }
 
 main() {
-  if ! avream_resolve_install_method "$METHOD"; then
+  detect_package_backend
+  if [ "$PACKAGE_BACKEND" = "unknown" ]; then
+    echo "Unsupported host: no known package manager detected (apt/dnf/zypper/pacman)." >&2
+    exit 1
+  fi
+
+  if ! avream_resolve_install_method "$METHOD" "$PACKAGE_BACKEND"; then
     echo "Unknown AVREAM_INSTALL_METHOD: $METHOD" >&2
     exit 1
   fi
+
+  case "$AVREAM_INSTALL_PRIMARY" in
+    aur)
+      echo "Arch-family installation uses AUR. Install with: yay -S avream (or paru -S avream)." >&2
+      exit 1
+      ;;
+    nix)
+      echo "Nix installation is provided via flake. See docs/INSTALL.md for nix profile command." >&2
+      exit 1
+      ;;
+  esac
 
   if [ "$AVREAM_INSTALL_PRIMARY" = "repo" ]; then
     if ! install_from_repo; then

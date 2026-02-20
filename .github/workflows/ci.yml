@@ -64,6 +64,8 @@ jobs:
       - name: Validate installer scripts
         run: |
           bash -n scripts/install.sh
+          bash -n scripts/build-rpm.sh
+          bash -n scripts/check-rpm-artifact.sh
           bash -n scripts/uninstall.sh
           bash -n scripts/doctor.sh
           bash -n scripts/build-apt-repo.sh
@@ -154,6 +156,98 @@ jobs:
       - name: Validate split upgrade path
         run: |
           bash scripts/test-split-upgrade.sh dist '${{ steps.meta.outputs.version }}'
+
+  rpm-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
+      - name: Determine CI package version
+        id: meta
+        run: |
+          base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+          echo "version=${base}~ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build RPM package
+        run: |
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-rpm.sh
+
+      - name: Sanity check RPM package
+        run: |
+          bash scripts/check-rpm-artifact.sh "dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm"
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: avream-rpm-smoke-${{ steps.meta.outputs.version }}
+          path: dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
+          if-no-files-found: error
+
+  rpm-install-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["fedora:41", "opensuse/leap:15.6"]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
+      - name: Determine CI package version
+        id: meta
+        run: |
+          base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+          echo "version=${base}~ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build RPM package
+        run: |
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-rpm.sh
+
+      - name: Install and verify RPM package
+        run: |
+          image="${{ matrix.image }}"
+          rpm_file='avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm'
+          docker run --rm -v "$PWD/dist:/dist" "$image" sh -lc '
+            set -eu
+            case "$0" in
+              fedora:*)
+                dnf install -y python3-aiohttp || true
+                dnf install -y /dist/'"$rpm_file"'
+                ;;
+              *)
+                zypper --non-interactive install python3-aiohttp || true
+                zypper --non-interactive install /dist/'"$rpm_file"'
+                ;;
+            esac
+            avreamd --help >/dev/null
+            avream --help >/dev/null
+            case "$0" in
+              fedora:*)
+                dnf install -y /dist/'"$rpm_file"'
+                dnf remove -y avream || true
+                dnf install -y /dist/'"$rpm_file"'
+                ;;
+              *)
+                zypper --non-interactive install /dist/'"$rpm_file"'
+                zypper --non-interactive remove avream || true
+                zypper --non-interactive install /dist/'"$rpm_file"'
+                ;;
+            esac
+            avream --help >/dev/null
+          ' "$image"
 
   rust-helper:
     runs-on: ubuntu-latest

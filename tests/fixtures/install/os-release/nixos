@@ -1,0 +1,4 @@
+NAME="NixOS"
+ID=nixos
+PRETTY_NAME="NixOS 24.11"
+ID_LIKE="nixos"

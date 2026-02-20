@@ -17,7 +17,17 @@ if [ -n "$target_user" ] && [ "$target_user" != "root" ]; then
   fi
 fi
 
-"${SUDO[@]}" apt-get remove -y avream avream-meta avream-daemon avream-ui avream-helper || true
-"${SUDO[@]}" rm -f /etc/apt/sources.list.d/avream.list /usr/share/keyrings/avream-archive-keyring.gpg || true
+if command -v apt-get >/dev/null 2>&1; then
+  "${SUDO[@]}" apt-get remove -y avream avream-meta avream-daemon avream-ui avream-helper || true
+  "${SUDO[@]}" rm -f /etc/apt/sources.list.d/avream.list /usr/share/keyrings/avream-archive-keyring.gpg || true
+elif command -v dnf >/dev/null 2>&1; then
+  "${SUDO[@]}" dnf remove -y avream || true
+elif command -v zypper >/dev/null 2>&1; then
+  "${SUDO[@]}" zypper --non-interactive remove avream || true
+elif command -v pacman >/dev/null 2>&1; then
+  "${SUDO[@]}" pacman -R --noconfirm avream avream-bin || true
+elif command -v nix-env >/dev/null 2>&1; then
+  nix-env -e avream || true
+fi
 
 echo "AVream packages removed."

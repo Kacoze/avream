@@ -64,7 +64,10 @@ Full command reference: [CLI Reference](CLI_README.md).
 ## Install Options
 
 - Recommended: one-liner installer (`scripts/install.sh`).
-- APT repository install (`apt install avream`) when available.
+- Debian/Ubuntu: APT repository (`apt install avream`) or `.deb`.
+- Fedora/openSUSE: monolithic RPM (`avream-<version>-1.x86_64.rpm`).
+- Arch Linux: AUR package path (`packaging/arch/`).
+- Nix/NixOS: flake package (`.#avream`).
 - Manual monolithic package: `avream_<version>_amd64.deb`.
 - Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz`.
 

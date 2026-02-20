@@ -66,7 +66,10 @@ Done. In the app:
 ## Install Options
 
 - Recommended: one-liner installer (`scripts/install.sh`).
-- APT repository (when enabled for releases): install with `apt install avream`.
+- Debian/Ubuntu: APT repository (`apt install avream`) or `.deb`.
+- Fedora/openSUSE: monolithic RPM (`avream-<version>-1.x86_64.rpm`).
+- Arch Linux: AUR package path (`packaging/arch/`).
+- Nix/NixOS: flake package (`flake.nix`, `.#avream`).
 - Manual monolithic package: `avream_<version>_amd64.deb`.
 - Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz` (contains `avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`).
 
@@ -105,11 +108,12 @@ avream camera stop
 
 ## For Developers
 
-Build local Debian packages:
+Build local Linux packages:
 
 ```bash
 bash scripts/build-deb.sh
 bash scripts/build-deb-split.sh
+bash scripts/build-rpm.sh
 ```
 
 Run local docs site (Markdown source of truth):

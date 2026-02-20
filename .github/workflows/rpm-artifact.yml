@@ -1,0 +1,47 @@
+name: RPM Artifact
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build-rpm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
+      - name: Determine package version
+        id: meta
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          if [[ "$ref" == v* ]]; then
+            ver="${ref#v}"
+          else
+            base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+            ver="${base}~ci.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: Build RPM package
+        run: |
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-rpm.sh
+
+      - name: Sanity check RPM package
+        run: |
+          bash scripts/check-rpm-artifact.sh dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: avream-rpm-${{ steps.meta.outputs.version }}
+          path: dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
+          if-no-files-found: error

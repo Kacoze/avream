@@ -1,0 +1,74 @@
+# Maintainer: AVream contributors
+
+pkgname=avream
+pkgver=$(tr -d '[:space:]' < ../../src/avreamd/VERSION)
+pkgrel=1
+pkgdesc="Use Android phone as webcam and microphone on Linux"
+arch=('x86_64')
+url='https://github.com/Kacoze/avream'
+license=('MIT')
+depends=('python' 'python-aiohttp' 'python-gobject' 'gtk4' 'libadwaita' 'polkit')
+makedepends=('cargo')
+optdepends=(
+  'scrcpy: Android camera backend'
+  'android-tools: adb support'
+  'pipewire: virtual microphone routing'
+)
+_source_ref="${AVREAM_ARCH_SOURCE_REF:-tags/v${pkgver}}"
+source=("avream-${pkgver}.tar.gz::https://github.com/Kacoze/avream/archive/refs/${_source_ref}.tar.gz")
+sha256sums=('SKIP')
+
+_srcroot() {
+  find "$srcdir" -maxdepth 1 -type d -name 'avream-*' | head -n1
+}
+
+build() {
+  local srcroot
+  srcroot="$(_srcroot)"
+  bash "$srcroot/scripts/generate-dist-docs.sh"
+  cargo build --release --manifest-path "$srcroot/helper/Cargo.toml"
+}
+
+package() {
+  local srcroot
+  srcroot="$(_srcroot)"
+
+  install -D -m 0644 "$srcroot/packaging/systemd/user/avreamd.service" "$pkgdir/usr/lib/systemd/user/avreamd.service"
+  install -D -m 0644 "$srcroot/packaging/systemd/user/avreamd.env" "$pkgdir/usr/lib/systemd/user/avreamd.env"
+  install -D -m 0644 "$srcroot/packaging/polkit/io.avream.helper.policy" "$pkgdir/usr/share/polkit-1/actions/io.avream.helper.policy"
+  install -D -m 0644 "$srcroot/packaging/desktop/io.avream.AVream.desktop" "$pkgdir/usr/share/applications/io.avream.AVream.desktop"
+  install -D -m 0644 "$srcroot/packaging/desktop/io.avream.AVream.appdata.xml" "$pkgdir/usr/share/metainfo/io.avream.AVream.appdata.xml"
+  install -D -m 0644 "$srcroot/packaging/desktop/io.avream.AVream.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/io.avream.AVream.svg"
+  install -D -m 0644 "$srcroot/dist/README_USER.md" "$pkgdir/usr/share/doc/avream/README_USER.md"
+  install -D -m 0644 "$srcroot/dist/CLI_README.md" "$pkgdir/usr/share/doc/avream/CLI_README.md"
+  install -D -m 0755 "$srcroot/helper/target/release/avream-helper" "$pkgdir/usr/lib/avream/avream-helper"
+  install -D -m 0755 "$srcroot/scripts/avream-passwordless-setup.sh" "$pkgdir/usr/bin/avream-passwordless-setup"
+
+  mkdir -p "$pkgdir/usr/lib/avream/python"
+  tar -C "$srcroot/src" --exclude='__pycache__' --exclude='*.pyc' -cf - avreamd | tar -C "$pkgdir/usr/lib/avream/python" -xf -
+  tar -C "$srcroot/ui/src" --exclude='__pycache__' --exclude='*.pyc' -cf - avream_ui | tar -C "$pkgdir/usr/lib/avream/python" -xf -
+
+  install -D -m 0755 /dev/stdin "$pkgdir/usr/bin/avreamd" <<'PYEOF'
+#!/usr/bin/python3
+import sys
+sys.path.insert(0, "/usr/lib/avream/python")
+from avreamd.main import main
+raise SystemExit(main())
+PYEOF
+
+  install -D -m 0755 /dev/stdin "$pkgdir/usr/bin/avream" <<'PYEOF'
+#!/usr/bin/python3
+import sys
+sys.path.insert(0, "/usr/lib/avream/python")
+from avreamd.cli import main
+raise SystemExit(main())
+PYEOF
+
+  install -D -m 0755 /dev/stdin "$pkgdir/usr/bin/avream-ui" <<'PYEOF'
+#!/usr/bin/python3
+import sys
+sys.path.insert(0, "/usr/lib/avream/python")
+from avream_ui.main import main
+raise SystemExit(main())
+PYEOF
+}

@@ -6,7 +6,7 @@
 
 ## Upgrade Notes
 
-- Package layout: <monolithic/split transition details>
+- Package layout: <monolithic/split/RPM/Arch/Nix notes>
 - API compatibility: <removed endpoints and migration notes>
 - Service behavior: <systemd user service changes>
 
@@ -17,9 +17,23 @@
 
 ## Installation
 
+Debian/Ubuntu:
+
 ```bash
-sudo apt install ./<package>.deb
+sudo apt install ./avream_<version>_amd64.deb
 ```
+
+Fedora/openSUSE:
+
+```bash
+sudo dnf install ./avream-<version>-1.x86_64.rpm
+# or
+sudo zypper --non-interactive install ./avream-<version>-1.x86_64.rpm
+```
+
+Arch/Nix:
+- Arch: AUR package `avream`
+- Nix: `nix profile install github:Kacoze/avream#avream`
 
 ## Verification
 

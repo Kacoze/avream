@@ -28,6 +28,11 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
       - name: Determine release version
         id: meta
         run: |
@@ -69,6 +74,8 @@ jobs:
       - name: Validate installer scripts
         run: |
           bash -n scripts/install.sh
+          bash -n scripts/build-rpm.sh
+          bash -n scripts/check-rpm-artifact.sh
           bash -n scripts/lib/install-platform.sh
           bash -n scripts/uninstall.sh
           bash -n scripts/doctor.sh
@@ -78,8 +85,10 @@ jobs:
         run: |
           AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb.sh
           AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-deb-split.sh
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-rpm.sh
           bash scripts/check-deb-artifact.sh dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
           bash scripts/check-deb-split-artifacts.sh dist '${{ steps.meta.outputs.version }}'
+          bash scripts/check-rpm-artifact.sh dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
 
       - name: Smoke test install idempotence
         run: |
@@ -98,6 +107,21 @@ jobs:
             avream --help >/dev/null
           '
 
+      - name: Smoke test RPM install idempotence
+        run: |
+          ver='${{ steps.meta.outputs.version }}'
+          docker run --rm -v "$PWD/dist:/dist" fedora:41 sh -lc '
+            set -eu
+            dnf install -y python3-aiohttp || true
+            dnf install -y /dist/avream-'"$ver"'-1.x86_64.rpm
+            avreamd --help >/dev/null
+            avream --help >/dev/null
+            dnf install -y /dist/avream-'"$ver"'-1.x86_64.rpm
+            dnf remove -y avream || true
+            dnf install -y /dist/avream-'"$ver"'-1.x86_64.rpm
+            avream --help >/dev/null
+          '
+
   build-and-publish:
     needs: release-gate
     runs-on: ubuntu-latest
@@ -109,15 +133,22 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
       - name: Build package
         run: |
           AVREAM_VERSION='${{ needs.release-gate.outputs.version }}' bash scripts/build-deb.sh
           AVREAM_VERSION='${{ needs.release-gate.outputs.version }}' bash scripts/build-deb-split.sh
+          AVREAM_VERSION='${{ needs.release-gate.outputs.version }}' bash scripts/build-rpm.sh
 
       - name: Verify package
         run: |
           bash scripts/check-deb-artifact.sh dist/avream_${{ needs.release-gate.outputs.version }}_amd64.deb
           bash scripts/check-deb-split-artifacts.sh dist '${{ needs.release-gate.outputs.version }}'
+          bash scripts/check-rpm-artifact.sh dist/avream-${{ needs.release-gate.outputs.version }}-1.x86_64.rpm
 
       - name: Generate checksums
         run: |
@@ -143,7 +174,7 @@ jobs:
           EOF
           tar -C dist/release-split -czf "dist/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz" .
           rm -rf dist/release-split
-          sha256sum "dist/avream_${{ needs.release-gate.outputs.version }}_amd64.deb" "dist/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz" dist/*.md > dist/SHA256SUMS.txt
+          sha256sum "dist/avream_${{ needs.release-gate.outputs.version }}_amd64.deb" "dist/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz" "dist/avream-${{ needs.release-gate.outputs.version }}-1.x86_64.rpm" dist/*.md > dist/SHA256SUMS.txt
 
       - name: Generate release summary
         run: |
@@ -160,6 +191,10 @@ jobs:
           Split Debian packages are bundled for advanced setups:
 
           - [avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${tag}/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz)
+
+          ## RPM Package (Fedora/openSUSE)
+
+          - [avream-${{ needs.release-gate.outputs.version }}-1.x86_64.rpm](https://github.com/${{ github.repository }}/releases/download/${tag}/avream-${{ needs.release-gate.outputs.version }}-1.x86_64.rpm)
           EOF
 
       - name: Generate release manifest
@@ -172,6 +207,7 @@ jobs:
             "assets": {
               "monolith": "https://github.com/${{ github.repository }}/releases/download/${tag}/avream_${{ needs.release-gate.outputs.version }}_amd64.deb",
               "deb_split_archive": "https://github.com/${{ github.repository }}/releases/download/${tag}/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz",
+              "rpm_monolith": "https://github.com/${{ github.repository }}/releases/download/${tag}/avream-${{ needs.release-gate.outputs.version }}-1.x86_64.rpm",
               "checksums": "https://github.com/${{ github.repository }}/releases/download/${tag}/SHA256SUMS.txt"
             }
           }
@@ -185,6 +221,7 @@ jobs:
           files: |
             dist/avream_${{ needs.release-gate.outputs.version }}_amd64.deb
             dist/avream-deb-split_${{ needs.release-gate.outputs.version }}_amd64.tar.gz
+            dist/avream-${{ needs.release-gate.outputs.version }}-1.x86_64.rpm
             dist/release-manifest.json
             dist/*.md
             dist/SHA256SUMS.txt

@@ -1,0 +1,41 @@
+name: Arch Validate
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "packaging/arch/**"
+      - ".github/workflows/arch-validate.yml"
+      - "src/avreamd/VERSION"
+      - "scripts/**"
+      - "packaging/**"
+      - "src/**"
+      - "ui/src/**"
+  workflow_dispatch:
+
+jobs:
+  validate-arch-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create source archive for current commit
+        run: |
+          git archive --format=tar.gz --output avream-main.tar.gz HEAD
+
+      - name: Build and smoke-test package in Arch container
+        run: |
+          docker run --rm -v "$PWD:/work" archlinux:latest bash -lc '
+            set -euo pipefail
+            pacman -Syu --noconfirm base-devel git sudo cargo python python-aiohttp python-gobject gtk4 libadwaita polkit
+            useradd -m builder
+            echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
+            chmod 440 /etc/sudoers.d/builder
+            cp -r /work /home/builder/avream
+            chown -R builder:builder /home/builder/avream
+            su builder -c "cd /home/builder/avream/packaging/arch && AVREAM_ARCH_SOURCE_REF=heads/main makepkg --syncdeps --noconfirm --cleanbuild"
+            pkg=$(ls -1 /home/builder/avream/packaging/arch/avream-*.pkg.tar.* | head -n1)
+            pacman -U --noconfirm "$pkg"
+            avreamd --help >/dev/null
+            avream --help >/dev/null
+          '

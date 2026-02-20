@@ -1,4 +1,4 @@
-name: Nightly Debian Family
+name: Nightly Cross Distro
 
 on:
   schedule:
@@ -9,11 +9,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: nightly-debian-family
+  group: nightly-cross-distro
   cancel-in-progress: true
 
 jobs:
-  build-package:
+  build-deb-package:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.version }}
@@ -36,12 +36,44 @@ jobs:
       - name: Upload nightly package
         uses: actions/upload-artifact@v6
         with:
-          name: avream-nightly-${{ steps.meta.outputs.version }}
+          name: avream-nightly-deb-${{ steps.meta.outputs.version }}
           path: dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
           if-no-files-found: error
 
-  install-idempotence-matrix:
-    needs: build-package
+  build-rpm-package:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
+      - name: Determine nightly package version
+        id: meta
+        run: |
+          base="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+          echo "version=${base}~nightly.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build monolithic RPM package
+        run: |
+          AVREAM_VERSION='${{ steps.meta.outputs.version }}' bash scripts/build-rpm.sh
+          bash scripts/check-rpm-artifact.sh dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
+
+      - name: Upload nightly RPM package
+        uses: actions/upload-artifact@v6
+        with:
+          name: avream-nightly-rpm-${{ steps.meta.outputs.version }}
+          path: dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
+          if-no-files-found: error
+
+  deb-install-idempotence-matrix:
+    needs: build-deb-package
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -51,13 +83,13 @@ jobs:
       - name: Download nightly package
         uses: actions/download-artifact@v5
         with:
-          name: avream-nightly-${{ needs.build-package.outputs.version }}
+          name: avream-nightly-deb-${{ needs.build-deb-package.outputs.version }}
           path: dist
 
       - name: Verify install idempotence
         run: |
           image="${{ matrix.image }}"
-          ver='${{ needs.build-package.outputs.version }}'
+          ver='${{ needs.build-deb-package.outputs.version }}'
           docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc '
             set -euo pipefail
             export DEBIAN_FRONTEND=noninteractive
@@ -76,3 +108,51 @@ jobs:
             apt-get install -y /dist/avream_'"$ver"'_amd64.deb
             avream --help >/dev/null
           '
+
+  rpm-install-idempotence-matrix:
+    needs: build-rpm-package
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["fedora:41", "opensuse/leap:15.6"]
+    steps:
+      - name: Download nightly RPM package
+        uses: actions/download-artifact@v5
+        with:
+          name: avream-nightly-rpm-${{ needs.build-rpm-package.outputs.version }}
+          path: dist
+
+      - name: Verify RPM install idempotence
+        run: |
+          image="${{ matrix.image }}"
+          ver='${{ needs.build-rpm-package.outputs.version }}'
+          docker run --rm -v "$PWD/dist:/dist" "$image" sh -lc '
+            set -eu
+            pkg="/dist/avream-'"$ver"'-1.x86_64.rpm"
+            case "$0" in
+              fedora:*)
+                dnf install -y python3-aiohttp || true
+                dnf install -y "$pkg"
+                ;;
+              *)
+                zypper --non-interactive install python3-aiohttp || true
+                zypper --non-interactive install "$pkg"
+                ;;
+            esac
+            avreamd --help >/dev/null
+            avream --help >/dev/null
+            case "$0" in
+              fedora:*)
+                dnf install -y "$pkg"
+                dnf remove -y avream || true
+                dnf install -y "$pkg"
+                ;;
+              *)
+                zypper --non-interactive install "$pkg"
+                zypper --non-interactive remove avream || true
+                zypper --non-interactive install "$pkg"
+                ;;
+            esac
+            avream --help >/dev/null
+          ' "$image"
