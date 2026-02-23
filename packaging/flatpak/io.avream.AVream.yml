@@ -19,11 +19,12 @@ modules:
     build-commands:
       - export PATH="/usr/lib/sdk/rust-stable/bin:${PATH}"
       - bash scripts/generate-dist-docs.sh
-      - cargo build --release --manifest-path helper/Cargo.toml
       - install -d /app/lib/avream/python
       - cp -r src/avreamd /app/lib/avream/python/
       - cp -r ui/src/avream_ui /app/lib/avream/python/
-      - install -D -m0755 helper/target/release/avream-helper /app/libexec/avream-helper
+      - install -d /app/libexec
+      - printf '%s\n' '#!/bin/sh' 'echo "avream-helper is not bundled in this flatpak build."' 'exit 1' > /app/libexec/avream-helper
+      - chmod 0755 /app/libexec/avream-helper
       - install -D -m0755 scripts/avream-passwordless-setup.sh /app/bin/avream-passwordless-setup
       - install -D -m0644 packaging/desktop/io.avream.AVream.desktop /app/share/applications/io.avream.AVream.desktop
       - install -D -m0644 packaging/desktop/io.avream.AVream.appdata.xml /app/share/metainfo/io.avream.AVream.appdata.xml
