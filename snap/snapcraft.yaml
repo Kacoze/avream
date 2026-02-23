@@ -78,6 +78,14 @@ parts:
     override-build: |
       set -eu
       bash scripts/generate-dist-docs.sh
+
+      export RUSTUP_HOME="${CRAFT_PART_BUILD}/.rustup"
+      export CARGO_HOME="${CRAFT_PART_BUILD}/.cargo"
+      export PATH="${CARGO_HOME}/bin:${PATH}"
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      rustup toolchain install stable
+      rustup default stable
+      cargo --version
       cargo build --release --manifest-path helper/Cargo.toml
 
       install -d "$CRAFT_PART_INSTALL/usr/lib/avream/python"

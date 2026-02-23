@@ -31,7 +31,7 @@ jobs:
 
       - name: Build flatpak repo
         run: |
-          flatpak-builder --repo=repo --force-clean --install-deps-from=flathub build-dir packaging/flatpak/io.avream.AVream.yml
+          flatpak-builder --user --repo=repo --force-clean --install-deps-from=flathub build-dir packaging/flatpak/io.avream.AVream.yml
           flatpak build-bundle repo dist/avream.flatpak io.avream.AVream
 
       - name: Smoke test flatpak CLI entrypoint
