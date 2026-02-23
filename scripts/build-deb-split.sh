@@ -116,7 +116,7 @@ EOF
 
 build_pkg "avream-daemon" "python3 (>= 3.10), python3-aiohttp, systemd" "scrcpy, android-tools-adb, pipewire, pipewire-pulse" "AVream user daemon and API service"
 build_pkg "avream-ui" "python3 (>= 3.10), python3-aiohttp, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1" "avream-daemon" "AVream GTK desktop application"
-build_pkg "avream-helper" "polkitd, policykit-1, kmod, psmisc" "" "AVream privileged helper and polkit policy"
+build_pkg "avream-helper" "polkitd, kmod, psmisc" "policykit-1" "AVream privileged helper and polkit policy"
 build_pkg "avream-meta" "avream-daemon (= $VERSION), avream-ui (= $VERSION), avream-helper (= $VERSION)" "" "AVream transitional meta package"
 
 echo "Built split packages in $OUT_DIR"
