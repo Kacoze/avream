@@ -65,18 +65,30 @@ jobs:
     env:
       AVREAM_PPA_TARGET: ${{ secrets.AVREAM_PPA_TARGET }}
       AVREAM_PPA_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_PPA_GPG_PRIVATE_KEY }}
-    if: ${{ env.AVREAM_PPA_TARGET != '' && env.AVREAM_PPA_GPG_PRIVATE_KEY != '' }}
     steps:
+      - name: Preflight publish gate
+        id: preflight
+        run: |
+          if [ -n "${AVREAM_PPA_TARGET:-}" ] && [ -n "${AVREAM_PPA_GPG_PRIVATE_KEY:-}" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping publish-ppa: PPA secrets are not configured."
+          fi
+
       - name: Install dput
+        if: ${{ steps.preflight.outputs.publish == 'true' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y dput
 
       - uses: actions/download-artifact@v5
+        if: ${{ steps.preflight.outputs.publish == 'true' }}
         with:
           name: avream-ppa-source
           path: dist/ppa
 
       - name: Upload source package to Launchpad PPA
+        if: ${{ steps.preflight.outputs.publish == 'true' }}
         run: |
           dput "${AVREAM_PPA_TARGET}" dist/ppa/*.changes

@@ -38,15 +38,26 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-    if: ${{ env.SNAPCRAFT_STORE_CREDENTIALS != '' }}
     steps:
+      - name: Preflight publish gate
+        id: preflight
+        run: |
+          if [ -n "${SNAPCRAFT_STORE_CREDENTIALS:-}" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping publish-snap: SNAPCRAFT_STORE_CREDENTIALS is not configured."
+          fi
+
       - uses: actions/download-artifact@v5
+        if: ${{ steps.preflight.outputs.publish == 'true' }}
         with:
           name: avream-snap
           path: dist
 
       - name: Select release channel
         id: channel
+        if: ${{ steps.preflight.outputs.publish == 'true' }}
         run: |
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             echo "name=stable" >> "$GITHUB_OUTPUT"
@@ -55,6 +66,7 @@ jobs:
           fi
 
       - name: Publish snap
+        if: ${{ steps.preflight.outputs.publish == 'true' }}
         uses: snapcore/action-publish@v1
         with:
           snap: dist/*.snap
