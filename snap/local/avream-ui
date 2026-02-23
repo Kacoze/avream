@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
 export PYTHONPATH="$SNAP/usr/lib/avream/python${PYTHONPATH:+:$PYTHONPATH}"
-exec "$SNAP/usr/bin/python3.12" -m avream_ui.main "$@"
+exec "$SNAP/usr/bin/python3" -m avream_ui.main "$@"
