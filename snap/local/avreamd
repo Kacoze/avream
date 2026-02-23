@@ -1,4 +1,12 @@
 #!/bin/sh
 set -eu
-export PYTHONPATH="$SNAP/usr/lib/avream/python${PYTHONPATH:+:$PYTHONPATH}"
-exec "$SNAP/usr/bin/python3" -m avreamd.main "$@"
+export PYTHONPATH="$SNAP/usr/lib/avream/python:$SNAP/usr/lib/python3/dist-packages:$SNAP/usr/lib/python3.12/dist-packages${PYTHONPATH:+:$PYTHONPATH}"
+
+for py in "$SNAP/usr/bin/python3.12" "$SNAP/usr/bin/python3" "$SNAP/bin/python3" "/usr/bin/python3"; do
+  if [ -x "$py" ]; then
+    exec "$py" -m avreamd.main "$@"
+  fi
+done
+
+echo "No Python 3 interpreter found for avreamd snap." >&2
+exit 127
