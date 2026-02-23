@@ -36,7 +36,9 @@ jobs:
   publish-snap:
     needs: build-snap
     runs-on: ubuntu-latest
-    if: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS != '' }}
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+    if: ${{ env.SNAPCRAFT_STORE_CREDENTIALS != '' }}
     steps:
       - uses: actions/download-artifact@v5
         with:
@@ -54,8 +56,6 @@ jobs:
 
       - name: Publish snap
         uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
           snap: dist/*.snap
           release: ${{ steps.channel.outputs.name }}

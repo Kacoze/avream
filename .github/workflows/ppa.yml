@@ -62,9 +62,10 @@ jobs:
   publish-ppa:
     needs: build-ppa-source
     runs-on: ubuntu-latest
-    if: ${{ secrets.AVREAM_PPA_TARGET != '' && secrets.AVREAM_PPA_GPG_PRIVATE_KEY != '' }}
     env:
       AVREAM_PPA_TARGET: ${{ secrets.AVREAM_PPA_TARGET }}
+      AVREAM_PPA_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_PPA_GPG_PRIVATE_KEY }}
+    if: ${{ env.AVREAM_PPA_TARGET != '' && env.AVREAM_PPA_GPG_PRIVATE_KEY != '' }}
     steps:
       - name: Install dput
         run: |
