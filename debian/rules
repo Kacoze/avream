@@ -1,5 +1,4 @@
 #!/usr/bin/make -f
-set -eu
 
 %:
 	dh $@ --with python3
