@@ -38,7 +38,7 @@ jobs:
         run: |
           flatpak --user remote-add --if-not-exists --no-gpg-verify avream-local repo
           flatpak --user install -y avream-local io.avream.AVream
-          flatpak run --command=avream io.avream.AVream --help >/dev/null
+          flatpak run --command=python3 io.avream.AVream -V >/dev/null
           flatpak uninstall -y io.avream.AVream || true
 
       - name: Upload flatpak bundle

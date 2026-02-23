@@ -18,7 +18,6 @@ modules:
     buildsystem: simple
     build-commands:
       - export PATH="/usr/lib/sdk/rust-stable/bin:${PATH}"
-      - python3 -m pip install --prefix=/app aiohttp
       - bash scripts/generate-dist-docs.sh
       - cargo build --release --manifest-path helper/Cargo.toml
       - install -d /app/lib/avream/python
