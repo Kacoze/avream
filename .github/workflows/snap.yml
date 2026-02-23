@@ -21,7 +21,7 @@ jobs:
 
       - name: Smoke test snap
         run: |
-          sudo snap install --dangerous "${{ steps.build.outputs.snap }}"
+          sudo snap install --dangerous --classic "${{ steps.build.outputs.snap }}"
           /snap/bin/avream --help >/dev/null
           /snap/bin/avreamd --help >/dev/null
           sudo snap remove avream
