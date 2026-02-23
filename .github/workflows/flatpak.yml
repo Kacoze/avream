@@ -23,9 +23,9 @@ jobs:
 
       - name: Install runtime and SDK
         run: |
-          flatpak install -y flathub \
-            org.gnome.Platform//47 \
-            org.gnome.Sdk//47 \
+          flatpak --user install -y flathub \
+            org.gnome.Platform//48 \
+            org.gnome.Sdk//48 \
             org.freedesktop.Sdk.Extension.rust-stable//24.08
 
       - name: Build flatpak repo

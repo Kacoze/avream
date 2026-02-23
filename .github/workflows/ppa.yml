@@ -33,7 +33,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y devscripts debhelper dh-python build-essential cargo rustc pkg-config
+          sudo apt-get install -y devscripts debhelper dh-python python3-all build-essential cargo rustc pkg-config
 
       - name: Import PPA signing key (optional)
         if: ${{ env.AVREAM_PPA_GPG_PRIVATE_KEY != '' }}
