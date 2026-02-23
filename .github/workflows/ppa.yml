@@ -1,0 +1,81 @@
+name: PPA Source
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      distribution:
+        description: "Launchpad distribution target (e.g. jammy, noble)"
+        required: false
+        default: "jammy"
+        type: string
+      ppa_revision:
+        description: "PPA revision suffix"
+        required: false
+        default: "1"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-ppa-source:
+    runs-on: ubuntu-latest
+    env:
+      AVREAM_PPA_GPG_PRIVATE_KEY: ${{ secrets.AVREAM_PPA_GPG_PRIVATE_KEY }}
+      AVREAM_PPA_DISTRIBUTION: ${{ github.event.inputs.distribution || 'jammy' }}
+      AVREAM_PPA_REVISION: ${{ github.event.inputs.ppa_revision || '1' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y devscripts debhelper dh-python build-essential cargo rustc pkg-config
+
+      - name: Import PPA signing key (optional)
+        if: ${{ env.AVREAM_PPA_GPG_PRIVATE_KEY != '' }}
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          printf '%s' "$AVREAM_PPA_GPG_PRIVATE_KEY" | gpg --batch --import
+          key_fpr="$(gpg --batch --with-colons --list-secret-keys | awk -F: '/^fpr:/ {print $10; exit}')"
+          if [ -z "$key_fpr" ]; then
+            echo "Could not import PPA signing key." >&2
+            exit 1
+          fi
+          echo "GNUPGHOME=${GNUPGHOME}" >> "$GITHUB_ENV"
+          echo "AVREAM_PPA_GPG_KEYID=${key_fpr}" >> "$GITHUB_ENV"
+
+      - name: Build source package
+        run: |
+          bash scripts/build-ppa-source.sh
+
+      - name: Upload PPA source artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: avream-ppa-source
+          path: dist/ppa/*
+          if-no-files-found: error
+
+  publish-ppa:
+    needs: build-ppa-source
+    runs-on: ubuntu-latest
+    if: ${{ secrets.AVREAM_PPA_TARGET != '' && secrets.AVREAM_PPA_GPG_PRIVATE_KEY != '' }}
+    env:
+      AVREAM_PPA_TARGET: ${{ secrets.AVREAM_PPA_TARGET }}
+    steps:
+      - name: Install dput
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dput
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: avream-ppa-source
+          path: dist/ppa
+
+      - name: Upload source package to Launchpad PPA
+        run: |
+          dput "${AVREAM_PPA_TARGET}" dist/ppa/*.changes

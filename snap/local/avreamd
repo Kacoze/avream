@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+export PYTHONPATH="$SNAP/usr/lib/avream/python${PYTHONPATH:+:$PYTHONPATH}"
+exec "$SNAP/usr/bin/python3" -m avreamd.main "$@"

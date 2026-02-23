@@ -20,14 +20,30 @@ fi
 if command -v apt-get >/dev/null 2>&1; then
   "${SUDO[@]}" apt-get remove -y avream avream-meta avream-daemon avream-ui avream-helper || true
   "${SUDO[@]}" rm -f /etc/apt/sources.list.d/avream.list /usr/share/keyrings/avream-archive-keyring.gpg || true
-elif command -v dnf >/dev/null 2>&1; then
+fi
+
+if command -v dnf >/dev/null 2>&1; then
   "${SUDO[@]}" dnf remove -y avream || true
-elif command -v zypper >/dev/null 2>&1; then
+fi
+
+if command -v zypper >/dev/null 2>&1; then
   "${SUDO[@]}" zypper --non-interactive remove avream || true
-elif command -v pacman >/dev/null 2>&1; then
+fi
+
+if command -v pacman >/dev/null 2>&1; then
   "${SUDO[@]}" pacman -R --noconfirm avream avream-bin || true
-elif command -v nix-env >/dev/null 2>&1; then
+fi
+
+if command -v nix-env >/dev/null 2>&1; then
   nix-env -e avream || true
+fi
+
+if command -v snap >/dev/null 2>&1; then
+  "${SUDO[@]}" snap remove avream || true
+fi
+
+if command -v flatpak >/dev/null 2>&1; then
+  "${SUDO[@]}" flatpak uninstall -y io.avream.AVream || true
 fi
 
 echo "AVream packages removed."

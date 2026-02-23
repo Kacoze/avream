@@ -77,11 +77,25 @@ class InstallMethodResolutionTests(unittest.TestCase):
         self.assertEqual((arch_code, arch_out), (0, "aur|"))
         self.assertEqual((nix_code, nix_out), (0, "nix|"))
 
+    def test_auto_uses_snap_and_flatpak_when_selected_backend(self) -> None:
+        snap_code, snap_out = self._resolve("auto", "snap")
+        flatpak_code, flatpak_out = self._resolve("auto", "flatpak")
+        self.assertEqual((snap_code, snap_out), (0, "snap|"))
+        self.assertEqual((flatpak_code, flatpak_out), (0, "flatpak|"))
+
     def test_explicit_methods_have_no_fallback(self) -> None:
         repo_code, repo_out = self._resolve("repo", "apt")
         rel_code, rel_out = self._resolve("release", "apt")
+        snap_code, snap_out = self._resolve("snap", "snap")
+        flatpak_code, flatpak_out = self._resolve("flatpak", "flatpak")
+        aur_code, aur_out = self._resolve("aur", "pacman")
+        nix_code, nix_out = self._resolve("nix", "nix")
         self.assertEqual((repo_code, repo_out), (0, "repo|"))
         self.assertEqual((rel_code, rel_out), (0, "release|"))
+        self.assertEqual((snap_code, snap_out), (0, "snap|"))
+        self.assertEqual((flatpak_code, flatpak_out), (0, "flatpak|"))
+        self.assertEqual((aur_code, aur_out), (0, "aur|"))
+        self.assertEqual((nix_code, nix_out), (0, "nix|"))
 
     def test_invalid_method_fails(self) -> None:
         code, out = self._resolve("invalid", "apt")

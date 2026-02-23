@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+export PYTHONPATH="/app/lib/avream/python:/app/lib/python3.12/site-packages:/app/lib/python3.11/site-packages${PYTHONPATH:+:$PYTHONPATH}"
+exec /usr/bin/python3 -m avreamd.main "$@"

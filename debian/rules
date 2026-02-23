@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+set -eu
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+	bash scripts/generate-dist-docs.sh
+	cargo build --release --manifest-path helper/Cargo.toml
+
+override_dh_auto_test:
+	:

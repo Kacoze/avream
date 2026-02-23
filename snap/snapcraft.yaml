@@ -1,0 +1,100 @@
+name: avream
+base: core24
+summary: Android phone as Linux webcam and microphone
+description: |
+  AVream turns your Android phone into a Linux virtual camera and microphone.
+  This snap provides the AVream CLI, daemon launcher, and GTK UI entrypoint.
+grade: stable
+confinement: classic
+license: MIT
+adopt-info: avream
+
+platforms:
+  amd64:
+
+apps:
+  avream:
+    command: usr/bin/avream
+    plugs:
+      - network
+      - network-bind
+      - desktop
+      - desktop-legacy
+      - x11
+      - wayland
+      - opengl
+      - audio-playback
+      - audio-record
+      - camera
+      - removable-media
+
+  avreamd:
+    command: usr/bin/avreamd
+    plugs:
+      - network
+      - network-bind
+
+  avream-ui:
+    command: usr/bin/avream-ui
+    plugs:
+      - network
+      - network-bind
+      - desktop
+      - desktop-legacy
+      - x11
+      - wayland
+      - opengl
+      - audio-playback
+      - audio-record
+      - camera
+      - removable-media
+
+parts:
+  avream:
+    plugin: nil
+    source: .
+    build-packages:
+      - cargo
+      - rustc
+    stage-packages:
+      - python3
+      - python3-aiohttp
+      - python3-gi
+      - gir1.2-gtk-4.0
+      - gir1.2-adw-1
+      - libgtk-4-1
+      - libadwaita-1-0
+      - adb
+      - scrcpy
+      - pipewire
+      - pipewire-pulse
+      - pulseaudio-utils
+      - polkitd
+      - kmod
+      - psmisc
+    override-pull: |
+      craftctl default
+      craftctl set version="$(tr -d '[:space:]' < src/avreamd/VERSION)"
+    override-build: |
+      set -eu
+      bash scripts/generate-dist-docs.sh
+      cargo build --release --manifest-path helper/Cargo.toml
+
+      install -d "$CRAFT_PART_INSTALL/usr/lib/avream/python"
+      cp -r src/avreamd "$CRAFT_PART_INSTALL/usr/lib/avream/python/"
+      cp -r ui/src/avream_ui "$CRAFT_PART_INSTALL/usr/lib/avream/python/"
+
+      install -D -m0755 helper/target/release/avream-helper "$CRAFT_PART_INSTALL/usr/libexec/avream-helper"
+      install -D -m0755 scripts/avream-passwordless-setup.sh "$CRAFT_PART_INSTALL/usr/bin/avream-passwordless-setup"
+
+      install -D -m0644 packaging/desktop/io.avream.AVream.desktop "$CRAFT_PART_INSTALL/usr/share/applications/io.avream.AVream.desktop"
+      install -D -m0644 packaging/desktop/io.avream.AVream.appdata.xml "$CRAFT_PART_INSTALL/usr/share/metainfo/io.avream.AVream.appdata.xml"
+      install -D -m0644 packaging/desktop/io.avream.AVream.svg "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/scalable/apps/io.avream.AVream.svg"
+      install -D -m0644 packaging/polkit/io.avream.helper.policy "$CRAFT_PART_INSTALL/usr/share/polkit-1/actions/io.avream.helper.policy"
+
+      install -D -m0644 dist/README_USER.md "$CRAFT_PART_INSTALL/usr/share/doc/avream/README_USER.md"
+      install -D -m0644 dist/CLI_README.md "$CRAFT_PART_INSTALL/usr/share/doc/avream/CLI_README.md"
+
+      install -D -m0755 snap/local/avream "$CRAFT_PART_INSTALL/usr/bin/avream"
+      install -D -m0755 snap/local/avreamd "$CRAFT_PART_INSTALL/usr/bin/avreamd"
+      install -D -m0755 snap/local/avream-ui "$CRAFT_PART_INSTALL/usr/bin/avream-ui"

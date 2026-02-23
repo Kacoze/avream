@@ -1,0 +1,39 @@
+app-id: io.avream.AVream
+runtime: org.gnome.Platform
+runtime-version: "47"
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: avream-ui
+finish-args:
+  - --share=network
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --device=all
+  - --filesystem=home
+
+modules:
+  - name: avream
+    buildsystem: simple
+    build-commands:
+      - export PATH="/usr/lib/sdk/rust-stable/bin:${PATH}"
+      - python3 -m pip install --prefix=/app aiohttp
+      - bash scripts/generate-dist-docs.sh
+      - cargo build --release --manifest-path helper/Cargo.toml
+      - install -d /app/lib/avream/python
+      - cp -r src/avreamd /app/lib/avream/python/
+      - cp -r ui/src/avream_ui /app/lib/avream/python/
+      - install -D -m0755 helper/target/release/avream-helper /app/libexec/avream-helper
+      - install -D -m0755 scripts/avream-passwordless-setup.sh /app/bin/avream-passwordless-setup
+      - install -D -m0644 packaging/desktop/io.avream.AVream.desktop /app/share/applications/io.avream.AVream.desktop
+      - install -D -m0644 packaging/desktop/io.avream.AVream.appdata.xml /app/share/metainfo/io.avream.AVream.appdata.xml
+      - install -D -m0644 packaging/desktop/io.avream.AVream.svg /app/share/icons/hicolor/scalable/apps/io.avream.AVream.svg
+      - install -D -m0755 packaging/flatpak/bin/avream /app/bin/avream
+      - install -D -m0755 packaging/flatpak/bin/avreamd /app/bin/avreamd
+      - install -D -m0755 packaging/flatpak/bin/avream-ui /app/bin/avream-ui
+      - install -D -m0644 dist/README_USER.md /app/share/doc/avream/README_USER.md
+      - install -D -m0644 dist/CLI_README.md /app/share/doc/avream/CLI_README.md
+    sources:
+      - type: dir
+        path: ../..

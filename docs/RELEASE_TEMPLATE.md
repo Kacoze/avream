@@ -35,6 +35,18 @@ Arch/Nix:
 - Arch: AUR package `avream`
 - Nix: `nix profile install github:Kacoze/avream#avream`
 
+Snap/Flatpak:
+- Snap: `sudo snap install avream --classic`
+- Flatpak: `flatpak install -y flathub io.avream.AVream`
+
+PPA (Ubuntu):
+
+```bash
+sudo add-apt-repository ppa:<owner>/<ppa-name>
+sudo apt update
+sudo apt install avream
+```
+
 ## Verification
 
 - Launch `avream-ui`

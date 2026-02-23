@@ -4,6 +4,9 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](docs/SUPPORTED_PLATFORMS.md)
 [![CI](https://github.com/Kacoze/avream/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/ci.yml)
+[![Snap](https://github.com/Kacoze/avream/actions/workflows/snap.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/snap.yml)
+[![Flatpak](https://github.com/Kacoze/avream/actions/workflows/flatpak.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/flatpak.yml)
+[![PPA Source](https://github.com/Kacoze/avream/actions/workflows/ppa.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/ppa.yml)
 
 AVream turns your Android phone into a Linux virtual camera and microphone for real meetings and recordings.
 
@@ -70,6 +73,9 @@ Done. In the app:
 - Fedora/openSUSE: monolithic RPM (`avream-<version>-1.x86_64.rpm`).
 - Arch Linux: AUR package path (`packaging/arch/`).
 - Nix/NixOS: flake package (`flake.nix`, `.#avream`).
+- Snap Store: snap package (`snap/snapcraft.yaml`).
+- Flatpak: Flatpak manifest (`packaging/flatpak/io.avream.AVream.yml`).
+- Ubuntu PPA source packaging: Debian source metadata (`debian/`) + upload workflow (`.github/workflows/ppa.yml`).
 - Manual monolithic package: `avream_<version>_amd64.deb`.
 - Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz` (contains `avream-daemon`, `avream-ui`, `avream-helper`, `avream-meta`).
 

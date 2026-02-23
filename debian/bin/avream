@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from avreamd.cli import main
+
+raise SystemExit(main())

@@ -16,6 +16,9 @@ Use this checklist before cutting a stable tag.
 - `.rpm` smoke build/install/runtime checks are green in CI.
 - Arch PKGBUILD validation workflow is green.
 - Nix flake build/check workflow is green.
+- Snap build/smoke workflow is green.
+- Flatpak build/smoke workflow is green.
+- PPA source package workflow is green.
 - Nightly Debian-family idempotence matrix is green (or last failure analyzed and accepted before release).
 - Nightly RPM idempotence matrix is green (or last failure analyzed and accepted before release).
 - Release workflow `release-gate` job is green before assets are published.
@@ -46,3 +49,8 @@ Use this checklist before cutting a stable tag.
 - APT signing secrets configured in GitHub Actions:
   - `AVREAM_APT_GPG_PRIVATE_KEY`
   - `AVREAM_APT_GPG_PASSPHRASE`
+- Snap Store publishing secret configured (if using automated publish):
+  - `SNAPCRAFT_STORE_CREDENTIALS`
+- PPA publishing secrets configured (if using automated upload):
+  - `AVREAM_PPA_TARGET`
+  - `AVREAM_PPA_GPG_PRIVATE_KEY`

@@ -53,6 +53,9 @@ Tier B support is validated primarily by automated compatibility tests and packa
 - RPM monolith: `avream-<version>-1.x86_64.rpm`.
 - Arch: `PKGBUILD` in `packaging/arch/`.
 - Nix: `flake.nix` package `.#avream`.
+- Snap: `snap/snapcraft.yaml` (Snap Store path).
+- Flatpak: `packaging/flatpak/io.avream.AVream.yml`.
+- Ubuntu PPA source package pipeline: `debian/` + `.github/workflows/ppa.yml`.
 
 ## Out of scope for stable baseline
 

@@ -6,6 +6,9 @@ Turn your Android phone into a Linux virtual camera and microphone for real meet
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kacoze/avream/blob/main/LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](SUPPORTED_PLATFORMS.md)
 [![CI](https://github.com/Kacoze/avream/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/ci.yml)
+[![Snap](https://github.com/Kacoze/avream/actions/workflows/snap.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/snap.yml)
+[![Flatpak](https://github.com/Kacoze/avream/actions/workflows/flatpak.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/flatpak.yml)
+[![PPA Source](https://github.com/Kacoze/avream/actions/workflows/ppa.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/ppa.yml)
 
 ![AVream UI preview](assets/ui-stream-overview.svg)
 
@@ -68,6 +71,9 @@ Full command reference: [CLI Reference](CLI_README.md).
 - Fedora/openSUSE: monolithic RPM (`avream-<version>-1.x86_64.rpm`).
 - Arch Linux: AUR package path (`packaging/arch/`).
 - Nix/NixOS: flake package (`.#avream`).
+- Snap Store package (`snap/snapcraft.yaml`).
+- Flatpak manifest (`packaging/flatpak/io.avream.AVream.yml`).
+- Ubuntu PPA source package pipeline (`debian/` + `.github/workflows/ppa.yml`).
 - Manual monolithic package: `avream_<version>_amd64.deb`.
 - Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz`.
 

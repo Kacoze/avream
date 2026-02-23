@@ -6,7 +6,7 @@ source "${SCRIPT_DIR}/lib/install-platform.sh"
 
 REPO="${AVREAM_REPO:-Kacoze/avream}"
 VERSION="${AVREAM_VERSION:-latest}"
-METHOD="${AVREAM_INSTALL_METHOD:-auto}" # auto|repo|release
+METHOD="${AVREAM_INSTALL_METHOD:-auto}" # auto|repo|release|snap|flatpak|aur|nix
 BACKEND_OVERRIDE="${AVREAM_INSTALL_BACKEND:-auto}"
 DEB_ARCH_EXPECTED="${AVREAM_DEB_ARCH:-amd64}"
 RPM_ARCH_EXPECTED="${AVREAM_RPM_ARCH:-x86_64}"
@@ -14,6 +14,10 @@ APT_SUITE="${AVREAM_APT_SUITE:-stable}"
 APT_COMPONENT="${AVREAM_APT_COMPONENT:-main}"
 APT_BRANCH="${AVREAM_APT_BRANCH:-apt-repo}"
 OS_RELEASE_PATH="${AVREAM_OS_RELEASE_PATH:-/etc/os-release}"
+SNAP_CHANNEL="${AVREAM_SNAP_CHANNEL:-stable}"
+FLATPAK_REMOTE="${AVREAM_FLATPAK_REMOTE:-flathub}"
+FLATPAK_REMOTE_URL="${AVREAM_FLATPAK_REMOTE_URL:-https://flathub.org/repo/flathub.flatpakrepo}"
+FLATPAK_APP_ID="${AVREAM_FLATPAK_APP_ID:-io.avream.AVream}"
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required." >&2
@@ -83,6 +87,10 @@ detect_package_backend() {
     PACKAGE_BACKEND="pacman"
   elif command -v nix >/dev/null 2>&1 || command -v nix-env >/dev/null 2>&1; then
     PACKAGE_BACKEND="nix"
+  elif command -v snap >/dev/null 2>&1; then
+    PACKAGE_BACKEND="snap"
+  elif command -v flatpak >/dev/null 2>&1; then
+    PACKAGE_BACKEND="flatpak"
   fi
 }
 
@@ -188,18 +196,55 @@ install_from_repo() {
   "${SUDO[@]}" apt-get install -y avream
 }
 
-run_smoke_checks() {
-  avreamd --help >/dev/null
-  avream --help >/dev/null
-  if [ "$PACKAGE_BACKEND" = "apt" ]; then
-    avream-ui --help >/dev/null
+install_from_snap() {
+  if ! command -v snap >/dev/null 2>&1; then
+    echo "snap is required for snap installation method." >&2
+    return 1
   fi
+  if [ "$VERSION" != "latest" ]; then
+    warn "Snap installs by channel; specific AVREAM_VERSION is ignored for method=snap."
+  fi
+  "${SUDO[@]}" snap install avream --classic --channel "$SNAP_CHANNEL"
+}
+
+install_from_flatpak() {
+  if ! command -v flatpak >/dev/null 2>&1; then
+    echo "flatpak is required for flatpak installation method." >&2
+    return 1
+  fi
+  if [ "$VERSION" != "latest" ]; then
+    warn "Flatpak installs by remote state; specific AVREAM_VERSION is ignored for method=flatpak."
+  fi
+  if ! flatpak remotes --columns=name | grep -Fxq "$FLATPAK_REMOTE"; then
+    "${SUDO[@]}" flatpak remote-add --if-not-exists "$FLATPAK_REMOTE" "$FLATPAK_REMOTE_URL"
+  fi
+  "${SUDO[@]}" flatpak install -y "$FLATPAK_REMOTE" "$FLATPAK_APP_ID"
+}
+
+run_smoke_checks() {
+  case "$AVREAM_INSTALL_PRIMARY" in
+    snap)
+      /snap/bin/avreamd --help >/dev/null
+      /snap/bin/avream --help >/dev/null
+      ;;
+    flatpak)
+      flatpak info "$FLATPAK_APP_ID" >/dev/null
+      flatpak run --command=avream "$FLATPAK_APP_ID" --help >/dev/null
+      ;;
+    *)
+      avreamd --help >/dev/null
+      avream --help >/dev/null
+      if [ "$PACKAGE_BACKEND" = "apt" ]; then
+        avream-ui --help >/dev/null
+      fi
+      ;;
+  esac
 }
 
 main() {
   detect_package_backend
   if [ "$PACKAGE_BACKEND" = "unknown" ]; then
-    echo "Unsupported host: no known package manager detected (apt/dnf/zypper/pacman)." >&2
+    echo "Unsupported host: no known package backend detected (apt/dnf/zypper/pacman/nix/snap/flatpak)." >&2
     exit 1
   fi
 
@@ -231,6 +276,10 @@ main() {
     fi
   elif [ "$AVREAM_INSTALL_PRIMARY" = "release" ]; then
     install_from_release
+  elif [ "$AVREAM_INSTALL_PRIMARY" = "snap" ]; then
+    install_from_snap
+  elif [ "$AVREAM_INSTALL_PRIMARY" = "flatpak" ]; then
+    install_from_flatpak
   else
     echo "Unsupported installer strategy: ${AVREAM_INSTALL_PRIMARY}" >&2
     exit 1

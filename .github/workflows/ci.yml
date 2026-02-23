@@ -66,6 +66,7 @@ jobs:
           bash -n scripts/install.sh
           bash -n scripts/build-rpm.sh
           bash -n scripts/check-rpm-artifact.sh
+          bash -n scripts/build-ppa-source.sh
           bash -n scripts/uninstall.sh
           bash -n scripts/doctor.sh
           bash -n scripts/build-apt-repo.sh

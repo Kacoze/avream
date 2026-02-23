@@ -1,0 +1,48 @@
+name: Flatpak
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-flatpak:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install flatpak tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Install runtime and SDK
+        run: |
+          flatpak install -y flathub \
+            org.gnome.Platform//47 \
+            org.gnome.Sdk//47 \
+            org.freedesktop.Sdk.Extension.rust-stable//24.08
+
+      - name: Build flatpak repo
+        run: |
+          flatpak-builder --repo=repo --force-clean --install-deps-from=flathub build-dir packaging/flatpak/io.avream.AVream.yml
+          flatpak build-bundle repo dist/avream.flatpak io.avream.AVream
+
+      - name: Smoke test flatpak CLI entrypoint
+        run: |
+          flatpak --user remote-add --if-not-exists --no-gpg-verify avream-local repo
+          flatpak --user install -y avream-local io.avream.AVream
+          flatpak run --command=avream io.avream.AVream --help >/dev/null
+          flatpak uninstall -y io.avream.AVream || true
+
+      - name: Upload flatpak bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: avream-flatpak
+          path: dist/avream.flatpak
+          if-no-files-found: error

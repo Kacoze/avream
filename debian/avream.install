@@ -1,0 +1,15 @@
+packaging/systemd/user/avreamd.service usr/lib/systemd/user
+packaging/systemd/user/avreamd.env usr/lib/systemd/user
+packaging/polkit/io.avream.helper.policy usr/share/polkit-1/actions
+packaging/desktop/io.avream.AVream.desktop usr/share/applications
+packaging/desktop/io.avream.AVream.appdata.xml usr/share/metainfo
+packaging/desktop/io.avream.AVream.svg usr/share/icons/hicolor/scalable/apps
+scripts/avream-passwordless-setup.sh usr/bin
+debian/bin/avream usr/bin
+debian/bin/avreamd usr/bin
+debian/bin/avream-ui usr/bin
+helper/target/release/avream-helper usr/libexec
+src/avreamd usr/lib/python3/dist-packages
+ui/src/avream_ui usr/lib/python3/dist-packages
+dist/README_USER.md usr/share/doc/avream
+dist/CLI_README.md usr/share/doc/avream

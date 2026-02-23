@@ -112,6 +112,18 @@ avream_resolve_install_method() {
     release)
       AVREAM_INSTALL_PRIMARY="release"
       ;;
+    snap)
+      AVREAM_INSTALL_PRIMARY="snap"
+      ;;
+    flatpak)
+      AVREAM_INSTALL_PRIMARY="flatpak"
+      ;;
+    aur)
+      AVREAM_INSTALL_PRIMARY="aur"
+      ;;
+    nix)
+      AVREAM_INSTALL_PRIMARY="nix"
+      ;;
     auto)
       case "$backend" in
         apt)
@@ -126,6 +138,12 @@ avream_resolve_install_method() {
           ;;
         nix)
           AVREAM_INSTALL_PRIMARY="nix"
+          ;;
+        snap)
+          AVREAM_INSTALL_PRIMARY="snap"
+          ;;
+        flatpak)
+          AVREAM_INSTALL_PRIMARY="flatpak"
           ;;
         *)
           return 1

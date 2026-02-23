@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from avream_ui.main import main
+
+raise SystemExit(main())

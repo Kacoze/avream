@@ -1,0 +1,5 @@
+avream (1.0.7+ppa1) jammy; urgency=medium
+
+  * PPA packaging baseline for AVream.
+
+ -- AVream contributors <noreply@avream.io>  Sun, 23 Feb 2026 00:00:00 +0000
