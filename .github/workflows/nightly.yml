@@ -81,7 +81,7 @@ jobs:
         image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12", "debian:13"]
     steps:
       - name: Download nightly package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: avream-nightly-deb-${{ needs.build-deb-package.outputs.version }}
           path: dist
@@ -118,7 +118,7 @@ jobs:
         image: ["fedora:41", "opensuse/tumbleweed:latest"]
     steps:
       - name: Download nightly RPM package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: avream-nightly-rpm-${{ needs.build-rpm-package.outputs.version }}
           path: dist
