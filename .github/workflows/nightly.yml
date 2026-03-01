@@ -34,7 +34,7 @@ jobs:
           bash scripts/check-deb-artifact.sh dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
 
       - name: Upload nightly package
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: avream-nightly-deb-${{ steps.meta.outputs.version }}
           path: dist/avream_${{ steps.meta.outputs.version }}_amd64.deb
@@ -66,7 +66,7 @@ jobs:
           bash scripts/check-rpm-artifact.sh dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
 
       - name: Upload nightly RPM package
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: avream-nightly-rpm-${{ steps.meta.outputs.version }}
           path: dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm

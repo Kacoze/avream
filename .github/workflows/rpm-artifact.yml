@@ -40,7 +40,7 @@ jobs:
           bash scripts/check-rpm-artifact.sh dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm
 
       - name: Upload RPM artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: avream-rpm-${{ steps.meta.outputs.version }}
           path: dist/avream-${{ steps.meta.outputs.version }}-1.x86_64.rpm

@@ -37,7 +37,7 @@ jobs:
           bash scripts/check-deb-split-artifacts.sh dist '${{ steps.meta.outputs.version }}'
 
       - name: Upload .deb artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: avream-deb-${{ steps.meta.outputs.version }}
           path: |

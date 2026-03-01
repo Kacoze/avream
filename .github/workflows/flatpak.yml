@@ -43,7 +43,7 @@ jobs:
           flatpak uninstall -y io.avream.AVream || true
 
       - name: Upload flatpak bundle
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: avream-flatpak
           path: dist/avream.flatpak
