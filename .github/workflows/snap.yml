@@ -49,7 +49,7 @@ jobs:
             echo "Skipping publish-snap: SNAPCRAFT_STORE_CREDENTIALS is not configured."
           fi
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         if: ${{ steps.preflight.outputs.publish == 'true' }}
         with:
           name: avream-snap
