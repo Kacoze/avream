@@ -12,8 +12,8 @@ from typing import Any
 
 from avreamd import __version__
 from avreamd.api.errors import backend_error, conflict_error, validation_error
+from avreamd.constants import UPDATE_LOG_MAXLEN
 from avreamd.managers.update import AssetDownloader, ChecksumVerifier, PackageInstaller, ReleaseClient, RestartScheduler
-
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class UpdateManager:
         self._video_manager = video_manager
         self._audio_manager = audio_manager
         self._lock = asyncio.Lock()
-        self._logs: deque[dict[str, Any]] = deque(maxlen=300)
+        self._logs: deque[dict[str, Any]] = deque(maxlen=UPDATE_LOG_MAXLEN)
         self._stop_event = asyncio.Event()
         self._auto_task: asyncio.Task | None = None
 
@@ -185,28 +185,7 @@ class UpdateManager:
             self._save_state()
             self._append_log("update.install.start", {"allow_stop_streams": bool(allow_stop_streams)})
 
-        runtime = await self._state_store.snapshot()
-        video_state = str(runtime.get("video", {}).get("state", ""))
-        audio_state = str(runtime.get("audio", {}).get("state", ""))
-        active_streams = video_state == "RUNNING" or audio_state == "RUNNING"
-
-        if active_streams and not allow_stop_streams:
-            async with self._lock:
-                self._runtime["install_state"] = "FAILED"
-                self._runtime["last_error"] = {
-                    "code": "E_CONFLICT",
-                    "message": "camera or microphone is running",
-                    "ts": self._now_iso(),
-                }
-                self._save_state()
-            raise conflict_error("camera or microphone is running", {"video": video_state, "audio": audio_state})
-
-        if active_streams and allow_stop_streams:
-            self._append_log("update.install.stop_streams", {"video": video_state, "audio": audio_state})
-            if video_state == "RUNNING":
-                await self._video_manager.stop()
-            elif audio_state == "RUNNING":
-                await self._audio_manager.stop()
+        await self._stop_streams_if_allowed(allow_stop_streams=allow_stop_streams)
 
         status = await self.check(force=True)
         if not bool(status.get("update_available", False)):
@@ -221,32 +200,7 @@ class UpdateManager:
                 "latest_version": status.get("latest_version"),
             }
 
-        asset = status.get("recommended_asset") if isinstance(status, dict) else None
-        if not isinstance(asset, dict):
-            raise backend_error("recommended update asset is missing")
-
-        asset_url = str(asset.get("url") or "")
-        asset_name = str(asset.get("name") or "")
-        checksum_url = str(status.get("assets", {}).get("checksums", ""))
-        if not asset_url or not asset_name or not checksum_url:
-            raise backend_error("release metadata is incomplete", {"asset": asset_name})
-
-        async with self._lock:
-            self._runtime["install_state"] = "DOWNLOADING"
-            self._runtime["progress"] = 20
-            self._save_state()
-
-        deb_path = self._cache_dir / asset_name
-        sums_path = self._cache_dir / "SHA256SUMS.txt"
-        await self._downloader.download_file(asset_url, deb_path)
-        await self._downloader.download_file(checksum_url, sums_path)
-
-        async with self._lock:
-            self._runtime["install_state"] = "VERIFYING"
-            self._runtime["progress"] = 55
-            self._save_state()
-
-        self._verifier.verify_checksum(asset_name=asset_name, deb_path=deb_path, sums_path=sums_path)
+        deb_path, asset_name = await self._download_and_verify(status=status)
 
         async with self._lock:
             self._runtime["install_state"] = "INSTALLING"
@@ -275,6 +229,61 @@ class UpdateManager:
             "restart_scheduled": True,
             "install_result": install_result,
         }
+
+    async def _stop_streams_if_allowed(self, *, allow_stop_streams: bool) -> None:
+        """Stops running streams or raises a conflict error."""
+        runtime = await self._state_store.snapshot()
+        video_state = str(runtime.get("video", {}).get("state", ""))
+        audio_state = str(runtime.get("audio", {}).get("state", ""))
+        active_streams = video_state == "RUNNING" or audio_state == "RUNNING"
+
+        if active_streams and not allow_stop_streams:
+            async with self._lock:
+                self._runtime["install_state"] = "FAILED"
+                self._runtime["last_error"] = {
+                    "code": "E_CONFLICT",
+                    "message": "camera or microphone is running",
+                    "ts": self._now_iso(),
+                }
+                self._save_state()
+            raise conflict_error("camera or microphone is running", {"video": video_state, "audio": audio_state})
+
+        if active_streams and allow_stop_streams:
+            self._append_log("update.install.stop_streams", {"video": video_state, "audio": audio_state})
+            if video_state == "RUNNING":
+                await self._video_manager.stop()
+            elif audio_state == "RUNNING":
+                await self._audio_manager.stop()
+
+    async def _download_and_verify(self, *, status: dict[str, Any]) -> tuple[Path, str]:
+        """Downloads the .deb and SHA256SUMS, verifies checksum, returns (deb_path, asset_name)."""
+        asset = status.get("recommended_asset") if isinstance(status, dict) else None
+        if not isinstance(asset, dict):
+            raise backend_error("recommended update asset is missing")
+
+        asset_url = str(asset.get("url") or "")
+        asset_name = str(asset.get("name") or "")
+        checksum_url = str(status.get("assets", {}).get("checksums", ""))
+        if not asset_url or not asset_name or not checksum_url:
+            raise backend_error("release metadata is incomplete", {"asset": asset_name})
+
+        async with self._lock:
+            self._runtime["install_state"] = "DOWNLOADING"
+            self._runtime["progress"] = 20
+            self._save_state()
+
+        deb_path = self._cache_dir / asset_name
+        sums_path = self._cache_dir / "SHA256SUMS.txt"
+        await self._downloader.download_file(asset_url, deb_path)
+        await self._downloader.download_file(checksum_url, sums_path)
+
+        async with self._lock:
+            self._runtime["install_state"] = "VERIFYING"
+            self._runtime["progress"] = 55
+            self._save_state()
+
+        self._verifier.verify_checksum(asset_name=asset_name, deb_path=deb_path, sums_path=sums_path)
+        return deb_path, asset_name
 
     def _load_config(self) -> None:
         try:

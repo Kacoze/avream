@@ -54,19 +54,12 @@ class VideoSessionService:
         running = self._supervisor.running(self.PROC_NAME)
 
         if current in {SubsystemState.RUNNING.value, SubsystemState.STARTING.value} and running:
-            return {
-                "state": "RUNNING",
-                "already_running": True,
-                "source": self.active_source,
-            }
+            return {"state": "RUNNING", "already_running": True, "source": self.active_source}
 
         if current == SubsystemState.STOPPING.value and running:
             raise conflict_error("video is stopping; retry in a moment", {"state": current})
 
-        if not running and current in {SubsystemState.RUNNING.value, SubsystemState.STARTING.value}:
-            await self._state_store.transition_video(SubsystemState.STOPPING)
-            await self._state_store.transition_video(SubsystemState.STOPPED)
-            self.clear_active()
+        await self._reconcile_stale_state(current=current, running=running)
 
         try:
             await self._state_store.transition_video(SubsystemState.STARTING)
@@ -83,19 +76,7 @@ class VideoSessionService:
             preview_window=options.preview_window,
             enable_audio=options.enable_audio,
         )
-
-        managed = await self._supervisor.start(self.PROC_NAME, command)
-        await asyncio.sleep(0.2)
-        if managed.process.returncode is not None:
-            await self._state_store.set_video_error(
-                "E_BACKEND_FAILED",
-                "android backend exited immediately",
-                {
-                    "returncode": managed.process.returncode,
-                    "command": command,
-                },
-            )
-            raise conflict_error("failed to start android backend", {"returncode": managed.process.returncode})
+        await self._launch_backend(command=command)
 
         await self._state_store.transition_video(SubsystemState.RUNNING)
         self._active_source = VideoSource(
@@ -111,21 +92,32 @@ class VideoSessionService:
             try:
                 audio_result = await self._audio_manager.start(backend="pipewire")
             except Exception as exc:  # pragma: no cover - defensive
-                audio_result = {
-                    "state": "ERROR",
-                    "already_running": False,
-                    "backend": "pipewire",
-                    "error": str(exc),
-                }
+                audio_result = {"state": "ERROR", "already_running": False, "backend": "pipewire", "error": str(exc)}
 
-        result = {
-            "state": "RUNNING",
-            "already_running": False,
-            "source": self.active_source,
-        }
+        result: dict[str, Any] = {"state": "RUNNING", "already_running": False, "source": self.active_source}
         if audio_result is not None:
             result["audio"] = audio_result
         return result
+
+    async def _reconcile_stale_state(self, *, current: str, running: bool) -> None:
+        """Cleans up state-store when the process has exited without a clean stop."""
+        if not running and current in {SubsystemState.RUNNING.value, SubsystemState.STARTING.value}:
+            await self._state_store.transition_video(SubsystemState.STOPPING)
+            await self._state_store.transition_video(SubsystemState.STOPPED)
+            self.clear_active()
+
+    async def _launch_backend(self, *, command: list[str]) -> Any:
+        """Starts the backend subprocess and checks for an immediate exit."""
+        managed = await self._supervisor.start(self.PROC_NAME, command)
+        await asyncio.sleep(0.2)
+        if managed.process.returncode is not None:
+            await self._state_store.set_video_error(
+                "E_BACKEND_FAILED",
+                "android backend exited immediately",
+                {"returncode": managed.process.returncode, "command": command},
+            )
+            raise conflict_error("failed to start android backend", {"returncode": managed.process.returncode})
+        return managed
 
     async def stop(self) -> dict[str, Any]:
         snapshot = await self._state_store.snapshot()
