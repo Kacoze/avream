@@ -27,3 +27,6 @@ scripts/.cache/
 # Build output
 dist/
 site/
+
+# Local operator notes (never commit)
+.local/
