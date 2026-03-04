@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 
+from avreamd.constants import ADB_DEFAULT_PORT
 from avreamd.domain.models import AdbCommandResult
 from avreamd.integrations.command_runner import CommandRunner
 
@@ -40,7 +41,7 @@ class AdbAdapter:
                 devices.append({"serial": parts[0], "state": parts[1]})
         return devices
 
-    async def tcpip(self, *, serial: str, port: int = 5555) -> dict[str, object]:
+    async def tcpip(self, *, serial: str, port: int = ADB_DEFAULT_PORT) -> dict[str, object]:
         return await self._run(["-s", serial, "tcpip", str(int(port))])
 
     async def connect(self, *, endpoint: str) -> dict[str, object]:
@@ -108,7 +109,7 @@ class AdbAdapter:
 
         return private_candidate or first_candidate
 
-    async def wifi_setup(self, *, serial: str | None = None, port: int = 5555) -> dict[str, object]:
+    async def wifi_setup(self, *, serial: str | None = None, port: int = ADB_DEFAULT_PORT) -> dict[str, object]:
         if not self.adb_bin:
             return {"returncode": 127, "stdout": "", "stderr": "adb not found"}
 
@@ -215,7 +216,7 @@ class AdbAdapter:
         return "wifi" if ":" in serial else "usb"
 
     @staticmethod
-    def normalize_endpoint(endpoint: str, default_port: int = 5555) -> str:
+    def normalize_endpoint(endpoint: str, default_port: int = ADB_DEFAULT_PORT) -> str:
         text = (endpoint or "").strip()
         if not text:
             return text
@@ -243,5 +244,5 @@ class AdbAdapter:
             if isinstance(value, (str, float, bool)):
                 return int(value)
             return int(default)
-        except Exception:
+        except (ValueError, TypeError, OverflowError):  # heterogeneous runtime input
             return int(default)

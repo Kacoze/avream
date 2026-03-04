@@ -46,7 +46,7 @@ class PipeWireAudioBackend:
         removed: list[int] = []
         try:
             modules = self._pactl.list_modules()
-        except Exception:
+        except Exception:  # pactl may not be available; return empty list
             return []
 
         for mod in modules:
@@ -59,7 +59,7 @@ class PipeWireAudioBackend:
             try:
                 self._pactl.unload_module(module_id)
                 removed.append(module_id)
-            except Exception:
+            except Exception:  # best-effort cleanup; ignore if already unloaded
                 continue
         return removed
 
@@ -87,12 +87,12 @@ class PipeWireAudioBackend:
                 if source_id is not None:
                     try:
                         self._pactl.unload_module(int(source_id))
-                    except Exception:
+                    except Exception:  # best-effort cleanup; ignore if already unloaded
                         pass
                 if sink_id is not None:
                     try:
                         self._pactl.unload_module(int(sink_id))
-                    except Exception:
+                    except Exception:  # best-effort cleanup; ignore if already unloaded
                         pass
                 raise dependency_error(
                     "failed to create virtual mic via pactl",
@@ -145,13 +145,13 @@ class PipeWireAudioBackend:
             for mid in modules:
                 try:
                     self._pactl.unload_module(int(mid))
-                except Exception:
+                except Exception:  # best-effort cleanup; ignore if already unloaded
                     pass
         self.cleanup_stale_pactl_modules()
         if self._native_loopback_process is not None:
             try:
                 self._native_loopback_process.terminate()
-            except Exception:
+            except Exception:  # best-effort cleanup; ignore if already terminated
                 pass
             self._native_loopback_process = None
         self._router.stop_background()

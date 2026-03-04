@@ -3,10 +3,10 @@ from __future__ import annotations
 from aiohttp import web
 
 from avreamd.api.app_keys import ADB_ADAPTER
-from avreamd.api.errors import backend_error, dependency_error
+from avreamd.api.errors import backend_error, dependency_error, validation_error
 from avreamd.api.schemas import success_envelope
 from avreamd.api.validation import read_json_object
-from avreamd.api.errors import validation_error
+from avreamd.constants import ADB_DEFAULT_PORT
 
 
 async def handle_android_devices(request: web.Request) -> web.Response:
@@ -132,7 +132,7 @@ async def handle_android_wifi_enable(request: web.Request) -> web.Response:
     request_id = request["request_id"]
     payload = await read_json_object(request)
     serial = payload.get("serial") if isinstance(payload, dict) else None
-    port = payload.get("port", 5555) if isinstance(payload, dict) else 5555
+    port = payload.get("port", ADB_DEFAULT_PORT) if isinstance(payload, dict) else ADB_DEFAULT_PORT
 
     if not isinstance(serial, str) or not serial:
         raise validation_error("serial is required")
@@ -156,7 +156,7 @@ async def handle_android_wifi_setup(request: web.Request) -> web.Response:
     request_id = request["request_id"]
     payload = await read_json_object(request)
     serial = payload.get("serial") if isinstance(payload, dict) else None
-    port = payload.get("port", 5555) if isinstance(payload, dict) else 5555
+    port = payload.get("port", ADB_DEFAULT_PORT) if isinstance(payload, dict) else ADB_DEFAULT_PORT
 
     if serial is not None and (not isinstance(serial, str) or not serial):
         raise validation_error("serial must be a non-empty string when provided")

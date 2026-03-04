@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from avreamd.api.errors import conflict_error
 from avreamd.backends.android_video import AndroidVideoBackend
+from avreamd.constants import DEFAULT_RECONNECT_BACKOFF_MS, DEFAULT_RECONNECT_MAX_ATTEMPTS
 from avreamd.core.process_supervisor import ProcessSupervisor
 from avreamd.core.state_store import DaemonStateStore, InvalidTransitionError, SubsystemState
 from avreamd.domain.models import ReconnectPolicy, VideoStartOptions
@@ -45,7 +45,11 @@ class VideoManager:
         self._camera_facing = "front"
         self._camera_rotation = 0
         self._preview_window = False
-        self._reconnect_cfg: dict[str, Any] = {"enabled": True, "max_attempts": 3, "backoff_ms": 1500}
+        self._reconnect_cfg: dict[str, Any] = {
+            "enabled": True,
+            "max_attempts": DEFAULT_RECONNECT_MAX_ATTEMPTS,
+            "backoff_ms": DEFAULT_RECONNECT_BACKOFF_MS,
+        }
 
     async def runtime_status(self) -> dict[str, Any]:
         last_exit = self._supervisor.last_exit_code(self.PROC_NAME)

@@ -10,6 +10,7 @@ from typing import Any
 from aiohttp import ClientSession, ClientTimeout, UnixConnector
 
 from avreamd.config import resolve_paths
+from avreamd.constants import ADB_DEFAULT_PORT
 
 
 class CliApiClient:
@@ -478,7 +479,7 @@ def build_parser() -> argparse.ArgumentParser:
     wifi_sub = wifi.add_subparsers(dest="wifi_cmd", required=True)
     wifi_setup = wifi_sub.add_parser("setup", help="Enable tcpip and connect one phone")
     wifi_setup.add_argument("--serial", help="USB serial to configure")
-    wifi_setup.add_argument("--port", type=int, default=5555, help="ADB tcpip port")
+    wifi_setup.add_argument("--port", type=int, default=ADB_DEFAULT_PORT, help="ADB tcpip port")
     wifi_connect = wifi_sub.add_parser("connect", help="Connect to endpoint")
     wifi_connect.add_argument("endpoint", help="IP or IP:PORT")
     wifi_disconnect = wifi_sub.add_parser("disconnect", help="Disconnect endpoint")
@@ -504,7 +505,7 @@ def build_parser() -> argparse.ArgumentParser:
     start = sub.add_parser("start", help="One-shot: prepare phone and start camera")
     start.add_argument("--mode", choices=["usb", "wifi"], default="wifi")
     start.add_argument("--serial", help="Preferred serial. For Wi-Fi, USB serial is accepted too")
-    start.add_argument("--port", type=int, default=5555, help="Wi-Fi setup port when --mode=wifi")
+    start.add_argument("--port", type=int, default=ADB_DEFAULT_PORT, help="Wi-Fi setup port when --mode=wifi")
     start.add_argument("--lens", choices=["front", "back"], default="front")
     start.add_argument("--rotation", choices=["0", "90", "180", "270"], default="0")
     start.add_argument("--preview-window", action="store_true", help="Show scrcpy preview window")

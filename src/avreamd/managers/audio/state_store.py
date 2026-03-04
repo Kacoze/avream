@@ -15,7 +15,7 @@ class AudioStateRepository:
             if isinstance(data, dict):
                 return data
             return {}
-        except Exception:
+        except Exception:  # state file may be absent or corrupt on first run
             return {}
 
     def save(self, data: dict[str, Any]) -> None:
@@ -26,5 +26,5 @@ class AudioStateRepository:
         try:
             if self._state_file.exists():
                 self._state_file.unlink()
-        except Exception:
+        except Exception:  # best-effort cleanup; file may already be absent
             pass

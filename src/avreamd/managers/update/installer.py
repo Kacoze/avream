@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from avreamd.api.errors import backend_error, dependency_error, validation_error
+from avreamd.constants import INSTALL_STDERR_TAIL, INSTALL_STDOUT_TAIL
 
 
 class PackageInstaller:
@@ -39,9 +40,9 @@ class PackageInstaller:
                 "update installation failed",
                 {
                     "returncode": rc,
-                    "stdout": stdout[-3000:],
-                    "stderr": stderr[-3000:],
+                    "stdout": stdout[-INSTALL_STDERR_TAIL:],
+                    "stderr": stderr[-INSTALL_STDERR_TAIL:],
                 },
                 retryable=False,
             )
-        return {"returncode": rc, "stdout": stdout[-1000:], "stderr": stderr[-1000:]}
+        return {"returncode": rc, "stdout": stdout[-INSTALL_STDOUT_TAIL:], "stderr": stderr[-INSTALL_STDOUT_TAIL:]}

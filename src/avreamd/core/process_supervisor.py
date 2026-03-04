@@ -61,7 +61,7 @@ class ProcessSupervisor:
             if latest.exists() or latest.is_symlink():
                 latest.unlink()
             os.symlink(session_log.name, latest)
-        except Exception:
+        except Exception:  # best-effort convenience symlink; failure is non-fatal
             pass
 
         return managed
@@ -81,8 +81,7 @@ class ProcessSupervisor:
             os.killpg(process.pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
-        except Exception:
-            # Fallback to direct terminate.
+        except Exception:  # fallback when process group kill is unavailable
             process.terminate()
         try:
             await asyncio.wait_for(process.wait(), timeout=graceful_timeout)
@@ -91,7 +90,7 @@ class ProcessSupervisor:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
-            except Exception:
+            except Exception:  # fallback when process group kill is unavailable
                 process.kill()
             try:
                 await asyncio.wait_for(process.wait(), timeout=kill_timeout)

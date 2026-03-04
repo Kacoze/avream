@@ -5,6 +5,7 @@ from typing import Any
 from aiohttp import ClientSession, ClientTimeout
 
 from avreamd.api.errors import backend_error
+from avreamd.constants import HTTP_BODY_TRUNCATE
 
 
 class ReleaseClient:
@@ -23,7 +24,7 @@ class ReleaseClient:
             async with session.get(url) as resp:
                 if resp.status >= 400:
                     text = await resp.text()
-                    raise backend_error("release API returned error", {"status": resp.status, "body": text[:1000]})
+                    raise backend_error("release API returned error", {"status": resp.status, "body": text[:HTTP_BODY_TRUNCATE]})
                 payload = await resp.json(content_type=None)
 
         if not isinstance(payload, dict):

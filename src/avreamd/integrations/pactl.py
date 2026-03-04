@@ -67,7 +67,7 @@ class PactlIntegration:
     def default_source(self) -> str | None:
         try:
             info = self.info()
-        except Exception:
+        except (RuntimeError, FileNotFoundError, OSError):  # pactl may not be running
             return None
         source = info.get("Default Source")
         if not source:

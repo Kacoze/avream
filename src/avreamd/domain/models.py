@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from avreamd.constants import DEFAULT_RECONNECT_BACKOFF_MS, DEFAULT_RECONNECT_MAX_ATTEMPTS
+
 
 @dataclass(frozen=True)
 class VideoStartOptions:
@@ -34,8 +36,8 @@ class VideoSource:
 @dataclass(frozen=True)
 class ReconnectPolicy:
     enabled: bool = True
-    max_attempts: int = 3
-    backoff_ms: int = 1500
+    max_attempts: int = DEFAULT_RECONNECT_MAX_ATTEMPTS
+    backoff_ms: int = DEFAULT_RECONNECT_BACKOFF_MS
 
     def normalized(self) -> "ReconnectPolicy":
         if not self.enabled:
@@ -52,8 +54,8 @@ class ReconnectStatus:
     enabled: bool = True
     state: str = "idle"
     attempt: int = 0
-    max_attempts: int = 3
-    backoff_ms: int = 1500
+    max_attempts: int = DEFAULT_RECONNECT_MAX_ATTEMPTS
+    backoff_ms: int = DEFAULT_RECONNECT_BACKOFF_MS
     next_retry_in_ms: int | None = None
     last_exit_code: int | None = None
 
