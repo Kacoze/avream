@@ -53,7 +53,7 @@ jobs:
           bash scripts/build-ppa-source.sh
 
       - name: Upload PPA source artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: avream-ppa-source
           path: dist/ppa/*
