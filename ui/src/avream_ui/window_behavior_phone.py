@@ -260,9 +260,7 @@ class WindowPhoneMixin:
         self._persist_current_ui_settings()
 
     def _on_phone_activated(self, _lb, row) -> None:
-        # Double-click/Enter on row = immediate use for smoother USB/Wi-Fi switching.
         self._on_phone_selected(_lb, row)
-        self._on_phone_use_selected(None)
 
     def _on_phone_use_selected(self, _btn) -> None:
         mode = self._selected_connection_mode()
@@ -295,54 +293,10 @@ class WindowPhoneMixin:
 
         if mode == "wifi":
             self._set_busy(True)
-            if usb_serial and not wifi_serial:
-                if wifi_candidate:
-                    self.progress_label.set_text("Connecting Wi-Fi candidate endpoint...")
-
-                    def done_candidate(resp: dict) -> bool:
-                        body = resp.get("body", {}) if isinstance(resp, dict) else {}
-                        if isinstance(body, dict) and body.get("ok"):
-                            data = body.get("data", {}) if isinstance(body, dict) else {}
-                            endpoint = data.get("endpoint") if isinstance(data, dict) else None
-                            if isinstance(endpoint, str) and endpoint:
-                                self.phone_wifi_endpoint_entry.set_text(endpoint)
-                                self.phone_status_label.set_text(
-                                    f"Wi-Fi device connected: {endpoint}. Open Stream tab to start camera."
-                                )
-                                self._persist_current_ui_settings()
-                            self._after_action(resp)
-                            self._on_phone_scan(None)
-                            return False
-
-                        # Candidate failed; fallback to full setup over USB.
-                        self.progress_label.set_text("Candidate failed, setting up Wi-Fi from USB...")
-
-                        def done_usb_wifi_fallback(resp2: dict) -> bool:
-                            body2 = resp2.get("body", {}) if isinstance(resp2, dict) else {}
-                            if isinstance(body2, dict) and body2.get("ok"):
-                                data2 = body2.get("data", {}) if isinstance(body2, dict) else {}
-                                endpoint2 = data2.get("endpoint") if isinstance(data2, dict) else None
-                                if isinstance(endpoint2, str) and endpoint2:
-                                    self.phone_wifi_endpoint_entry.set_text(endpoint2)
-                                    self.phone_status_label.set_text(
-                                        f"Wi-Fi ready: {endpoint2}. You can disconnect USB and start camera in Stream."
-                                    )
-                                    self._persist_current_ui_settings()
-                            self._after_action(resp2)
-                            self._on_phone_scan(None)
-                            return False
-
-                        self._call_async(
-                            "POST",
-                            "/android/wifi/setup",
-                            {"serial": usb_serial, "port": 5555},
-                            done_usb_wifi_fallback,
-                        )
-                        return False
-
-                    self._call_async("POST", "/android/wifi/connect", {"endpoint": wifi_candidate}, done_candidate)
-                    return
-
+            if usb_serial:
+                # Always use wifi_setup when USB is available — this runs adb tcpip 5555
+                # to properly register TCP mode in the current session, making the WiFi
+                # connection reliable after USB cable removal.
                 self.progress_label.set_text("Setting up Wi-Fi from selected USB phone...")
 
                 def done_usb_wifi(resp: dict) -> bool:
@@ -394,18 +348,69 @@ class WindowPhoneMixin:
 
     def _on_phone_start(self, _btn) -> None:
         self._set_busy(True)
+        mode = self._selected_connection_mode()
+
+        if mode == "wifi" and self._selected_phone:
+            serials = self._selected_serials()
+            usb_serial = serials.get("usb")
+            if usb_serial:
+                # Must run adb tcpip 5555 in this session before starting the camera,
+                # even if WiFi ADB looks active from a previous session.
+                # Without this, adbd drops TCP mode on USB removal and the camera dies.
+                self.progress_label.set_text("Preparing Wi-Fi connection...")
+
+                def after_wifi_setup(resp: dict) -> bool:
+                    body = resp.get("body", {}) if isinstance(resp, dict) else {}
+                    if isinstance(body, dict) and body.get("ok"):
+                        data = body.get("data", {}) if isinstance(body, dict) else {}
+                        endpoint = data.get("endpoint") if isinstance(data, dict) else None
+                        if isinstance(endpoint, str) and endpoint:
+                            self.phone_wifi_endpoint_entry.set_text(endpoint)
+                            self.phone_status_label.set_text(f"Wi-Fi ready: {endpoint}. Starting camera...")
+                    self._do_camera_start(mode)
+                    return False
+
+                self._call_async(
+                    "POST", "/android/wifi/setup",
+                    {"serial": usb_serial, "port": 5555},
+                    after_wifi_setup,
+                )
+                return
+
+        self._do_camera_start(mode)
+
+    def _do_camera_start(self, mode: str) -> None:
         self.progress_label.set_text("Starting phone camera...")
         payload: dict[str, Any] = {}
         if self._selected_phone:
             serials = self._selected_serials()
-            mode = self._selected_connection_mode()
-            chosen = serials.get(mode) or self._selected_phone.get("serial")
+            chosen = serials.get(mode)
+            if not chosen and mode == "wifi":
+                chosen = self.phone_wifi_endpoint_entry.get_text().strip()
+            if not chosen:
+                chosen = self._selected_phone.get("serial")
             if isinstance(chosen, str) and chosen:
                 payload["serial"] = chosen
+        elif mode == "wifi":
+            wifi_endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
+            if wifi_endpoint:
+                payload["serial"] = wifi_endpoint
         payload["camera_facing"] = self._selected_camera_facing()
         payload["camera_rotation"] = self._selected_camera_rotation()
         payload["preview_window"] = bool(self.preview_window_switch.get_active())
-        self._call_async("POST", "/video/start", payload, self._after_action)
+
+        serial_used = payload.get("serial", "")
+
+        def after_start(resp: dict) -> bool:
+            body = resp.get("body", {}) if isinstance(resp, dict) else {}
+            if isinstance(body, dict) and body.get("ok") and serial_used:
+                conn_type = "Wi-Fi" if ":" in serial_used else "USB"
+                if hasattr(self, "stream_source_label"):
+                    self.stream_source_label.set_text(f"Active source: {conn_type} — {serial_used}")
+            self._after_action(resp)
+            return False
+
+        self._call_async("POST", "/video/start", payload, after_start)
 
     def _on_phone_disconnect_selected(self, _btn) -> None:
         if not self._selected_phone:
