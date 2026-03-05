@@ -1,39 +1,31 @@
 # Supported Platforms
 
-## Tier A (officially gated)
+## Tested environment
 
-- Ubuntu 22.04 (GNOME)
-- Ubuntu 24.04 (GNOME)
-- Debian 12
-- Debian 13
-- Fedora 41
+AVream is a personal project, built and manually tested on:
 
-Architecture:
-- amd64 / x86_64
+- **Ubuntu 24.04 (GNOME)** — the only environment receiving hands-on testing before each release
 
-## Tier B (compatible, best effort)
+Architecture: amd64 / x86_64
 
-Debian-family:
-- Linux Mint 22+
-- Pop!_OS 22.04+
-- Zorin OS 17+
-- Other Debian/Ubuntu derivatives with `ID_LIKE` containing `debian` or `ubuntu`
+## Other Linux distributions
 
-RPM-family:
-- openSUSE Leap/Tumbleweed
-- RHEL-compatible derivatives (Rocky/Alma) when dependencies are available
+AVream may work on other systemd-based Linux desktops. The CI pipeline builds and
+smoke-tests packages on Ubuntu 22.04, Debian 12, Fedora 41 and openSUSE Tumbleweed,
+but these are not manually verified on a real desktop.
 
-Other ecosystems:
-- Arch Linux (AUR package path, automation-validated)
-- NixOS (flake package path, automation-validated)
+Distributions that have a reasonable chance of working if dependencies are met:
+- Debian 12+, Ubuntu 22.04+ and derivatives (Linux Mint, Pop!_OS, Zorin OS, …)
+- Fedora 41+, openSUSE Leap/Tumbleweed
+- Arch Linux (AUR path)
+- NixOS (flake path)
 
-Tier B support is validated primarily by automated compatibility tests and package smoke checks, not by per-release manual desktop QA.
+There are no guarantees. Things may or may not work.
 
-## Tested usage profile
+## Bug reports from other distributions
 
-- Linux desktop session with user systemd services enabled.
-- Android phone with Developer Options and USB debugging.
-- Conferencing/recording apps that accept standard V4L2 camera and Pulse/PipeWire microphone.
+I build this for myself, but I am happy to look into issues reported from other systems.
+If something doesn't work on your distribution, open an issue — I will do my best to help.
 
 ## Required system capabilities
 
@@ -57,8 +49,8 @@ Tier B support is validated primarily by automated compatibility tests and packa
 - Flatpak: `packaging/flatpak/io.avream.AVream.yml`.
 - Ubuntu PPA source package pipeline: `debian/` + `.github/workflows/ppa.yml`.
 
-## Out of scope for stable baseline
+## Out of scope
 
-- Unsupported desktop stacks without auth agent
 - Non-Linux platforms
 - Non-amd64 builds (until explicitly added)
+- Desktop stacks without a polkit auth agent

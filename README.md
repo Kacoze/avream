@@ -8,6 +8,8 @@
 [![Flatpak](https://github.com/Kacoze/avream/actions/workflows/flatpak.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/flatpak.yml)
 [![PPA Source](https://github.com/Kacoze/avream/actions/workflows/ppa.yml/badge.svg?branch=main)](https://github.com/Kacoze/avream/actions/workflows/ppa.yml)
 
+> **Personal project** — manually tested on Ubuntu 24.04. Other Linux distros may work; bug reports welcome.
+
 AVream turns your Android phone into a Linux virtual camera and microphone for real meetings and recordings.
 
 If you are looking for an Android phone as webcam on Linux, Android as microphone on Linux, or a reliable Linux virtual camera bridge for Zoom, Google Meet, and OBS, AVream is built for exactly that workflow.
