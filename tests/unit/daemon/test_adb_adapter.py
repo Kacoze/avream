@@ -43,7 +43,7 @@ class AdbAdapterTests(unittest.IsolatedAsyncioTestCase):
     async def test_wifi_setup_prefers_usb_when_serial_missing(self) -> None:
         adb = _StubAdbAdapter()
         adb.devices = [
-            {"serial": "192.168.1.50:5555", "state": "device"},
+            {"serial": "192.168.1.20:5555", "state": "device"},
             {"serial": "USB123", "state": "device"},
         ]
 
