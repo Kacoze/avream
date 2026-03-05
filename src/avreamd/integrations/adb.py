@@ -165,8 +165,20 @@ class AdbAdapter:
 
         endpoint = f"{ip}:{int(port)}"
         conn = await self.connect_with_retry(endpoint=endpoint, retries=3, backoff_base_s=0.5)
+
+        wifi_ready = False
+        for _ in range(12):
+            devices_after = await self.list_devices()
+            for d in devices_after:
+                if d.get("serial") == endpoint and d.get("state") == "device":
+                    wifi_ready = True
+                    break
+            if wifi_ready:
+                break
+            await asyncio.sleep(0.5)
+
         return {
-            "returncode": self._as_int(conn.get("returncode"), 1),
+            "returncode": 0 if wifi_ready else self._as_int(conn.get("returncode"), 1),
             "serial": target_serial,
             "ip": ip,
             "port": int(port),
@@ -174,7 +186,7 @@ class AdbAdapter:
             "tcpip": tcp,
             "connect": conn,
             "stdout": str(conn.get("stdout", "")),
-            "stderr": str(conn.get("stderr", "")),
+            "stderr": str(conn.get("stderr", "")) if wifi_ready else "Wi-Fi device did not reach ready state",
             "devices": devices,
         }
 

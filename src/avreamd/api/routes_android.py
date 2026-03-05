@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 from aiohttp import web
 
 from avreamd.api.app_keys import ADB_ADAPTER
@@ -199,14 +201,28 @@ async def handle_android_wifi_connect(request: web.Request) -> web.Response:
     adb = request.app[ADB_ADAPTER]
     if not adb.available:
         raise dependency_error("adb is missing", {"tool": "adb", "package": "android-tools-adb"})
-    result = await adb.connect(endpoint=endpoint)
+    normalized = adb.normalize_endpoint(endpoint)
+    result = await adb.connect(endpoint=normalized)
     if int(result.get("returncode", 1)) != 0:
         raise backend_error(
             "failed to connect adb endpoint",
-            {"endpoint": endpoint, "result": result},
+            {"endpoint": normalized, "result": result},
             retryable=True,
         )
-    return web.json_response(success_envelope({"endpoint": adb.normalize_endpoint(endpoint), "result": result}, request_id=request_id), status=200)
+    wifi_ready = False
+    for _ in range(12):
+        devices = await adb.list_devices()
+        if any(d.get("serial") == normalized and d.get("state") == "device" for d in devices):
+            wifi_ready = True
+            break
+        await asyncio.sleep(0.5)
+    if not wifi_ready:
+        raise backend_error(
+            "Wi-Fi device did not reach ready state after connect",
+            {"endpoint": normalized},
+            retryable=True,
+        )
+    return web.json_response(success_envelope({"endpoint": normalized, "result": result}, request_id=request_id), status=200)
 
 
 async def handle_android_wifi_disconnect(request: web.Request) -> web.Response:

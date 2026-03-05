@@ -25,6 +25,7 @@ helper/target/
 scripts/.cache/
 
 # Build output
+build/
 dist/
 site/
 

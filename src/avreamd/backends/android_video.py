@@ -34,15 +34,20 @@ class AndroidVideoBackend:
         # Explicit device selection first.
         if preferred_serial:
             matched = [d for d in devices if d.get("serial") == preferred_serial]
-            if matched:
-                dev = matched[0]
-                if dev.get("state") == "device":
-                    return AndroidSource(serial=dev["serial"], state=dev["state"])
+            if not matched:
                 raise backend_error(
-                    "preferred Android device is not authorized/ready",
-                    {"serial": preferred_serial, "state": dev.get("state"), "devices": devices},
+                    "preferred Android device not found",
+                    {"serial": preferred_serial, "devices": devices},
                     retryable=True,
                 )
+            dev = matched[0]
+            if dev.get("state") == "device":
+                return AndroidSource(serial=dev["serial"], state=dev["state"])
+            raise backend_error(
+                "preferred Android device is not authorized/ready",
+                {"serial": preferred_serial, "state": dev.get("state"), "devices": devices},
+                retryable=True,
+            )
 
         # Then transport preference (usb/wifi) among healthy devices.
         if preferred_transport in {"usb", "wifi"}:

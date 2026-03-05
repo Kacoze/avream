@@ -40,6 +40,21 @@ class WindowSettingsMixin:
             return
 
         self._startup_auto_connect_attempted = True
+
+        # For WiFi-mode auto-connect with a known endpoint and no phone selected:
+        # connect directly without triggering a device scan.
+        # This avoids a race condition where a concurrent user-initiated scan
+        # would trigger auto-connect via _maybe_complete_startup_auto_connect.
+        mode = self._selected_connection_mode()
+        endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
+        if mode == "wifi" and endpoint and not self._selected_phone:
+            self._startup_auto_connect_completed = True
+            self._append_log("Auto-connect: connecting to saved Wi-Fi endpoint...")
+            self._on_phone_use_selected(None)
+            return
+
+        # For USB/device with a saved selection: scan first to populate device list,
+        # then _maybe_complete_startup_auto_connect handles the rest.
         self._append_log("Auto-connect: scanning for last used device...")
         self._on_phone_scan(None)
 
