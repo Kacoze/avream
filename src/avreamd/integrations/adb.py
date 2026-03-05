@@ -178,7 +178,7 @@ class AdbAdapter:
             await asyncio.sleep(0.5)
 
         return {
-            "returncode": 0 if wifi_ready else self._as_int(conn.get("returncode"), 1),
+            "returncode": 0 if wifi_ready else 1,
             "serial": target_serial,
             "ip": ip,
             "port": int(port),
