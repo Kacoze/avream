@@ -29,9 +29,12 @@ If something doesn't work on your distribution, open an issue — I will do my b
 
 ## Required system capabilities
 
-- systemd user services
+- systemd user services (OpenRC/runit-based distros are not supported)
 - polkit and desktop auth agent
 - Linux virtual video support (`v4l2loopback`)
+- Python 3.10+
+- GTK 4.0 and libadwaita 1.x (rules out Ubuntu < 22.04, Debian < 12, Fedora < 36)
+- amd64 / x86_64 architecture (ARM64 is not supported)
 
 ## Runtime tools (feature-dependent)
 
