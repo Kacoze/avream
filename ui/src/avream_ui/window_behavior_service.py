@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from avream_ui.i18n import _
 from gi.repository import GLib  # type: ignore[import-not-found]
 
 
@@ -10,7 +11,7 @@ class WindowServiceMixin:
             self.main_stack.set_visible_child_name("daemon-lock")
             self.lock_status_label.set_text(
                 message
-                or "AVream service is not running. Click Enable AVream Service to start it."
+                or _("AVream service is not running. Click Enable AVream Service to start it.")
             )
         else:
             self.main_stack.set_visible_child_name("main")
@@ -25,14 +26,14 @@ class WindowServiceMixin:
         )
 
     def _on_show_manual_commands(self, _btn) -> None:
-        self._show_info_dialog("Manual setup commands", self._service_enable_commands())
+        self._show_info_dialog(_("Manual setup commands"), self._service_enable_commands())
 
     def _on_retry_service(self, _btn) -> None:
         self._refresh_status()
 
     def _wait_for_daemon_ready(self, attempts: int = 60, interval_ms: int = 500) -> None:
         state = {"remaining": attempts}
-        self.lock_status_label.set_text("Service enabled. Waiting for daemon startup...")
+        self.lock_status_label.set_text(_("Service enabled. Waiting for daemon startup..."))
 
         def tick() -> bool:
             self._refresh_status()
@@ -46,12 +47,14 @@ class WindowServiceMixin:
                 self._set_busy(False)
                 self._append_log("Daemon did not become ready before timeout.")
                 self.lock_status_label.set_text(
-                    "Service was enabled, but daemon is still unreachable. Click Retry or use manual commands."
+                    _("Service was enabled, but daemon is still unreachable. Click Retry or use manual commands.")
                 )
                 return False
 
             done = attempts - state["remaining"]
-            self.lock_status_label.set_text(f"Service enabled. Waiting for daemon startup... ({done}/{attempts})")
+            self.lock_status_label.set_text(
+                _("Service enabled. Waiting for daemon startup... ({done}/{total})").format(done=done, total=attempts)
+            )
             return True
 
         GLib.idle_add(tick)
@@ -59,7 +62,7 @@ class WindowServiceMixin:
 
     def _on_enable_service(self, _btn) -> None:
         self._set_busy(True)
-        self.progress_label.set_text("Enabling AVream daemon service...")
+        self.progress_label.set_text(_("Enabling AVream daemon service..."))
 
         command = [
             "bash",
@@ -84,8 +87,8 @@ class WindowServiceMixin:
                 stderr = str(result.get("stderr", "")).strip() or "service enable failed"
                 self._append_log(f"service enable failed: {stderr}")
                 self._show_error_dialog(
-                    "Enable service failed",
-                    f"Could not enable the AVream service automatically.\n\n{stderr}\n\nClick 'Show manual commands' to view the setup steps.",
+                    _("Enable service failed"),
+                    _("Could not enable the AVream service automatically.\n\n{stderr}\n\nClick 'Show manual commands' to view the setup steps.").format(stderr=stderr),
                 )
                 return False
 
@@ -106,13 +109,13 @@ class WindowServiceMixin:
 
     def _on_video_stop(self, _btn) -> None:
         self._set_busy(True)
-        self.progress_label.set_text("Stopping camera...")
+        self.progress_label.set_text(_("Stopping camera..."))
         self._call_async("POST", "/video/stop", {}, self._after_action)
 
     def _on_video_reset(self, _btn) -> None:
         def do_reset() -> None:
             self._set_busy(True)
-            self.progress_label.set_text("Resetting camera...")
+            self.progress_label.set_text(_("Resetting camera..."))
             self._call_async("POST", "/video/reset", {"force": False}, self._after_action)
 
-        self._confirm("Reset camera", "This reloads the virtual camera device. Continue?", do_reset)
+        self._confirm(_("Reset camera"), _("This reloads the virtual camera device. Continue?"), do_reset)

@@ -4,21 +4,23 @@ import json
 import os
 import shutil
 
+from avream_ui.i18n import _
+
 
 class WindowPasswordlessMixin:
     def _sync_passwordless_toggle(self) -> None:
         enabled = bool(getattr(self, "_passwordless_enabled", False))
         if enabled:
-            self.passwordless_toggle_btn.set_label("Disable")
+            self.passwordless_toggle_btn.set_label(_("Disable"))
             self.passwordless_toggle_btn.add_css_class("destructive-action")
-            self.passwordless_toggle_btn.set_tooltip_text("Disable passwordless helper actions.")
+            self.passwordless_toggle_btn.set_tooltip_text(_("Disable passwordless helper actions."))
         else:
-            self.passwordless_toggle_btn.set_label("Enable")
+            self.passwordless_toggle_btn.set_label(_("Enable"))
             self.passwordless_toggle_btn.remove_css_class("destructive-action")
-            self.passwordless_toggle_btn.set_tooltip_text("Enable passwordless helper actions.")
+            self.passwordless_toggle_btn.set_tooltip_text(_("Enable passwordless helper actions."))
 
     def _set_passwordless_status(self, text: str) -> None:
-        value = str(text or "").strip() or "Status: unknown"
+        value = str(text or "").strip() or _("Status: unknown")
         if hasattr(self, "passwordless_status_row"):
             self.passwordless_status_row.set_subtitle(value)
             return
@@ -49,32 +51,32 @@ class WindowPasswordlessMixin:
     def _refresh_passwordless_status(self) -> None:
         tool = self._passwordless_tool()
         if not tool:
-            self._set_passwordless_status("Passwordless setup tool is not installed.")
+            self._set_passwordless_status(_("Passwordless setup tool is not installed."))
             self._append_log("passwordless status: tool not found")
             return
         user = self._username()
         if not user:
-            self._set_passwordless_status("Cannot detect current username.")
+            self._set_passwordless_status(_("Cannot detect current username."))
             self._append_log("passwordless status: username missing")
             return
 
-        self.progress_label.set_text("Checking passwordless status...")
+        self.progress_label.set_text(_("Checking passwordless status..."))
         cmd = [tool, "status", "--user", user, "--json"]
 
         def done(result: dict) -> bool:
             self.progress_label.set_text("")
             if not result.get("ok"):
                 stderr = str(result.get("stderr", "")).strip() or "status command failed"
-                self._set_passwordless_status(f"Passwordless status error: {stderr}")
+                self._set_passwordless_status(_("Passwordless status error: {error}").format(error=stderr))
                 self._append_log(f"passwordless status failed: {stderr}")
-                self._show_error_dialog("Passwordless status failed", stderr)
+                self._show_error_dialog(_("Passwordless status failed"), stderr)
                 return False
             try:
                 payload = json.loads(str(result.get("stdout", "{}")))
             except Exception:
-                self._set_passwordless_status("Passwordless status parse error.")
+                self._set_passwordless_status(_("Passwordless status parse error."))
                 self._append_log("passwordless status parse error")
-                self._show_error_dialog("Passwordless status failed", "Could not parse status output.")
+                self._show_error_dialog(_("Passwordless status failed"), _("Could not parse status output."))
                 return False
             enabled = bool(payload.get("enabled", False))
             runner = "unknown"
@@ -92,19 +94,19 @@ class WindowPasswordlessMixin:
                 if enabled and runner == "pkexec":
                     self._passwordless_enabled = True
                     self._sync_passwordless_toggle()
-                    self._set_passwordless_status("Passwordless helper actions are enabled (runner: pkexec).")
+                    self._set_passwordless_status(_("Passwordless helper actions are enabled (runner: pkexec)."))
                     self._append_log("passwordless status: enabled, runner=pkexec")
                 elif enabled and runner != "pkexec":
                     self._passwordless_enabled = True
                     self._sync_passwordless_toggle()
                     self._set_passwordless_status(
-                        "Passwordless is enabled, but the service needs to be restarted to take effect. Restart AVream from Settings \u2192 Service."
+                        _("Passwordless is enabled, but the service needs to be restarted to take effect. Restart AVream from Settings \u2192 Service.")
                     )
                     self._append_log(f"passwordless status: enabled but runner={runner}")
                 else:
                     self._passwordless_enabled = False
                     self._sync_passwordless_toggle()
-                    self._set_passwordless_status("Passwordless helper actions are disabled.")
+                    self._set_passwordless_status(_("Passwordless helper actions are disabled."))
                     self._append_log("passwordless status: disabled")
                 return False
 
@@ -126,18 +128,18 @@ class WindowPasswordlessMixin:
         tool = self._passwordless_tool()
         user = self._username()
         if not tool:
-            self._show_error_dialog("Tool not found", "avream-passwordless-setup is not installed.")
+            self._show_error_dialog(_("Tool not found"), _("avream-passwordless-setup is not installed."))
             return
         if not user:
-            self._show_error_dialog("User unknown", "Cannot detect current username.")
+            self._show_error_dialog(_("User unknown"), _("Cannot detect current username."))
             return
         if not shutil.which("pkexec"):
-            self._show_error_dialog("pkexec missing", "Install policykit-1 (pkexec) to run this action from GUI.")
+            self._show_error_dialog(_("pkexec missing"), _("Install policykit-1 (pkexec) to run this action from GUI."))
             return
 
         def do_enable() -> None:
             self._set_busy(True)
-            self.progress_label.set_text("Enabling passwordless helper actions...")
+            self.progress_label.set_text(_("Enabling passwordless helper actions..."))
             cmd = ["pkexec", tool, "enable", "--user", user]
 
             def done(result: dict) -> bool:
@@ -145,14 +147,14 @@ class WindowPasswordlessMixin:
                 self.progress_label.set_text("")
                 if not result.get("ok"):
                     msg = str(result.get("stderr", "")).strip() or "enable failed"
-                    self._show_error_dialog("Enable failed", msg)
+                    self._show_error_dialog(_("Enable failed"), msg)
                     return False
                 self._passwordless_enabled = True
                 self._sync_passwordless_toggle()
                 self._append_log("Passwordless helper actions enabled")
                 self._show_info_dialog(
-                    "Passwordless enabled",
-                    "Passwordless helper actions were enabled. Log out and log in again to refresh group membership.",
+                    _("Passwordless enabled"),
+                    _("Passwordless helper actions were enabled. Log out and log in again to refresh group membership."),
                 )
                 self._refresh_passwordless_status()
                 return False
@@ -160,8 +162,8 @@ class WindowPasswordlessMixin:
             self._run_cmd_async(cmd, done)
 
         self._confirm(
-            "Enable passwordless mode",
-            "This allows your local active user session to run AVream helper actions without password prompt. Continue?",
+            _("Enable passwordless mode"),
+            _("This allows your local active user session to run AVream helper actions without password prompt. Continue?"),
             do_enable,
         )
 
@@ -169,18 +171,18 @@ class WindowPasswordlessMixin:
         tool = self._passwordless_tool()
         user = self._username()
         if not tool:
-            self._show_error_dialog("Tool not found", "avream-passwordless-setup is not installed.")
+            self._show_error_dialog(_("Tool not found"), _("avream-passwordless-setup is not installed."))
             return
         if not user:
-            self._show_error_dialog("User unknown", "Cannot detect current username.")
+            self._show_error_dialog(_("User unknown"), _("Cannot detect current username."))
             return
         if not shutil.which("pkexec"):
-            self._show_error_dialog("pkexec missing", "Install policykit-1 (pkexec) to run this action from GUI.")
+            self._show_error_dialog(_("pkexec missing"), _("Install policykit-1 (pkexec) to run this action from GUI."))
             return
 
         def do_disable() -> None:
             self._set_busy(True)
-            self.progress_label.set_text("Disabling passwordless helper actions...")
+            self.progress_label.set_text(_("Disabling passwordless helper actions..."))
             cmd = ["pkexec", tool, "disable", "--user", user]
 
             def done(result: dict) -> bool:
@@ -188,19 +190,19 @@ class WindowPasswordlessMixin:
                 self.progress_label.set_text("")
                 if not result.get("ok"):
                     msg = str(result.get("stderr", "")).strip() or "disable failed"
-                    self._show_error_dialog("Disable failed", msg)
+                    self._show_error_dialog(_("Disable failed"), msg)
                     return False
                 self._passwordless_enabled = False
                 self._sync_passwordless_toggle()
                 self._append_log("Passwordless helper actions disabled")
-                self._show_info_dialog("Passwordless disabled", "Passwordless helper actions were disabled.")
+                self._show_info_dialog(_("Passwordless disabled"), _("Passwordless helper actions were disabled."))
                 self._refresh_passwordless_status()
                 return False
 
             self._run_cmd_async(cmd, done)
 
         self._confirm(
-            "Disable passwordless mode",
-            "This restores password prompts for AVream helper actions. Continue?",
+            _("Disable passwordless mode"),
+            _("This restores password prompts for AVream helper actions. Continue?"),
             do_disable,
         )

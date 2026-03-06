@@ -7,6 +7,8 @@ from pathlib import Path
 
 from gi.repository import Adw, Gdk, GLib  # type: ignore[import-not-found]
 
+from avream_ui.i18n import LANGUAGES, _
+
 
 class WindowSettingsMixin:
     def _has_auto_connect_target(self) -> bool:
@@ -125,6 +127,16 @@ class WindowSettingsMixin:
     def _apply_loaded_ui_settings(self) -> None:
         self._ignore_settings_events = True
         try:
+            saved_lang = str(self._saved_ui_settings.get("language", "en"))
+            lang_codes = list(LANGUAGES.keys())
+            if saved_lang in lang_codes:
+                self._current_language = saved_lang
+                idx = lang_codes.index(saved_lang)
+                if hasattr(self, "_lang_combo_advanced"):
+                    self._lang_combo_advanced.set_selected(idx)
+                if hasattr(self, "_lang_combo_lock"):
+                    self._lang_combo_lock.set_selected(idx)
+
             mode = self._saved_ui_settings.get("connection_mode")
             if mode == "usb":
                 self.connection_mode_dropdown.set_selected(0)
@@ -162,6 +174,7 @@ class WindowSettingsMixin:
         self._saved_ui_settings["camera_facing"] = self._selected_camera_facing()
         self._saved_ui_settings["camera_rotation"] = self._selected_camera_rotation()
         self._saved_ui_settings["preview_window"] = bool(self.preview_window_switch.get_active())
+        self._saved_ui_settings["language"] = getattr(self, "_current_language", "en")
 
         endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
         if endpoint:
@@ -208,7 +221,7 @@ class WindowSettingsMixin:
         endpoint_raw = self.phone_wifi_endpoint_entry.get_text().strip()
         endpoint = self._normalize_wifi_endpoint(endpoint_raw)
         if not endpoint:
-            self.wifi_saved_status_label.set_text("Endpoint status: not set")
+            self.wifi_saved_status_label.set_text(_("Endpoint status: not set"))
             sync = getattr(self, "_sync_phone_connect_toggle_button", None)
             if callable(sync):
                 sync()
@@ -231,7 +244,7 @@ class WindowSettingsMixin:
 
             body = resp.get("body", {}) if isinstance(resp, dict) else {}
             if not isinstance(body, dict) or not body.get("ok"):
-                self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} unavailable (scan/daemon error)")
+                self.wifi_saved_status_label.set_text(_("Endpoint status: {endpoint} unavailable").format(endpoint=endpoint))
                 sync = getattr(self, "_sync_phone_connect_toggle_button", None)
                 if callable(sync):
                     sync()
@@ -264,7 +277,7 @@ class WindowSettingsMixin:
                     break
 
             if matched_state == "device":
-                self.wifi_saved_status_label.set_text(f"Endpoint status: connected ({endpoint})")
+                self.wifi_saved_status_label.set_text(_("Endpoint status: connected ({endpoint})").format(endpoint=endpoint))
                 sync = getattr(self, "_sync_phone_connect_toggle_button", None)
                 if callable(sync):
                     sync()
@@ -273,7 +286,7 @@ class WindowSettingsMixin:
                     self._refresh_saved_wifi_endpoint_status()
                 return False
             if isinstance(matched_state, str):
-                self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} — {matched_state}")
+                self.wifi_saved_status_label.set_text(_("Endpoint status: {endpoint} — {state}").format(endpoint=endpoint, state=matched_state))
                 sync = getattr(self, "_sync_phone_connect_toggle_button", None)
                 if callable(sync):
                     sync()
@@ -281,7 +294,7 @@ class WindowSettingsMixin:
                     self._wifi_status_refresh_pending = False
                     self._refresh_saved_wifi_endpoint_status()
                 return False
-            self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} not found")
+            self.wifi_saved_status_label.set_text(_("Endpoint status: {endpoint} not found").format(endpoint=endpoint))
             sync = getattr(self, "_sync_phone_connect_toggle_button", None)
             if callable(sync):
                 sync()
@@ -311,7 +324,7 @@ class WindowSettingsMixin:
         content = buf.get_text(start, end, False)
         display = Gdk.Display.get_default()
         if display is None:
-            self._show_error_dialog("Clipboard unavailable", "No active display. Could not copy logs.")
+            self._show_error_dialog(_("Clipboard unavailable"), _("No active display. Could not copy logs."))
             return
         clipboard = display.get_clipboard()
         clipboard.set(content)
@@ -333,12 +346,12 @@ class WindowSettingsMixin:
                 return
 
             self._apply_default_ui_settings()
-            self._set_ui_settings_status("Saved settings were reset to defaults.")
+            self._set_ui_settings_status(_("Saved settings were reset to defaults."))
             self._append_log("UI settings reset to defaults.")
 
         self._confirm(
-            "Reset saved UI settings",
-            "This removes saved UI settings and restores defaults. Continue?",
+            _("Reset saved UI settings"),
+            _("This removes saved UI settings and restores defaults. Continue?"),
             do_reset,
         )
 
@@ -372,7 +385,7 @@ class WindowSettingsMixin:
 
     def _show_error_dialog(self, title: str, message: str, action_label: str | None = None, action=None) -> None:
         dialog = Adw.MessageDialog.new(self, title, message)
-        dialog.add_response("close", "Close")
+        dialog.add_response("close", _("Close"))
         if isinstance(action_label, str) and action_label.strip():
             dialog.add_response("action", action_label.strip())
         dialog.set_default_response("close")
@@ -387,7 +400,7 @@ class WindowSettingsMixin:
 
     def _show_info_dialog(self, title: str, message: str) -> None:
         dialog = Adw.MessageDialog.new(self, title, message)
-        dialog.add_response("ok", "OK")
+        dialog.add_response("ok", _("OK"))
         dialog.set_default_response("ok")
         dialog.set_close_response("ok")
         dialog.connect("response", lambda d, _r: d.close())
@@ -395,8 +408,8 @@ class WindowSettingsMixin:
 
     def _confirm(self, title: str, message: str, on_ok) -> None:
         dialog = Adw.MessageDialog.new(self, title, message)
-        dialog.add_response("cancel", "Cancel")
-        dialog.add_response("ok", "Proceed")
+        dialog.add_response("cancel", _("Cancel"))
+        dialog.add_response("ok", _("Proceed"))
         dialog.set_default_response("cancel")
         dialog.set_close_response("cancel")
 
@@ -407,3 +420,20 @@ class WindowSettingsMixin:
 
         dialog.connect("response", _on_resp)
         dialog.present()
+
+    def _on_language_changed(self, widget, _param) -> None:
+        codes = list(LANGUAGES.keys())
+        idx = widget.get_selected()
+        if idx >= len(codes):
+            return
+        lang = codes[idx]
+        if lang == getattr(self, "_current_language", "en"):
+            return
+        self._current_language = lang
+        # Keep both selectors in sync
+        if hasattr(self, "_lang_combo_advanced") and widget is not self._lang_combo_advanced:
+            self._lang_combo_advanced.set_selected(idx)
+        if hasattr(self, "_lang_combo_lock") and widget is not self._lang_combo_lock:
+            self._lang_combo_lock.set_selected(idx)
+        self._persist_current_ui_settings()
+        self.progress_label.set_text(_("Language changed. Restart AVream to apply."))

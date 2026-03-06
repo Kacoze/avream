@@ -1,0 +1,574 @@
+# AVream UI translations template
+# Copyright (C) 2024
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"MIME-Version: 1.0\n"
+
+msgid "Open Devices to choose a source, then start streaming here."
+msgstr ""
+
+msgid "Start Camera"
+msgstr ""
+
+msgid "Camera lens"
+msgstr ""
+
+msgid "Front"
+msgstr ""
+
+msgid "Back"
+msgstr ""
+
+msgid "Rotation"
+msgstr ""
+
+msgid "Preview window"
+msgstr ""
+
+msgid "You can change preview window mode only when camera is stopped."
+msgstr ""
+
+msgid "Stream"
+msgstr ""
+
+msgid "Active source: not selected"
+msgstr ""
+
+msgid "Stream settings"
+msgstr ""
+
+msgid "Scan Phones"
+msgstr ""
+
+msgid "Connect"
+msgstr ""
+
+msgid "Connection mode"
+msgstr ""
+
+msgid "USB"
+msgstr ""
+
+msgid "Wi-Fi"
+msgstr ""
+
+msgid "No phones detected yet.\nUse Scan Phones to refresh."
+msgstr ""
+
+msgid "Manual Wi-Fi endpoint"
+msgstr ""
+
+msgid "In Wi-Fi mode, Connect uses this endpoint when no phone is selected in the list."
+msgstr ""
+
+msgid "Endpoint status: not set"
+msgstr ""
+
+msgid "No device selected. Scan and choose a phone."
+msgstr ""
+
+msgid "Selection"
+msgstr ""
+
+msgid "Connection"
+msgstr ""
+
+msgid "Security"
+msgstr ""
+
+msgid "Configure privileged helper access and authentication behavior."
+msgstr ""
+
+msgid "Passwordless helper actions"
+msgstr ""
+
+msgid "Status: unknown"
+msgstr ""
+
+msgid "UI"
+msgstr ""
+
+msgid "Settings stored locally for the current user session."
+msgstr ""
+
+msgid "UI settings"
+msgstr ""
+
+msgid "Auto-saved."
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "Interface language. Restart AVream to apply changes."
+msgstr ""
+
+msgid "Interface language"
+msgstr ""
+
+msgid "Maintenance"
+msgstr ""
+
+msgid "Actions for troubleshooting and recovering from device issues."
+msgstr ""
+
+msgid "Reset camera device"
+msgstr ""
+
+msgid "Reloads the virtual camera device. Use only if the stream is stuck."
+msgstr ""
+
+msgid "Click to check for updates"
+msgstr ""
+
+msgid "CLI help"
+msgstr ""
+
+msgid "Open AVream CLI quick reference"
+msgstr ""
+
+msgid "Refresh Status"
+msgstr ""
+
+msgid "Copy Logs"
+msgstr ""
+
+msgid "Clear Logs"
+msgstr ""
+
+msgid "Enable AVream Service"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
+
+msgid "Show Manual Commands"
+msgstr ""
+
+msgid "Language:"
+msgstr ""
+
+msgid "AVream service is not running"
+msgstr ""
+
+msgid "Devices"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Reset Saved"
+msgstr ""
+
+msgid "Reset Camera"
+msgstr ""
+
+msgid "Request failed"
+msgstr ""
+
+msgid "No authorized phone"
+msgstr ""
+
+msgid "No authorized Android device is available.\n\nWhat to do:\n1. Open Devices and click Scan Phones.\n2. Unlock the phone and accept the USB debugging prompt.\n3. If you prefer Wi-Fi, connect an endpoint in Devices.\n"
+msgstr ""
+
+msgid "Open Devices"
+msgstr ""
+
+msgid "Daemon unavailable"
+msgstr ""
+
+msgid "AVream cannot reach the daemon service for this user session.\n\nWhat to do:\n1. Click Enable AVream Service.\n2. Then click Retry.\n"
+msgstr ""
+
+msgid "AVream service is not running. Click Enable AVream Service to start it."
+msgstr ""
+
+msgid "Stop Camera"
+msgstr ""
+
+msgid "Stop currently running camera stream."
+msgstr ""
+
+msgid "Start camera stream from selected device."
+msgstr ""
+
+msgid "Service unavailable"
+msgstr ""
+
+msgid "Active source: unavailable"
+msgstr ""
+
+msgid "Service status unavailable"
+msgstr ""
+
+msgid "on"
+msgstr ""
+
+msgid "off"
+msgstr ""
+
+msgid "error"
+msgstr ""
+
+msgid "starting"
+msgstr ""
+
+msgid "Camera: {v}  •  Microphone: {a}"
+msgstr ""
+
+msgid "Active source: {source}"
+msgstr ""
+
+msgid "not selected"
+msgstr ""
+
+msgid "Stop camera first to change preview window mode."
+msgstr ""
+
+msgid "Stop camera first to change rotation."
+msgstr ""
+
+msgid "Preview window: {mode} (locked while camera is running)"
+msgstr ""
+
+msgid "Stop camera first to change preview window mode and rotation."
+msgstr ""
+
+msgid "Toggle to show or hide separate AVream Preview window on next camera start."
+msgstr ""
+
+msgid "Select camera rotation for next camera start."
+msgstr ""
+
+msgid "Preview window: {mode}"
+msgstr ""
+
+msgid "Manual setup commands"
+msgstr ""
+
+msgid "Service enabled. Waiting for daemon startup..."
+msgstr ""
+
+msgid "Service was enabled, but daemon is still unreachable. Click Retry or use manual commands."
+msgstr ""
+
+msgid "Service enabled. Waiting for daemon startup... ({done}/{total})"
+msgstr ""
+
+msgid "Enabling AVream daemon service..."
+msgstr ""
+
+msgid "Enable service failed"
+msgstr ""
+
+msgid "Could not enable the AVream service automatically.\n\n{stderr}\n\nClick 'Show manual commands' to view the setup steps."
+msgstr ""
+
+msgid "Stopping camera..."
+msgstr ""
+
+msgid "Resetting camera..."
+msgstr ""
+
+msgid "Reset camera"
+msgstr ""
+
+msgid "This reloads the virtual camera device. Continue?"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+msgid "Disable passwordless helper actions."
+msgstr ""
+
+msgid "Enable"
+msgstr ""
+
+msgid "Enable passwordless helper actions."
+msgstr ""
+
+msgid "Passwordless setup tool is not installed."
+msgstr ""
+
+msgid "Cannot detect current username."
+msgstr ""
+
+msgid "Checking passwordless status..."
+msgstr ""
+
+msgid "Passwordless status error: {error}"
+msgstr ""
+
+msgid "Passwordless status failed"
+msgstr ""
+
+msgid "Could not parse status output."
+msgstr ""
+
+msgid "Passwordless status parse error."
+msgstr ""
+
+msgid "Passwordless helper actions are enabled (runner: pkexec)."
+msgstr ""
+
+msgid "Passwordless is enabled, but the service needs to be restarted to take effect. Restart AVream from Settings → Service."
+msgstr ""
+
+msgid "Passwordless helper actions are disabled."
+msgstr ""
+
+msgid "Tool not found"
+msgstr ""
+
+msgid "avream-passwordless-setup is not installed."
+msgstr ""
+
+msgid "User unknown"
+msgstr ""
+
+msgid "pkexec missing"
+msgstr ""
+
+msgid "Install policykit-1 (pkexec) to run this action from GUI."
+msgstr ""
+
+msgid "Enabling passwordless helper actions..."
+msgstr ""
+
+msgid "Enable failed"
+msgstr ""
+
+msgid "Passwordless enabled"
+msgstr ""
+
+msgid "Passwordless helper actions were enabled. Log out and log in again to refresh group membership."
+msgstr ""
+
+msgid "Enable passwordless mode"
+msgstr ""
+
+msgid "This allows your local active user session to run AVream helper actions without password prompt. Continue?"
+msgstr ""
+
+msgid "Disabling passwordless helper actions..."
+msgstr ""
+
+msgid "Disable failed"
+msgstr ""
+
+msgid "Passwordless disabled"
+msgstr ""
+
+msgid "Passwordless helper actions were disabled."
+msgstr ""
+
+msgid "Disable passwordless mode"
+msgstr ""
+
+msgid "This restores password prompts for AVream helper actions. Continue?"
+msgstr ""
+
+msgid "README not found"
+msgstr ""
+
+msgid "Could not find CLI README file on this system."
+msgstr ""
+
+msgid "xdg-open missing"
+msgstr ""
+
+msgid "Open this file manually: {path}"
+msgstr ""
+
+msgid "Failed to open README"
+msgstr ""
+
+msgid "Update available. Click to open update modal."
+msgstr ""
+
+msgid "Open this URL manually: {url}"
+msgstr ""
+
+msgid "Failed to open release page"
+msgstr ""
+
+msgid "Installing update..."
+msgstr ""
+
+msgid "Install update"
+msgstr ""
+
+msgid "AVream will stop camera/microphone if needed, install latest package, and restart daemon service. Continue?"
+msgstr ""
+
+msgid "Checking for updates..."
+msgstr ""
+
+msgid "Update check failed"
+msgstr ""
+
+msgid "Update available"
+msgstr ""
+
+msgid "No update"
+msgstr ""
+
+msgid "A newer release is available."
+msgstr ""
+
+msgid "You are up to date."
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Open Release"
+msgstr ""
+
+msgid "Install Update"
+msgstr ""
+
+msgid "Cannot change while streaming"
+msgstr ""
+
+msgid "Stop camera first, then change Preview window mode and start camera again."
+msgstr ""
+
+msgid "Endpoint status: {endpoint} unavailable"
+msgstr ""
+
+msgid "Endpoint status: connected ({endpoint})"
+msgstr ""
+
+msgid "Endpoint status: {endpoint} — {state}"
+msgstr ""
+
+msgid "Endpoint status: {endpoint} not found"
+msgstr ""
+
+msgid "Clipboard unavailable"
+msgstr ""
+
+msgid "No active display. Could not copy logs."
+msgstr ""
+
+msgid "Saved settings were reset to defaults."
+msgstr ""
+
+msgid "Reset saved UI settings"
+msgstr ""
+
+msgid "This removes saved UI settings and restores defaults. Continue?"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Proceed"
+msgstr ""
+
+msgid "Language changed. Restart AVream to apply."
+msgstr ""
+
+msgid "Disconnect"
+msgstr ""
+
+msgid "Disconnect Wi-Fi endpoint from AVream session."
+msgstr ""
+
+msgid "Connect selected Wi-Fi device or manual endpoint."
+msgstr ""
+
+msgid "Stop stream and disconnect selected phone from AVream session."
+msgstr ""
+
+msgid "Mark selected USB phone as active for streaming."
+msgstr ""
+
+msgid "Scanning devices..."
+msgstr ""
+
+msgid "No phones detected. Connect USB phone and click Scan."
+msgstr ""
+
+msgid "Select a phone to connect (USB or Wi-Fi)."
+msgstr ""
+
+msgid "Active source: {serial} ({mode})"
+msgstr ""
+
+msgid "Phone is unauthorized. Unlock phone and accept the USB debugging prompt."
+msgstr ""
+
+msgid "Phone state: {state}. Try reconnecting USB."
+msgstr ""
+
+msgid "Phone is ready ({transport}). Click Connect."
+msgstr ""
+
+msgid "Connecting Wi-Fi endpoint..."
+msgstr ""
+
+msgid "No phone selected"
+msgstr ""
+
+msgid "Scan phones and select a device first."
+msgstr ""
+
+msgid "Phone not ready"
+msgstr ""
+
+msgid "Unlock phone and ensure it shows as 'device' in the list."
+msgstr ""
+
+msgid "Setting up Wi-Fi from selected USB phone..."
+msgstr ""
+
+msgid "Wi-Fi ready: {endpoint}. You can disconnect USB and start camera in Stream."
+msgstr ""
+
+msgid "Selecting Wi-Fi phone and reconnecting endpoint..."
+msgstr ""
+
+msgid "Wi-Fi device connected: {endpoint}. Open Stream tab to start camera."
+msgstr ""
+
+msgid "USB mode selected"
+msgstr ""
+
+msgid "Selected phone is Wi-Fi. Either switch connection mode to Wi-Fi or select a USB device."
+msgstr ""
+
+msgid "Phone selected and connected. Open Stream tab to start camera."
+msgstr ""
+
+msgid "Preparing Wi-Fi connection..."
+msgstr ""
+
+msgid "Wi-Fi ready: {endpoint}. Starting camera..."
+msgstr ""
+
+msgid "Starting phone camera..."
+msgstr ""
+
+msgid "Active source: {conn_type} — {serial}"
+msgstr ""
+
+msgid "Disconnecting Wi-Fi endpoint..."
+msgstr ""
+
+msgid "Disconnecting selected phone..."
+msgstr ""
+
+msgid "Phone disconnected from AVream session."
+msgstr ""

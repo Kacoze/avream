@@ -1,0 +1,575 @@
+# AVream UI Chinese Simplified translations
+# Copyright (C) 2024
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"MIME-Version: 1.0\n"
+"Language: zh_CN\n"
+
+msgid "Open Devices to choose a source, then start streaming here."
+msgstr "打开"设备"选择来源，然后在此开始直播。"
+
+msgid "Start Camera"
+msgstr "启动摄像头"
+
+msgid "Camera lens"
+msgstr "摄像头镜头"
+
+msgid "Front"
+msgstr "前置"
+
+msgid "Back"
+msgstr "后置"
+
+msgid "Rotation"
+msgstr "旋转"
+
+msgid "Preview window"
+msgstr "预览窗口"
+
+msgid "You can change preview window mode only when camera is stopped."
+msgstr "只有在摄像头停止时才能更改预览窗口模式。"
+
+msgid "Stream"
+msgstr "直播"
+
+msgid "Active source: not selected"
+msgstr "活动来源：未选择"
+
+msgid "Stream settings"
+msgstr "直播设置"
+
+msgid "Scan Phones"
+msgstr "扫描手机"
+
+msgid "Connect"
+msgstr "连接"
+
+msgid "Connection mode"
+msgstr "连接模式"
+
+msgid "USB"
+msgstr "USB"
+
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+msgid "No phones detected yet.\nUse Scan Phones to refresh."
+msgstr "未检测到手机。\n使用"扫描手机"刷新。"
+
+msgid "Manual Wi-Fi endpoint"
+msgstr "手动 Wi-Fi 端点"
+
+msgid "In Wi-Fi mode, Connect uses this endpoint when no phone is selected in the list."
+msgstr "在 Wi-Fi 模式下，未选择手机时连接使用此端点。"
+
+msgid "Endpoint status: not set"
+msgstr "端点状态：未设置"
+
+msgid "No device selected. Scan and choose a phone."
+msgstr "未选择设备。扫描并选择手机。"
+
+msgid "Selection"
+msgstr "选择"
+
+msgid "Connection"
+msgstr "连接"
+
+msgid "Security"
+msgstr "安全"
+
+msgid "Configure privileged helper access and authentication behavior."
+msgstr "配置特权助手访问和身份验证行为。"
+
+msgid "Passwordless helper actions"
+msgstr "无密码助手操作"
+
+msgid "Status: unknown"
+msgstr "状态：未知"
+
+msgid "UI"
+msgstr "界面"
+
+msgid "Settings stored locally for the current user session."
+msgstr "本地存储的当前用户会话设置。"
+
+msgid "UI settings"
+msgstr "界面设置"
+
+msgid "Auto-saved."
+msgstr "已自动保存。"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "Interface language. Restart AVream to apply changes."
+msgstr "界面语言。重启 AVream 以应用更改。"
+
+msgid "Interface language"
+msgstr "界面语言"
+
+msgid "Maintenance"
+msgstr "维护"
+
+msgid "Actions for troubleshooting and recovering from device issues."
+msgstr "用于故障排除和设备问题恢复的操作。"
+
+msgid "Reset camera device"
+msgstr "重置摄像头设备"
+
+msgid "Reloads the virtual camera device. Use only if the stream is stuck."
+msgstr "重新加载虚拟摄像头设备。仅在直播卡住时使用。"
+
+msgid "Click to check for updates"
+msgstr "点击检查更新"
+
+msgid "CLI help"
+msgstr "CLI 帮助"
+
+msgid "Open AVream CLI quick reference"
+msgstr "打开 AVream CLI 快速参考"
+
+msgid "Refresh Status"
+msgstr "刷新状态"
+
+msgid "Copy Logs"
+msgstr "复制日志"
+
+msgid "Clear Logs"
+msgstr "清除日志"
+
+msgid "Enable AVream Service"
+msgstr "启用 AVream 服务"
+
+msgid "Retry"
+msgstr "重试"
+
+msgid "Show Manual Commands"
+msgstr "显示手动命令"
+
+msgid "Language:"
+msgstr "语言："
+
+msgid "AVream service is not running"
+msgstr "AVream 服务未运行"
+
+msgid "Devices"
+msgstr "设备"
+
+msgid "Advanced"
+msgstr "高级"
+
+msgid "Diagnostics"
+msgstr "诊断"
+
+msgid "Reset Saved"
+msgstr "重置已保存"
+
+msgid "Reset Camera"
+msgstr "重置摄像头"
+
+msgid "Request failed"
+msgstr "请求失败"
+
+msgid "No authorized phone"
+msgstr "无授权手机"
+
+msgid "No authorized Android device is available.\n\nWhat to do:\n1. Open Devices and click Scan Phones.\n2. Unlock the phone and accept the USB debugging prompt.\n3. If you prefer Wi-Fi, connect an endpoint in Devices.\n"
+msgstr "没有可用的已授权 Android 设备。\n\n操作步骤：\n1. 打开"设备"并点击"扫描手机"。\n2. 解锁手机并接受 USB 调试提示。\n3. 如果偏好 Wi-Fi，请在"设备"中连接端点。\n"
+
+msgid "Open Devices"
+msgstr "打开设备"
+
+msgid "Daemon unavailable"
+msgstr "守护进程不可用"
+
+msgid "AVream cannot reach the daemon service for this user session.\n\nWhat to do:\n1. Click Enable AVream Service.\n2. Then click Retry.\n"
+msgstr "AVream 无法访问此用户会话的守护进程服务。\n\n操作步骤：\n1. 点击"启用 AVream 服务"。\n2. 然后点击"重试"。\n"
+
+msgid "AVream service is not running. Click Enable AVream Service to start it."
+msgstr "AVream 服务未运行。点击"启用 AVream 服务"以启动。"
+
+msgid "Stop Camera"
+msgstr "停止摄像头"
+
+msgid "Stop currently running camera stream."
+msgstr "停止当前运行的摄像头直播。"
+
+msgid "Start camera stream from selected device."
+msgstr "从所选设备启动摄像头直播。"
+
+msgid "Service unavailable"
+msgstr "服务不可用"
+
+msgid "Active source: unavailable"
+msgstr "活动来源：不可用"
+
+msgid "Service status unavailable"
+msgstr "服务状态不可用"
+
+msgid "on"
+msgstr "开启"
+
+msgid "off"
+msgstr "关闭"
+
+msgid "error"
+msgstr "错误"
+
+msgid "starting"
+msgstr "启动中"
+
+msgid "Camera: {v}  •  Microphone: {a}"
+msgstr "摄像头：{v}  •  麦克风：{a}"
+
+msgid "Active source: {source}"
+msgstr "活动来源：{source}"
+
+msgid "not selected"
+msgstr "未选择"
+
+msgid "Stop camera first to change preview window mode."
+msgstr "请先停止摄像头以更改预览窗口模式。"
+
+msgid "Stop camera first to change rotation."
+msgstr "请先停止摄像头以更改旋转。"
+
+msgid "Preview window: {mode} (locked while camera is running)"
+msgstr "预览窗口：{mode}（摄像头运行时已锁定）"
+
+msgid "Stop camera first to change preview window mode and rotation."
+msgstr "请先停止摄像头以更改预览窗口模式和旋转。"
+
+msgid "Toggle to show or hide separate AVream Preview window on next camera start."
+msgstr "切换以在下次启动摄像头时显示或隐藏单独的 AVream 预览窗口。"
+
+msgid "Select camera rotation for next camera start."
+msgstr "为下次摄像头启动选择摄像头旋转。"
+
+msgid "Preview window: {mode}"
+msgstr "预览窗口：{mode}"
+
+msgid "Manual setup commands"
+msgstr "手动设置命令"
+
+msgid "Service enabled. Waiting for daemon startup..."
+msgstr "服务已启用。等待守护进程启动..."
+
+msgid "Service was enabled, but daemon is still unreachable. Click Retry or use manual commands."
+msgstr "服务已启用，但守护进程仍然无法访问。点击"重试"或使用手动命令。"
+
+msgid "Service enabled. Waiting for daemon startup... ({done}/{total})"
+msgstr "服务已启用。等待守护进程启动...（{done}/{total}）"
+
+msgid "Enabling AVream daemon service..."
+msgstr "正在启用 AVream 守护进程服务..."
+
+msgid "Enable service failed"
+msgstr "启用服务失败"
+
+msgid "Could not enable the AVream service automatically.\n\n{stderr}\n\nClick 'Show manual commands' to view the setup steps."
+msgstr "无法自动启用 AVream 服务。\n\n{stderr}\n\n点击"显示手动命令"查看设置步骤。"
+
+msgid "Stopping camera..."
+msgstr "正在停止摄像头..."
+
+msgid "Resetting camera..."
+msgstr "正在重置摄像头..."
+
+msgid "Reset camera"
+msgstr "重置摄像头"
+
+msgid "This reloads the virtual camera device. Continue?"
+msgstr "这将重新加载虚拟摄像头设备。继续？"
+
+msgid "Disable"
+msgstr "禁用"
+
+msgid "Disable passwordless helper actions."
+msgstr "禁用无密码助手操作。"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Enable passwordless helper actions."
+msgstr "启用无密码助手操作。"
+
+msgid "Passwordless setup tool is not installed."
+msgstr "无密码设置工具未安装。"
+
+msgid "Cannot detect current username."
+msgstr "无法检测当前用户名。"
+
+msgid "Checking passwordless status..."
+msgstr "正在检查无密码状态..."
+
+msgid "Passwordless status error: {error}"
+msgstr "无密码状态错误：{error}"
+
+msgid "Passwordless status failed"
+msgstr "无密码状态检查失败"
+
+msgid "Could not parse status output."
+msgstr "无法解析状态输出。"
+
+msgid "Passwordless status parse error."
+msgstr "无密码状态解析错误。"
+
+msgid "Passwordless helper actions are enabled (runner: pkexec)."
+msgstr "无密码助手操作已启用（运行程序：pkexec）。"
+
+msgid "Passwordless is enabled, but the service needs to be restarted to take effect. Restart AVream from Settings → Service."
+msgstr "无密码模式已启用，但服务需要重启才能生效。从"设置 → 服务"重启 AVream。"
+
+msgid "Passwordless helper actions are disabled."
+msgstr "无密码助手操作已禁用。"
+
+msgid "Tool not found"
+msgstr "工具未找到"
+
+msgid "avream-passwordless-setup is not installed."
+msgstr "avream-passwordless-setup 未安装。"
+
+msgid "User unknown"
+msgstr "用户未知"
+
+msgid "pkexec missing"
+msgstr "缺少 pkexec"
+
+msgid "Install policykit-1 (pkexec) to run this action from GUI."
+msgstr "请安装 policykit-1 (pkexec) 以从 GUI 运行此操作。"
+
+msgid "Enabling passwordless helper actions..."
+msgstr "正在启用无密码助手操作..."
+
+msgid "Enable failed"
+msgstr "启用失败"
+
+msgid "Passwordless enabled"
+msgstr "无密码模式已启用"
+
+msgid "Passwordless helper actions were enabled. Log out and log in again to refresh group membership."
+msgstr "无密码助手操作已启用。请注销后重新登录以刷新组成员资格。"
+
+msgid "Enable passwordless mode"
+msgstr "启用无密码模式"
+
+msgid "This allows your local active user session to run AVream helper actions without password prompt. Continue?"
+msgstr "这将允许您的本地活动用户会话无需密码提示即可运行 AVream 助手操作。继续？"
+
+msgid "Disabling passwordless helper actions..."
+msgstr "正在禁用无密码助手操作..."
+
+msgid "Disable failed"
+msgstr "禁用失败"
+
+msgid "Passwordless disabled"
+msgstr "无密码模式已禁用"
+
+msgid "Passwordless helper actions were disabled."
+msgstr "无密码助手操作已禁用。"
+
+msgid "Disable passwordless mode"
+msgstr "禁用无密码模式"
+
+msgid "This restores password prompts for AVream helper actions. Continue?"
+msgstr "这将恢复 AVream 助手操作的密码提示。继续？"
+
+msgid "README not found"
+msgstr "未找到 README"
+
+msgid "Could not find CLI README file on this system."
+msgstr "在此系统上找不到 CLI README 文件。"
+
+msgid "xdg-open missing"
+msgstr "缺少 xdg-open"
+
+msgid "Open this file manually: {path}"
+msgstr "手动打开此文件：{path}"
+
+msgid "Failed to open README"
+msgstr "打开 README 失败"
+
+msgid "Update available. Click to open update modal."
+msgstr "有可用更新。点击打开更新对话框。"
+
+msgid "Open this URL manually: {url}"
+msgstr "手动打开此 URL：{url}"
+
+msgid "Failed to open release page"
+msgstr "打开发布页面失败"
+
+msgid "Installing update..."
+msgstr "正在安装更新..."
+
+msgid "Install update"
+msgstr "安装更新"
+
+msgid "AVream will stop camera/microphone if needed, install latest package, and restart daemon service. Continue?"
+msgstr "AVream 将在需要时停止摄像头/麦克风，安装最新包，并重启守护进程服务。继续？"
+
+msgid "Checking for updates..."
+msgstr "正在检查更新..."
+
+msgid "Update check failed"
+msgstr "检查更新失败"
+
+msgid "Update available"
+msgstr "有可用更新"
+
+msgid "No update"
+msgstr "无更新"
+
+msgid "A newer release is available."
+msgstr "有较新的版本可用。"
+
+msgid "You are up to date."
+msgstr "您已是最新版本。"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Open Release"
+msgstr "打开发布"
+
+msgid "Install Update"
+msgstr "安装更新"
+
+msgid "Cannot change while streaming"
+msgstr "直播时无法更改"
+
+msgid "Stop camera first, then change Preview window mode and start camera again."
+msgstr "请先停止摄像头，然后更改预览窗口模式，再重新启动摄像头。"
+
+msgid "Endpoint status: {endpoint} unavailable"
+msgstr "端点状态：{endpoint} 不可用"
+
+msgid "Endpoint status: connected ({endpoint})"
+msgstr "端点状态：已连接（{endpoint}）"
+
+msgid "Endpoint status: {endpoint} — {state}"
+msgstr "端点状态：{endpoint} — {state}"
+
+msgid "Endpoint status: {endpoint} not found"
+msgstr "端点状态：{endpoint} 未找到"
+
+msgid "Clipboard unavailable"
+msgstr "剪贴板不可用"
+
+msgid "No active display. Could not copy logs."
+msgstr "无活动显示器。无法复制日志。"
+
+msgid "Saved settings were reset to defaults."
+msgstr "已保存的设置已重置为默认值。"
+
+msgid "Reset saved UI settings"
+msgstr "重置已保存的界面设置"
+
+msgid "This removes saved UI settings and restores defaults. Continue?"
+msgstr "这将删除已保存的界面设置并恢复默认值。继续？"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Proceed"
+msgstr "继续"
+
+msgid "Language changed. Restart AVream to apply."
+msgstr "语言已更改。重启 AVream 以应用。"
+
+msgid "Disconnect"
+msgstr "断开连接"
+
+msgid "Disconnect Wi-Fi endpoint from AVream session."
+msgstr "从 AVream 会话断开 Wi-Fi 端点。"
+
+msgid "Connect selected Wi-Fi device or manual endpoint."
+msgstr "连接所选 Wi-Fi 设备或手动端点。"
+
+msgid "Stop stream and disconnect selected phone from AVream session."
+msgstr "停止直播并从 AVream 会话断开所选手机。"
+
+msgid "Mark selected USB phone as active for streaming."
+msgstr "将所选 USB 手机标记为直播活动设备。"
+
+msgid "Scanning devices..."
+msgstr "正在扫描设备..."
+
+msgid "No phones detected. Connect USB phone and click Scan."
+msgstr "未检测到手机。连接 USB 手机并点击扫描。"
+
+msgid "Select a phone to connect (USB or Wi-Fi)."
+msgstr "选择要连接的手机（USB 或 Wi-Fi）。"
+
+msgid "Active source: {serial} ({mode})"
+msgstr "活动来源：{serial}（{mode}）"
+
+msgid "Phone is unauthorized. Unlock phone and accept the USB debugging prompt."
+msgstr "手机未授权。解锁手机并接受 USB 调试提示。"
+
+msgid "Phone state: {state}. Try reconnecting USB."
+msgstr "手机状态：{state}。请尝试重新连接 USB。"
+
+msgid "Phone is ready ({transport}). Click Connect."
+msgstr "手机已就绪（{transport}）。点击连接。"
+
+msgid "Connecting Wi-Fi endpoint..."
+msgstr "正在连接 Wi-Fi 端点..."
+
+msgid "No phone selected"
+msgstr "未选择手机"
+
+msgid "Scan phones and select a device first."
+msgstr "请先扫描手机并选择设备。"
+
+msgid "Phone not ready"
+msgstr "手机未就绪"
+
+msgid "Unlock phone and ensure it shows as 'device' in the list."
+msgstr "解锁手机并确保其在列表中显示为"设备"。"
+
+msgid "Setting up Wi-Fi from selected USB phone..."
+msgstr "正在从所选 USB 手机设置 Wi-Fi..."
+
+msgid "Wi-Fi ready: {endpoint}. You can disconnect USB and start camera in Stream."
+msgstr "Wi-Fi 已就绪：{endpoint}。您可以断开 USB 并在"直播"中启动摄像头。"
+
+msgid "Selecting Wi-Fi phone and reconnecting endpoint..."
+msgstr "正在选择 Wi-Fi 手机并重新连接端点..."
+
+msgid "Wi-Fi device connected: {endpoint}. Open Stream tab to start camera."
+msgstr "Wi-Fi 设备已连接：{endpoint}。打开"直播"选项卡以启动摄像头。"
+
+msgid "USB mode selected"
+msgstr "已选择 USB 模式"
+
+msgid "Selected phone is Wi-Fi. Either switch connection mode to Wi-Fi or select a USB device."
+msgstr "所选手机为 Wi-Fi。请将连接模式切换到 Wi-Fi 或选择 USB 设备。"
+
+msgid "Phone selected and connected. Open Stream tab to start camera."
+msgstr "手机已选择并连接。打开"直播"选项卡以启动摄像头。"
+
+msgid "Preparing Wi-Fi connection..."
+msgstr "正在准备 Wi-Fi 连接..."
+
+msgid "Wi-Fi ready: {endpoint}. Starting camera..."
+msgstr "Wi-Fi 已就绪：{endpoint}。正在启动摄像头..."
+
+msgid "Starting phone camera..."
+msgstr "正在启动手机摄像头..."
+
+msgid "Active source: {conn_type} — {serial}"
+msgstr "活动来源：{conn_type} — {serial}"
+
+msgid "Disconnecting Wi-Fi endpoint..."
+msgstr "正在断开 Wi-Fi 端点..."
+
+msgid "Disconnecting selected phone..."
+msgstr "正在断开所选手机..."
+
+msgid "Phone disconnected from AVream session."
+msgstr "手机已从 AVream 会话断开。"

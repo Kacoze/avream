@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from avream_ui.i18n import _
 from gi.repository import Gtk  # type: ignore[import-not-found]
 
 try:
@@ -29,25 +30,25 @@ class WindowCoreMixin:
         action = None
 
         lower_msg = msg_s.lower()
-        title = "Request failed"
+        title = _("Request failed")
         body = msg_s
 
         # Common, high-friction case: phone not authorized/available.
         if code_s == "E_BACKEND_FAILED" and ("no authorized android device" in lower_msg or "authorized android device" in lower_msg):
-            title = "No authorized phone"
-            body = (
+            title = _("No authorized phone")
+            body = _(
                 "No authorized Android device is available.\n\n"
                 "What to do:\n"
                 "1. Open Devices and click Scan Phones.\n"
                 "2. Unlock the phone and accept the USB debugging prompt.\n"
                 "3. If you prefer Wi-Fi, connect an endpoint in Devices.\n"
             )
-            action_label = "Open Devices"
+            action_label = _("Open Devices")
             action = lambda: self.workspace_stack.set_visible_child_name("devices")
 
         elif code_s == "E_DAEMON_UNREACHABLE":
-            title = "Daemon unavailable"
-            body = (
+            title = _("Daemon unavailable")
+            body = _(
                 "AVream cannot reach the daemon service for this user session.\n\n"
                 "What to do:\n"
                 "1. Click Enable AVream Service.\n"
@@ -101,13 +102,13 @@ class WindowCoreMixin:
 
     def _sync_stream_toggle_button(self) -> None:
         if self._video_running:
-            self.stream_toggle_btn.set_label("Stop Camera")
-            self.stream_toggle_btn.set_tooltip_text("Stop currently running camera stream.")
+            self.stream_toggle_btn.set_label(_("Stop Camera"))
+            self.stream_toggle_btn.set_tooltip_text(_("Stop currently running camera stream."))
             self.stream_toggle_btn.add_css_class("destructive-action")
             self.stream_toggle_btn.remove_css_class("suggested-action")
         else:
-            self.stream_toggle_btn.set_label("Start Camera")
-            self.stream_toggle_btn.set_tooltip_text("Start camera stream from selected device.")
+            self.stream_toggle_btn.set_label(_("Start Camera"))
+            self.stream_toggle_btn.set_tooltip_text(_("Start camera stream from selected device."))
             self.stream_toggle_btn.remove_css_class("destructive-action")
             self.stream_toggle_btn.add_css_class("suggested-action")
         self.stream_toggle_btn.set_sensitive((not self._busy) and (not self._daemon_locked))
@@ -128,7 +129,7 @@ class WindowCoreMixin:
             if code == "E_DAEMON_UNREACHABLE":
                 self._set_daemon_lock(
                     True,
-                    "AVream service is not running. Click Enable AVream Service to start it.",
+                    _("AVream service is not running. Click Enable AVream Service to start it."),
                 )
             else:
                 self._show_error_dialog(title, message, action_label, action)
@@ -283,18 +284,18 @@ class WindowCoreMixin:
                 self._video_running = False
                 self._set_daemon_lock(
                     True,
-                    "AVream service is not running. Click Enable AVream Service to start it.",
+                    _("AVream service is not running. Click Enable AVream Service to start it."),
                 )
-                self.status_label.set_text("Service unavailable")
+                self.status_label.set_text(_("Service unavailable"))
                 if hasattr(self, "stream_source_label"):
-                    self.stream_source_label.set_text("Active source: unavailable")
+                    self.stream_source_label.set_text(_("Active source: unavailable"))
                 return
 
             self._video_running = False
             self._set_daemon_lock(False)
-            self.status_label.set_text("Service status unavailable")
+            self.status_label.set_text(_("Service status unavailable"))
             if hasattr(self, "stream_source_label"):
-                self.stream_source_label.set_text("Active source: unavailable")
+                self.stream_source_label.set_text(_("Active source: unavailable"))
             self._sync_stream_toggle_button()
             return
 
@@ -310,10 +311,10 @@ class WindowCoreMixin:
         update_rt = data.get("update_runtime", {}) if isinstance(data, dict) else {}
         video_state = video_rt.get("state", "unknown") if isinstance(video_rt, dict) else "unknown"
         audio_state = audio_rt.get("state", "unknown") if isinstance(audio_rt, dict) else "unknown"
-        _state_label = {"RUNNING": "on", "STOPPED": "off", "ERROR": "error", "STARTING": "starting"}
+        _state_label = {"RUNNING": _("on"), "STOPPED": _("off"), "ERROR": _("error"), "STARTING": _("starting")}
         v_label = _state_label.get(video_state, video_state.lower())
         a_label = _state_label.get(audio_state, audio_state.lower())
-        self.status_label.set_text(f"Camera: {v_label}  •  Microphone: {a_label}")
+        self.status_label.set_text(_("Camera: {v}  •  Microphone: {a}").format(v=v_label, a=a_label))
         self._video_running = video_state == "RUNNING"
         self._sync_stream_toggle_button()
 
@@ -331,7 +332,7 @@ class WindowCoreMixin:
         active_source = video_rt.get("active_source", {}) if isinstance(video_rt, dict) else {}
         preview_window = False
         active_rotation = None
-        source_desc = "not selected"
+        source_desc = _("not selected")
         if isinstance(active_source, dict):
             preview_window = bool(active_source.get("preview_window", False))
             rotation_val = active_source.get("camera_rotation")
@@ -345,7 +346,7 @@ class WindowCoreMixin:
                 else:
                     source_desc = serial
         if hasattr(self, "stream_source_label"):
-            self.stream_source_label.set_text(f"Active source: {source_desc}")
+            self.stream_source_label.set_text(_("Active source: {source}").format(source=source_desc))
 
         if active_rotation in {0, 90, 180, 270}:
             idx = {0: 0, 90: 1, 180: 2, 270: 3}[active_rotation]
@@ -355,23 +356,27 @@ class WindowCoreMixin:
             self.preview_window_switch.set_sensitive(False)
             self.camera_rotation_dropdown.set_sensitive(False)
             self.preview_window_switch.set_tooltip_text(
-                "Stop camera first to change preview window mode."
+                _("Stop camera first to change preview window mode.")
             )
             self.camera_rotation_dropdown.set_tooltip_text(
-                "Stop camera first to change rotation."
+                _("Stop camera first to change rotation.")
             )
-            mode = "on" if preview_window else "off"
-            self.preview_status_label.set_text(f"Preview window: {mode} (locked while camera is running)")
-            self.preview_mode_hint_label.set_text("Stop camera first to change preview window mode and rotation.")
+            mode = _("on") if preview_window else _("off")
+            self.preview_status_label.set_text(
+                _("Preview window: {mode} (locked while camera is running)").format(mode=mode)
+            )
+            self.preview_mode_hint_label.set_text(
+                _("Stop camera first to change preview window mode and rotation.")
+            )
         else:
             self.preview_window_switch.set_sensitive(not self._busy)
             self.camera_rotation_dropdown.set_sensitive(not self._busy)
             self.preview_window_switch.set_tooltip_text(
-                "Toggle to show or hide separate AVream Preview window on next camera start."
+                _("Toggle to show or hide separate AVream Preview window on next camera start.")
             )
             self.camera_rotation_dropdown.set_tooltip_text(
-                "Select camera rotation for next camera start."
+                _("Select camera rotation for next camera start.")
             )
-            mode = "on" if self.preview_window_switch.get_active() else "off"
-            self.preview_status_label.set_text(f"Preview window: {mode}")
+            mode = _("on") if self.preview_window_switch.get_active() else _("off")
+            self.preview_status_label.set_text(_("Preview window: {mode}").format(mode=mode))
             self.preview_mode_hint_label.set_text("")
