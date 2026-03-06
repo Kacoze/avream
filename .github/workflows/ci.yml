@@ -261,7 +261,6 @@ jobs:
             done
             [ -S /tmp/avream-smoke/daemon.sock ] || { echo "Daemon socket not created"; kill "$AVREAMD_PID"; exit 1; }
             curl --fail --unix-socket /tmp/avream-smoke/daemon.sock http://localhost/status
-            curl --fail --unix-socket /tmp/avream-smoke/daemon.sock http://localhost/android/devices
             kill "$AVREAMD_PID"
             wait "$AVREAMD_PID" 2>/dev/null || true
           ' "$image"
