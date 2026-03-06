@@ -258,6 +258,23 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
 
         advanced_page = Adw.PreferencesPage()
 
+        # Language selector in Advanced — placed first so it's always visible
+        lang_group = Adw.PreferencesGroup(
+            title=_("Language"),
+            description=_("Interface language. Restart AVream to apply changes."),
+        )
+        lang_row = Adw.ActionRow(
+            title=_("Interface language"),
+        )
+        lang_names = list(LANGUAGES.values())
+        lang_combo = Gtk.DropDown.new_from_strings(lang_names)
+        lang_combo.set_valign(Gtk.Align.CENTER)
+        lang_row.add_suffix(lang_combo)
+        lang_row.set_activatable(False)
+        lang_group.add(lang_row)
+        self._lang_combo_advanced = lang_combo
+        advanced_page.add(lang_group)
+
         security_group = Adw.PreferencesGroup(
             title=_("Security"),
             description=_("Configure privileged helper access and authentication behavior."),
@@ -289,20 +306,6 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         ui_group.add(ui_settings_row)
         self.ui_settings_status_row = ui_settings_row
         advanced_page.add(ui_group)
-
-        # Language selector in Advanced
-        lang_group = Adw.PreferencesGroup(
-            title=_("Language"),
-            description=_("Interface language. Restart AVream to apply changes."),
-        )
-        lang_names = list(LANGUAGES.values())
-        lang_model = Gtk.StringList.new(lang_names)
-        lang_combo = Adw.ComboRow()
-        lang_combo.set_title(_("Interface language"))
-        lang_combo.set_model(lang_model)
-        lang_group.add(lang_combo)
-        self._lang_combo_advanced = lang_combo
-        advanced_page.add(lang_group)
 
         maintenance_group = Adw.PreferencesGroup(
             title=_("Maintenance"),
