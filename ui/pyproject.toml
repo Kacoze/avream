@@ -30,7 +30,7 @@ where = ["src"]
 avream_ui = ["locale/*/LC_MESSAGES/*.mo"]
 
 [tool.setuptools.dynamic]
-version = {file = ["../src/avreamd/VERSION"]}
+version = {file = ["VERSION"]}
 
 [tool.ruff]
 line-length = 120
