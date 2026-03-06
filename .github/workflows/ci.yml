@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v6
 
@@ -248,6 +248,53 @@ jobs:
                 ;;
             esac
             avream --help >/dev/null
+            case "$0" in
+              fedora:*) dnf install -y curl ;;
+              *) zypper --non-interactive install -y curl ;;
+            esac
+            mkdir -p /tmp/avream-smoke
+            AVREAM_SOCKET_PATH=/tmp/avream-smoke/daemon.sock avreamd --log-level INFO &
+            AVREAMD_PID=$!
+            for i in $(seq 1 20); do
+              [ -S /tmp/avream-smoke/daemon.sock ] && break
+              sleep 0.5
+            done
+            [ -S /tmp/avream-smoke/daemon.sock ] || { echo "Daemon socket not created"; kill "$AVREAMD_PID"; exit 1; }
+            curl --fail --unix-socket /tmp/avream-smoke/daemon.sock http://localhost/status
+            kill "$AVREAMD_PID"
+            wait "$AVREAMD_PID" 2>/dev/null || true
+          ' "$image"
+
+  integration-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12", "fedora:41", "opensuse/tumbleweed:latest"]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run integration tests in container
+        run: |
+          image="${{ matrix.image }}"
+          docker run --rm -v "$PWD:/src" "$image" sh -lc '
+            set -eu
+            case "$0" in
+              ubuntu:*|debian:*)
+                apt-get update -q
+                apt-get install -y python3 python3-pip python3-aiohttp
+                ;;
+              fedora:*)
+                dnf install -y python3 python3-pip python3-aiohttp
+                ;;
+              opensuse/*)
+                zypper --non-interactive install python3 python3-pip python3-aiohttp
+                ;;
+            esac
+            cd /src
+            PYTHONPATH=/src/src python3 -m unittest \
+              tests.integration.test_api_status \
+              tests.integration.test_api_contract
           ' "$image"
 
   rust-helper:
