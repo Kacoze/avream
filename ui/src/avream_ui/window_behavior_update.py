@@ -94,7 +94,7 @@ class WindowUpdateMixin:
                 code = str(err.get("code", "E_UNKNOWN"))
                 msg = str(err.get("message", "request failed"))
                 if code == "E_DAEMON_UNREACHABLE":
-                    self._set_daemon_lock(True, "AVream cannot reach daemon socket. Enable service and retry.")
+                    self._set_daemon_lock(True, "AVream service is not running. Click Enable AVream Service to start it.")
                     return False
                 self._show_error_dialog("Update check failed", f"{msg}\n\nError code: {code}")
                 self._append_log(f"Update check failed: {code}: {msg}")

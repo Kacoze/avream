@@ -10,7 +10,7 @@ class WindowServiceMixin:
             self.main_stack.set_visible_child_name("daemon-lock")
             self.lock_status_label.set_text(
                 message
-                or "AVream daemon service is not active for this user session. Enable the service and retry."
+                or "AVream service is not running. Click Enable AVream Service to start it."
             )
         else:
             self.main_stack.set_visible_child_name("main")
@@ -85,7 +85,7 @@ class WindowServiceMixin:
                 self._append_log(f"service enable failed: {stderr}")
                 self._show_error_dialog(
                     "Enable service failed",
-                    f"{stderr}\n\nRun manually:\n{self._service_enable_commands()}",
+                    f"Could not enable the AVream service automatically.\n\n{stderr}\n\nClick 'Show manual commands' to view the setup steps.",
                 )
                 return False
 

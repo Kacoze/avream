@@ -98,7 +98,7 @@ class WindowPasswordlessMixin:
                     self._passwordless_enabled = True
                     self._sync_passwordless_toggle()
                     self._set_passwordless_status(
-                        f"Passwordless is enabled but daemon runner is '{runner}'. Set AVREAM_HELPER_MODE=pkexec and restart avreamd."
+                        "Passwordless is enabled, but the service needs to be restarted to take effect. Restart AVream from Settings \u2192 Service."
                     )
                     self._append_log(f"passwordless status: enabled but runner={runner}")
                 else:
@@ -150,8 +150,8 @@ class WindowPasswordlessMixin:
                 self._passwordless_enabled = True
                 self._sync_passwordless_toggle()
                 self._append_log("Passwordless helper actions enabled")
-                self._show_error_dialog(
-                    "Enabled",
+                self._show_info_dialog(
+                    "Passwordless enabled",
                     "Passwordless helper actions were enabled. Log out and log in again to refresh group membership.",
                 )
                 self._refresh_passwordless_status()
@@ -193,7 +193,7 @@ class WindowPasswordlessMixin:
                 self._passwordless_enabled = False
                 self._sync_passwordless_toggle()
                 self._append_log("Passwordless helper actions disabled")
-                self._show_error_dialog("Disabled", "Passwordless helper actions were disabled.")
+                self._show_info_dialog("Passwordless disabled", "Passwordless helper actions were disabled.")
                 self._refresh_passwordless_status()
                 return False
 

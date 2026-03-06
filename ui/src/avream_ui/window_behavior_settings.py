@@ -273,7 +273,7 @@ class WindowSettingsMixin:
                     self._refresh_saved_wifi_endpoint_status()
                 return False
             if isinstance(matched_state, str):
-                self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} state={matched_state}")
+                self.wifi_saved_status_label.set_text(f"Endpoint status: {endpoint} — {matched_state}")
                 sync = getattr(self, "_sync_phone_connect_toggle_button", None)
                 if callable(sync):
                     sync()

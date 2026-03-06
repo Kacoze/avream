@@ -128,7 +128,7 @@ class WindowCoreMixin:
             if code == "E_DAEMON_UNREACHABLE":
                 self._set_daemon_lock(
                     True,
-                    "AVream cannot reach daemon socket. Enable service and retry.",
+                    "AVream service is not running. Click Enable AVream Service to start it.",
                 )
             else:
                 self._show_error_dialog(title, message, action_label, action)
@@ -283,18 +283,18 @@ class WindowCoreMixin:
                 self._video_running = False
                 self._set_daemon_lock(
                     True,
-                    "AVream daemon service is not active for this user session.",
+                    "AVream service is not running. Click Enable AVream Service to start it.",
                 )
-                self.status_label.set_text("Status: daemon unavailable")
+                self.status_label.set_text("Service unavailable")
                 if hasattr(self, "stream_source_label"):
-                    self.stream_source_label.set_text("Active source: unavailable (daemon offline)")
+                    self.stream_source_label.set_text("Active source: unavailable")
                 return
 
             self._video_running = False
             self._set_daemon_lock(False)
-            self.status_label.set_text(f"Status error: {code}: {msg}")
+            self.status_label.set_text("Service status unavailable")
             if hasattr(self, "stream_source_label"):
-                self.stream_source_label.set_text("Active source: unknown")
+                self.stream_source_label.set_text("Active source: unavailable")
             self._sync_stream_toggle_button()
             return
 
@@ -310,7 +310,10 @@ class WindowCoreMixin:
         update_rt = data.get("update_runtime", {}) if isinstance(data, dict) else {}
         video_state = video_rt.get("state", "unknown") if isinstance(video_rt, dict) else "unknown"
         audio_state = audio_rt.get("state", "unknown") if isinstance(audio_rt, dict) else "unknown"
-        self.status_label.set_text(f"Camera: {video_state}  •  Microphone: {audio_state}")
+        _state_label = {"RUNNING": "on", "STOPPED": "off", "ERROR": "error", "STARTING": "starting"}
+        v_label = _state_label.get(video_state, video_state.lower())
+        a_label = _state_label.get(audio_state, audio_state.lower())
+        self.status_label.set_text(f"Camera: {v_label}  •  Microphone: {a_label}")
         self._video_running = video_state == "RUNNING"
         self._sync_stream_toggle_button()
 
