@@ -234,7 +234,7 @@ run_smoke_checks() {
     *)
       avreamd --help >/dev/null
       avream --help >/dev/null
-      if [ "$PACKAGE_BACKEND" = "apt" ]; then
+      if [ "$PACKAGE_BACKEND" = "apt" ] || [ "$PACKAGE_BACKEND" = "dnf" ] || [ "$PACKAGE_BACKEND" = "zypper" ]; then
         avream-ui --help >/dev/null
       fi
       ;;

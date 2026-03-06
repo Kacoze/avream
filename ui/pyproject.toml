@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "avream-ui"
 dynamic = ["version"]
 description = "AVream GTK UI"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
   "aiohttp>=3.9.0",
 ]

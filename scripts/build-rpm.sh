@@ -46,6 +46,12 @@ License:        MIT
 URL:            https://github.com/Kacoze/avream
 BuildArch:      ${ARCH}
 Requires:       python3
+Requires:       python3-aiohttp
+Requires:       python3-gobject
+Requires:       gtk4
+Requires:       libadwaita
+Requires:       kmod
+Requires:       psmisc
 
 %description
 AVream provides a user daemon managing virtual A/V devices,
