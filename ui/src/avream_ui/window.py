@@ -273,6 +273,16 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         lang_row.set_activatable(False)
         lang_group.add(lang_row)
         self._lang_combo_advanced = lang_combo
+
+        restart_row = Adw.ActionRow(
+            title=_("Apply language change"),
+            subtitle=_("Restarts the application to apply the selected language."),
+        )
+        self.restart_app_btn = Gtk.Button(label=_("Restart"))
+        self.restart_app_btn.set_valign(Gtk.Align.CENTER)
+        restart_row.add_suffix(self.restart_app_btn)
+        restart_row.set_activatable(False)
+        lang_group.add(restart_row)
         advanced_page.add(lang_group)
 
         security_group = Adw.PreferencesGroup(
@@ -444,6 +454,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self.phone_wifi_endpoint_entry.connect("changed", self._on_wifi_endpoint_changed)
         self._lang_combo_advanced.connect("notify::selected", self._on_language_changed)
         self._lang_combo_lock.connect("notify::selected", self._on_language_changed)
+        self.restart_app_btn.connect("clicked", self._on_restart_app)
 
         self._video_running = False
         self._latest_release_url = "https://github.com/Kacoze/avream/releases/latest"

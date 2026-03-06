@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -420,6 +421,10 @@ class WindowSettingsMixin:
 
         dialog.connect("response", _on_resp)
         dialog.present()
+
+    def _on_restart_app(self, _btn) -> None:
+        self._persist_current_ui_settings()
+        os.execv(sys.executable, [sys.executable] + sys.argv)
 
     def _on_language_changed(self, widget, _param) -> None:
         codes = list(LANGUAGES.keys())
