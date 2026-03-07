@@ -141,16 +141,29 @@ setup_user_service() {
   fi
 
   log "Configuring avreamd user service for ${target_user}..."
-  runuser -u "$target_user" -- bash -lc "mkdir -p ~/.config/avream"
-  runuser -u "$target_user" -- bash -lc "cp -n /usr/lib/systemd/user/avreamd.env ~/.config/avream/avreamd.env || true"
-  runuser -u "$target_user" -- env \
+  if [ "${EUID}" -eq 0 ]; then
+    # Running as root (e.g. sudo install.sh): use runuser to switch to target user
+    runuser -u "$target_user" -- bash -lc "mkdir -p ~/.config/avream"
+    runuser -u "$target_user" -- bash -lc "cp -n /usr/lib/systemd/user/avreamd.env ~/.config/avream/avreamd.env || true"
+    runuser -u "$target_user" -- env \
+      XDG_RUNTIME_DIR="/run/user/${target_uid}" \
+      DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+      systemctl --user daemon-reload || true
+    runuser -u "$target_user" -- env \
+      XDG_RUNTIME_DIR="/run/user/${target_uid}" \
+      DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+      systemctl --user enable --now avreamd.service || true
+  else
+    # Running as the target user directly (e.g. curl | bash)
+    mkdir -p ~/.config/avream
+    cp -n /usr/lib/systemd/user/avreamd.env ~/.config/avream/avreamd.env || true
     XDG_RUNTIME_DIR="/run/user/${target_uid}" \
-    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
-    systemctl --user daemon-reload || true
-  runuser -u "$target_user" -- env \
+      DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+      systemctl --user daemon-reload || true
     XDG_RUNTIME_DIR="/run/user/${target_uid}" \
-    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
-    systemctl --user enable --now avreamd.service || true
+      DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+      systemctl --user enable --now avreamd.service || true
+  fi
 }
 
 install_from_release() {

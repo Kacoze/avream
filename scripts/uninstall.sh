@@ -10,10 +10,18 @@ target_user="${SUDO_USER:-${USER:-}}"
 if [ -n "$target_user" ] && [ "$target_user" != "root" ]; then
   target_uid="$(id -u "$target_user" 2>/dev/null || true)"
   if [ -n "${target_uid}" ] && [ -d "/run/user/${target_uid}" ]; then
-    runuser -u "$target_user" -- env \
+    if [ "${EUID}" -eq 0 ]; then
+      # Running as root (e.g. sudo): use runuser to switch to the target user
+      runuser -u "$target_user" -- env \
+        XDG_RUNTIME_DIR="/run/user/${target_uid}" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+        systemctl --user disable --now avreamd.service || true
+    else
+      # Running as the target user directly (e.g. curl | bash)
       XDG_RUNTIME_DIR="/run/user/${target_uid}" \
-      DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
-      systemctl --user disable --now avreamd.service || true
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+        systemctl --user disable --now avreamd.service || true
+    fi
   fi
 fi
 
