@@ -14,11 +14,7 @@ Use this checklist before cutting a stable tag.
 - Rust helper tests are green in CI.
 - `.deb` smoke build/install/runtime checks are green in CI.
 - `.rpm` smoke build/install/runtime checks are green in CI.
-- Arch PKGBUILD validation workflow is green.
 - Nix flake build/check workflow is green.
-- Snap build/smoke workflow is green.
-- Flatpak build/smoke workflow is green.
-- PPA source package workflow is green.
 - Nightly Debian-family idempotence matrix is green (or last failure analyzed and accepted before release).
 - Nightly RPM idempotence matrix is green (or last failure analyzed and accepted before release).
 - Release workflow `release-gate` job is green before assets are published.
@@ -30,7 +26,8 @@ Use this checklist before cutting a stable tag.
   - device discovery/connect logic,
   - video/audio runtime pipeline,
   - polkit/helper behavior,
-  - installer behavior not covered by existing automated tests.
+  - installer behavior not covered by existing automated tests,
+  - i18n/locale changes (verify language switch and `.mo` files are packaged).
 - When no high-risk areas changed and all automated gates are green, manual QA can be skipped.
 
 ## Security and Privilege Model
@@ -41,7 +38,7 @@ Use this checklist before cutting a stable tag.
 
 ## Packaging and Artifacts
 
-- `.deb` contains daemon, UI, helper, desktop entry, metainfo, icon, policy.
+- `.deb` contains daemon, UI, helper, desktop entry, metainfo, icon, policy, and `.mo` locale files for all supported languages.
 - Release notes include upgrade notes for removed API endpoints.
 - SHA256 checksum file is generated and published with release assets.
 - `scripts/install.sh` one-liner logic validated by automated platform fixtures and release gate smoke checks.
@@ -49,8 +46,3 @@ Use this checklist before cutting a stable tag.
 - APT signing secrets configured in GitHub Actions:
   - `AVREAM_APT_GPG_PRIVATE_KEY`
   - `AVREAM_APT_GPG_PASSPHRASE`
-- Snap Store publishing secret configured (if using automated publish):
-  - `SNAPCRAFT_STORE_CREDENTIALS`
-- PPA publishing secrets configured (if using automated upload):
-  - `AVREAM_PPA_TARGET`
-  - `AVREAM_PPA_GPG_PRIVATE_KEY`

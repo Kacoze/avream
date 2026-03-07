@@ -31,3 +31,7 @@ Not in stable baseline without additional software on phone. Current stable flow
 ## Is there a CLI?
 
 Yes. Use `avream` for status, devices, camera start/stop, Wi-Fi setup, and mic control. See `docs/CLI_README.md`.
+
+## Can I use AVream in a language other than English?
+
+Yes. AVream supports Polish, Spanish, Arabic, and Chinese Simplified. Open **Advanced → Language**, select a language, and click **Restart**. Arabic also switches the layout to right-to-left.

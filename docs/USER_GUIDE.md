@@ -114,9 +114,21 @@ Saved fields include:
 - lens and rotation,
 - preview window mode,
 - Wi-Fi endpoint,
-- last selected phone identifiers (id/serial/ip hints).
+- last selected phone identifiers (id/serial/ip hints),
+- interface language.
 
 In **Advanced -> UI settings**:
 - **Reset Saved** clears saved values and restores defaults.
 
 Wi-Fi section shows endpoint status (`connected`, `not found`, or specific state).
+
+## 10) Interface language
+
+AVream supports English, Polish (Polski), Spanish (Español), Arabic (العربية), and Chinese Simplified (中文).
+
+To change language:
+1. Open **Advanced**.
+2. In the **Language** section select the desired language from the dropdown.
+3. Click **Restart** to apply immediately, or close and reopen AVream.
+
+The language setting is saved automatically. Arabic switches the UI to right-to-left layout on restart.

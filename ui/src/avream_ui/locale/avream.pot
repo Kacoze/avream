@@ -1,0 +1,848 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-03-07 07:45+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: window.py:64
+msgid "Open Devices to choose a source, then start streaming here."
+msgstr ""
+
+#: window.py:69 window_behavior_core.py:110
+msgid "Start Camera"
+msgstr ""
+
+#: window.py:73
+msgid "Camera lens"
+msgstr ""
+
+#: window.py:76
+msgid "Front"
+msgstr ""
+
+#: window.py:76
+msgid "Back"
+msgstr ""
+
+#: window.py:80
+msgid "Rotation"
+msgstr ""
+
+#: window.py:87
+msgid "Preview window"
+msgstr ""
+
+#: window.py:93
+msgid "You can change preview window mode only when camera is stopped."
+msgstr ""
+
+#: window.py:106 window_behavior_core.py:46
+msgid "Open Devices"
+msgstr ""
+
+#: window.py:115 window.py:373
+msgid "Stream"
+msgstr ""
+
+#: window.py:130 window_behavior_phone.py:221 window_behavior_phone.py:228
+#: window_behavior_phone.py:235
+msgid "Active source: not selected"
+msgstr ""
+
+#: window.py:143
+msgid "Stream settings"
+msgstr ""
+
+#: window.py:160
+msgid "Scan Phones"
+msgstr ""
+
+#: window.py:161 window_behavior_phone.py:31 window_behavior_phone.py:40
+msgid "Connect"
+msgstr ""
+
+#: window.py:169
+msgid "Connection mode"
+msgstr ""
+
+#: window.py:172
+msgid "USB"
+msgstr ""
+
+#: window.py:172
+msgid "Wi-Fi"
+msgstr ""
+
+#: window.py:184
+msgid ""
+"No phones detected yet.\n"
+"Use Scan Phones to refresh."
+msgstr ""
+
+#: window.py:194
+msgid "Manual Wi-Fi endpoint"
+msgstr ""
+
+#: window.py:201
+msgid ""
+"In Wi-Fi mode, Connect uses this endpoint when no phone is selected in "
+"the list."
+msgstr ""
+
+#: window.py:207 window_behavior_settings.py:225
+msgid "Endpoint status: not set"
+msgstr ""
+
+#: window.py:212
+msgid "No device selected. Scan and choose a phone."
+msgstr ""
+
+#: window.py:221
+msgid "Selection"
+msgstr ""
+
+#: window.py:235
+msgid "Connection"
+msgstr ""
+
+#: window.py:253 window_behavior_passwordless.py:18
+msgid "Enable"
+msgstr ""
+
+#: window.py:255
+msgid "Reset Saved"
+msgstr ""
+
+#: window.py:256
+msgid "Reset Camera"
+msgstr ""
+
+#: window.py:263
+msgid "Language"
+msgstr ""
+
+#: window.py:264
+msgid "Interface language. Restart AVream to apply changes."
+msgstr ""
+
+#: window.py:267
+msgid "Interface language"
+msgstr ""
+
+#: window.py:278
+msgid "Apply language change"
+msgstr ""
+
+#: window.py:279
+msgid "Restarts the application to apply the selected language."
+msgstr ""
+
+#: window.py:281
+msgid "Restart"
+msgstr ""
+
+#: window.py:289
+msgid "Security"
+msgstr ""
+
+#: window.py:290
+msgid "Configure privileged helper access and authentication behavior."
+msgstr ""
+
+#: window.py:293
+msgid "Passwordless helper actions"
+msgstr ""
+
+#: window.py:294 window_behavior_passwordless.py:23
+msgid "Status: unknown"
+msgstr ""
+
+#: window.py:305
+msgid "UI"
+msgstr ""
+
+#: window.py:306
+msgid "Settings stored locally for the current user session."
+msgstr ""
+
+#: window.py:309
+msgid "UI settings"
+msgstr ""
+
+#: window.py:310
+msgid "Auto-saved."
+msgstr ""
+
+#: window.py:321
+msgid "Maintenance"
+msgstr ""
+
+#: window.py:322
+msgid "Actions for troubleshooting and recovering from device issues."
+msgstr ""
+
+#: window.py:325
+msgid "Reset camera device"
+msgstr ""
+
+#: window.py:326
+msgid "Reloads the virtual camera device. Use only if the stream is stuck."
+msgstr ""
+
+#: window.py:339 window_behavior_update.py:53
+msgid "Click to check for updates"
+msgstr ""
+
+#: window.py:344
+msgid "CLI help"
+msgstr ""
+
+#: window.py:347
+msgid "Open AVream CLI quick reference"
+msgstr ""
+
+#: window.py:353
+msgid "Refresh Status"
+msgstr ""
+
+#: window.py:354
+msgid "Copy Logs"
+msgstr ""
+
+#: window.py:355
+msgid "Clear Logs"
+msgstr ""
+
+#: window.py:374
+msgid "Devices"
+msgstr ""
+
+#: window.py:375
+msgid "Advanced"
+msgstr ""
+
+#: window.py:376
+msgid "Diagnostics"
+msgstr ""
+
+#: window.py:391
+msgid "Enable AVream Service"
+msgstr ""
+
+#: window.py:392
+msgid "Retry"
+msgstr ""
+
+#: window.py:393
+msgid "Show Manual Commands"
+msgstr ""
+
+#: window.py:403
+msgid "Language:"
+msgstr ""
+
+#: window.py:415
+msgid "AVream service is not running"
+msgstr ""
+
+#: window_behavior_core.py:33
+msgid "Request failed"
+msgstr ""
+
+#: window_behavior_core.py:38
+msgid "No authorized phone"
+msgstr ""
+
+#: window_behavior_core.py:40
+msgid ""
+"No authorized Android device is available.\n"
+"\n"
+"What to do:\n"
+"1. Open Devices and click Scan Phones.\n"
+"2. Unlock the phone and accept the USB debugging prompt.\n"
+"3. If you prefer Wi-Fi, connect an endpoint in Devices.\n"
+msgstr ""
+
+#: window_behavior_core.py:50
+msgid "Daemon unavailable"
+msgstr ""
+
+#: window_behavior_core.py:52
+msgid ""
+"AVream cannot reach the daemon service for this user session.\n"
+"\n"
+"What to do:\n"
+"1. Click Enable AVream Service.\n"
+"2. Then click Retry.\n"
+msgstr ""
+
+#: window_behavior_core.py:105
+msgid "Stop Camera"
+msgstr ""
+
+#: window_behavior_core.py:106
+msgid "Stop currently running camera stream."
+msgstr ""
+
+#: window_behavior_core.py:111
+msgid "Start camera stream from selected device."
+msgstr ""
+
+#: window_behavior_core.py:132 window_behavior_core.py:287
+#: window_behavior_service.py:14 window_behavior_update.py:98
+msgid "AVream service is not running. Click Enable AVream Service to start it."
+msgstr ""
+
+#: window_behavior_core.py:289
+msgid "Service unavailable"
+msgstr ""
+
+#: window_behavior_core.py:291 window_behavior_core.py:298
+msgid "Active source: unavailable"
+msgstr ""
+
+#: window_behavior_core.py:296
+msgid "Service status unavailable"
+msgstr ""
+
+#: window_behavior_core.py:314 window_behavior_core.py:364
+#: window_behavior_core.py:380 window_behavior_update.py:162
+msgid "on"
+msgstr ""
+
+#: window_behavior_core.py:314 window_behavior_core.py:364
+#: window_behavior_core.py:380 window_behavior_update.py:162
+msgid "off"
+msgstr ""
+
+#: window_behavior_core.py:314
+msgid "error"
+msgstr ""
+
+#: window_behavior_core.py:314
+msgid "starting"
+msgstr ""
+
+#: window_behavior_core.py:317
+#, python-brace-format
+msgid "Camera: {v}  •  Microphone: {a}"
+msgstr ""
+
+#: window_behavior_core.py:335
+msgid "not selected"
+msgstr ""
+
+#: window_behavior_core.py:349
+#, python-brace-format
+msgid "Active source: {source}"
+msgstr ""
+
+#: window_behavior_core.py:359
+msgid "Stop camera first to change preview window mode."
+msgstr ""
+
+#: window_behavior_core.py:362
+msgid "Stop camera first to change rotation."
+msgstr ""
+
+#: window_behavior_core.py:366
+#, python-brace-format
+msgid "Preview window: {mode} (locked while camera is running)"
+msgstr ""
+
+#: window_behavior_core.py:369
+msgid "Stop camera first to change preview window mode and rotation."
+msgstr ""
+
+#: window_behavior_core.py:375
+msgid ""
+"Toggle to show or hide separate AVream Preview window on next camera "
+"start."
+msgstr ""
+
+#: window_behavior_core.py:378
+msgid "Select camera rotation for next camera start."
+msgstr ""
+
+#: window_behavior_core.py:381 window_behavior_update.py:162
+#, python-brace-format
+msgid "Preview window: {mode}"
+msgstr ""
+
+#: window_behavior_passwordless.py:14
+msgid "Disable"
+msgstr ""
+
+#: window_behavior_passwordless.py:16
+msgid "Disable passwordless helper actions."
+msgstr ""
+
+#: window_behavior_passwordless.py:20
+msgid "Enable passwordless helper actions."
+msgstr ""
+
+#: window_behavior_passwordless.py:54
+msgid "Passwordless setup tool is not installed."
+msgstr ""
+
+#: window_behavior_passwordless.py:59 window_behavior_passwordless.py:134
+#: window_behavior_passwordless.py:177
+msgid "Cannot detect current username."
+msgstr ""
+
+#: window_behavior_passwordless.py:63
+msgid "Checking passwordless status..."
+msgstr ""
+
+#: window_behavior_passwordless.py:70
+#, python-brace-format
+msgid "Passwordless status error: {error}"
+msgstr ""
+
+#: window_behavior_passwordless.py:72 window_behavior_passwordless.py:79
+msgid "Passwordless status failed"
+msgstr ""
+
+#: window_behavior_passwordless.py:77
+msgid "Passwordless status parse error."
+msgstr ""
+
+#: window_behavior_passwordless.py:79
+msgid "Could not parse status output."
+msgstr ""
+
+#: window_behavior_passwordless.py:97
+msgid "Passwordless helper actions are enabled (runner: pkexec)."
+msgstr ""
+
+#: window_behavior_passwordless.py:103
+msgid ""
+"Passwordless is enabled, but the service needs to be restarted to take "
+"effect. Restart AVream from Settings → Service."
+msgstr ""
+
+#: window_behavior_passwordless.py:109
+msgid "Passwordless helper actions are disabled."
+msgstr ""
+
+#: window_behavior_passwordless.py:131 window_behavior_passwordless.py:174
+msgid "Tool not found"
+msgstr ""
+
+#: window_behavior_passwordless.py:131 window_behavior_passwordless.py:174
+msgid "avream-passwordless-setup is not installed."
+msgstr ""
+
+#: window_behavior_passwordless.py:134 window_behavior_passwordless.py:177
+msgid "User unknown"
+msgstr ""
+
+#: window_behavior_passwordless.py:137 window_behavior_passwordless.py:180
+msgid "pkexec missing"
+msgstr ""
+
+#: window_behavior_passwordless.py:137 window_behavior_passwordless.py:180
+msgid "Install policykit-1 (pkexec) to run this action from GUI."
+msgstr ""
+
+#: window_behavior_passwordless.py:142
+msgid "Enabling passwordless helper actions..."
+msgstr ""
+
+#: window_behavior_passwordless.py:150
+msgid "Enable failed"
+msgstr ""
+
+#: window_behavior_passwordless.py:156
+msgid "Passwordless enabled"
+msgstr ""
+
+#: window_behavior_passwordless.py:157
+msgid ""
+"Passwordless helper actions were enabled. Log out and log in again to "
+"refresh group membership."
+msgstr ""
+
+#: window_behavior_passwordless.py:165
+msgid "Enable passwordless mode"
+msgstr ""
+
+#: window_behavior_passwordless.py:166
+msgid ""
+"This allows your local active user session to run AVream helper actions "
+"without password prompt. Continue?"
+msgstr ""
+
+#: window_behavior_passwordless.py:185
+msgid "Disabling passwordless helper actions..."
+msgstr ""
+
+#: window_behavior_passwordless.py:193
+msgid "Disable failed"
+msgstr ""
+
+#: window_behavior_passwordless.py:198
+msgid "Passwordless disabled"
+msgstr ""
+
+#: window_behavior_passwordless.py:198
+msgid "Passwordless helper actions were disabled."
+msgstr ""
+
+#: window_behavior_passwordless.py:205
+msgid "Disable passwordless mode"
+msgstr ""
+
+#: window_behavior_passwordless.py:206
+msgid "This restores password prompts for AVream helper actions. Continue?"
+msgstr ""
+
+#: window_behavior_phone.py:28 window_behavior_phone.py:37
+msgid "Disconnect"
+msgstr ""
+
+#: window_behavior_phone.py:29
+msgid "Disconnect Wi-Fi endpoint from AVream session."
+msgstr ""
+
+#: window_behavior_phone.py:32
+msgid "Connect selected Wi-Fi device or manual endpoint."
+msgstr ""
+
+#: window_behavior_phone.py:38
+msgid "Stop stream and disconnect selected phone from AVream session."
+msgstr ""
+
+#: window_behavior_phone.py:41
+msgid "Mark selected USB phone as active for streaming."
+msgstr ""
+
+#: window_behavior_phone.py:66 window_behavior_phone.py:70
+msgid "Scanning devices..."
+msgstr ""
+
+#: window_behavior_phone.py:139
+msgid "No phones detected. Connect USB phone and click Scan."
+msgstr ""
+
+#: window_behavior_phone.py:141
+msgid "Select a phone to connect (USB or Wi-Fi)."
+msgstr ""
+
+#: window_behavior_phone.py:241
+#, python-brace-format
+msgid "Active source: {serial} ({mode})"
+msgstr ""
+
+#: window_behavior_phone.py:250
+msgid "Phone is unauthorized. Unlock phone and accept the USB debugging prompt."
+msgstr ""
+
+#: window_behavior_phone.py:252
+#, python-brace-format
+msgid "Phone state: {state}. Try reconnecting USB."
+msgstr ""
+
+#: window_behavior_phone.py:259
+#, python-brace-format
+msgid "Phone is ready ({transport}). Click Connect."
+msgstr ""
+
+#: window_behavior_phone.py:274
+msgid "Connecting Wi-Fi endpoint..."
+msgstr ""
+
+#: window_behavior_phone.py:283 window_behavior_phone.py:430
+msgid "No phone selected"
+msgstr ""
+
+#: window_behavior_phone.py:283 window_behavior_phone.py:430
+msgid "Scan phones and select a device first."
+msgstr ""
+
+#: window_behavior_phone.py:286
+msgid "Phone not ready"
+msgstr ""
+
+#: window_behavior_phone.py:286
+msgid "Unlock phone and ensure it shows as 'device' in the list."
+msgstr ""
+
+#: window_behavior_phone.py:301
+msgid "Setting up Wi-Fi from selected USB phone..."
+msgstr ""
+
+#: window_behavior_phone.py:311
+#, python-brace-format
+msgid ""
+"Wi-Fi ready: {endpoint}. You can disconnect USB and start camera in "
+"Stream."
+msgstr ""
+
+#: window_behavior_phone.py:321
+msgid "Selecting Wi-Fi phone and reconnecting endpoint..."
+msgstr ""
+
+#: window_behavior_phone.py:331
+#, python-brace-format
+msgid "Wi-Fi device connected: {endpoint}. Open Stream tab to start camera."
+msgstr ""
+
+#: window_behavior_phone.py:343
+msgid "USB mode selected"
+msgstr ""
+
+#: window_behavior_phone.py:344
+msgid ""
+"Selected phone is Wi-Fi. Either switch connection mode to Wi-Fi or select"
+" a USB device."
+msgstr ""
+
+#: window_behavior_phone.py:347
+msgid "Phone selected and connected. Open Stream tab to start camera."
+msgstr ""
+
+#: window_behavior_phone.py:361
+msgid "Preparing Wi-Fi connection..."
+msgstr ""
+
+#: window_behavior_phone.py:370
+#, python-brace-format
+msgid "Wi-Fi ready: {endpoint}. Starting camera..."
+msgstr ""
+
+#: window_behavior_phone.py:384
+msgid "Starting phone camera..."
+msgstr ""
+
+#: window_behavior_phone.py:410
+#, python-brace-format
+msgid "Active source: {conn_type} — {serial}"
+msgstr ""
+
+#: window_behavior_phone.py:421
+msgid "Disconnecting Wi-Fi endpoint..."
+msgstr ""
+
+#: window_behavior_phone.py:438
+msgid "Disconnecting selected phone..."
+msgstr ""
+
+#: window_behavior_phone.py:455
+msgid "Phone disconnected from AVream session."
+msgstr ""
+
+#: window_behavior_service.py:29
+msgid "Manual setup commands"
+msgstr ""
+
+#: window_behavior_service.py:36
+msgid "Service enabled. Waiting for daemon startup..."
+msgstr ""
+
+#: window_behavior_service.py:50
+msgid ""
+"Service was enabled, but daemon is still unreachable. Click Retry or use "
+"manual commands."
+msgstr ""
+
+#: window_behavior_service.py:56
+#, python-brace-format
+msgid "Service enabled. Waiting for daemon startup... ({done}/{total})"
+msgstr ""
+
+#: window_behavior_service.py:65
+msgid "Enabling AVream daemon service..."
+msgstr ""
+
+#: window_behavior_service.py:90
+msgid "Enable service failed"
+msgstr ""
+
+#: window_behavior_service.py:91
+#, python-brace-format
+msgid ""
+"Could not enable the AVream service automatically.\n"
+"\n"
+"{stderr}\n"
+"\n"
+"Click 'Show manual commands' to view the setup steps."
+msgstr ""
+
+#: window_behavior_service.py:112
+msgid "Stopping camera..."
+msgstr ""
+
+#: window_behavior_service.py:118
+msgid "Resetting camera..."
+msgstr ""
+
+#: window_behavior_service.py:121
+msgid "Reset camera"
+msgstr ""
+
+#: window_behavior_service.py:121
+msgid "This reloads the virtual camera device. Continue?"
+msgstr ""
+
+#: window_behavior_settings.py:248
+#, python-brace-format
+msgid "Endpoint status: {endpoint} unavailable"
+msgstr ""
+
+#: window_behavior_settings.py:281
+#, python-brace-format
+msgid "Endpoint status: connected ({endpoint})"
+msgstr ""
+
+#: window_behavior_settings.py:290
+#, python-brace-format
+msgid "Endpoint status: {endpoint} — {state}"
+msgstr ""
+
+#: window_behavior_settings.py:298
+#, python-brace-format
+msgid "Endpoint status: {endpoint} not found"
+msgstr ""
+
+#: window_behavior_settings.py:328
+msgid "Clipboard unavailable"
+msgstr ""
+
+#: window_behavior_settings.py:328
+msgid "No active display. Could not copy logs."
+msgstr ""
+
+#: window_behavior_settings.py:350
+msgid "Saved settings were reset to defaults."
+msgstr ""
+
+#: window_behavior_settings.py:354
+msgid "Reset saved UI settings"
+msgstr ""
+
+#: window_behavior_settings.py:355
+msgid "This removes saved UI settings and restores defaults. Continue?"
+msgstr ""
+
+#: window_behavior_settings.py:389 window_behavior_update.py:123
+msgid "Close"
+msgstr ""
+
+#: window_behavior_settings.py:404
+msgid "OK"
+msgstr ""
+
+#: window_behavior_settings.py:412
+msgid "Cancel"
+msgstr ""
+
+#: window_behavior_settings.py:413
+msgid "Proceed"
+msgstr ""
+
+#: window_behavior_settings.py:444
+msgid "Language changed. Restart AVream to apply."
+msgstr ""
+
+#: window_behavior_update.py:32
+msgid "README not found"
+msgstr ""
+
+#: window_behavior_update.py:32
+msgid "Could not find CLI README file on this system."
+msgstr ""
+
+#: window_behavior_update.py:37 window_behavior_update.py:60
+msgid "xdg-open missing"
+msgstr ""
+
+#: window_behavior_update.py:37
+#, python-brace-format
+msgid "Open this file manually: {path}"
+msgstr ""
+
+#: window_behavior_update.py:43
+msgid "Failed to open README"
+msgstr ""
+
+#: window_behavior_update.py:49
+msgid "Update available. Click to open update modal."
+msgstr ""
+
+#: window_behavior_update.py:60
+#, python-brace-format
+msgid "Open this URL manually: {url}"
+msgstr ""
+
+#: window_behavior_update.py:66
+msgid "Failed to open release page"
+msgstr ""
+
+#: window_behavior_update.py:71
+msgid "Installing update..."
+msgstr ""
+
+#: window_behavior_update.py:80
+msgid "Install update"
+msgstr ""
+
+#: window_behavior_update.py:81
+msgid ""
+"AVream will stop camera/microphone if needed, install latest package, and"
+" restart daemon service. Continue?"
+msgstr ""
+
+#: window_behavior_update.py:87
+msgid "Checking for updates..."
+msgstr ""
+
+#: window_behavior_update.py:100
+msgid "Update check failed"
+msgstr ""
+
+#: window_behavior_update.py:117
+msgid "Update available"
+msgstr ""
+
+#: window_behavior_update.py:117
+msgid "No update"
+msgstr ""
+
+#: window_behavior_update.py:120
+msgid "A newer release is available."
+msgstr ""
+
+#: window_behavior_update.py:120
+msgid "You are up to date."
+msgstr ""
+
+#: window_behavior_update.py:124
+msgid "Open Release"
+msgstr ""
+
+#: window_behavior_update.py:126
+msgid "Install Update"
+msgstr ""
+
+#: window_behavior_update.py:155
+msgid "Cannot change while streaming"
+msgstr ""
+
+#: window_behavior_update.py:156
+msgid "Stop camera first, then change Preview window mode and start camera again."
+msgstr ""
+
