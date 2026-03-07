@@ -4,7 +4,7 @@ Use this checklist before cutting a stable tag.
 
 ## Scope and Support
 
-- Supported platforms documented (Tier A and Tier B in `docs/SUPPORTED_PLATFORMS.md`).
+- Supported platforms documented in `docs/SUPPORTED_PLATFORMS.md`.
 - Known limitations documented (Secure Boot, v4l2loopback specifics, desktop auth agent requirements).
 
 ## Quality Gates

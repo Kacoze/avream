@@ -23,9 +23,10 @@ This document defines the RC process before stable release.
 ## Mandatory manual checks
 
 - Fresh install and first-run flow.
-- Profile switching with explicit source binding.
-- Doctor quick/full and support bundle export.
+- Phone scan, connect, and camera start/stop.
+- Wi-Fi mode setup and connect flow.
 - Android backend start/stop and reconnect controls.
+- Update check and install flow.
 
 ## Release sign-off
 
