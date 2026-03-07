@@ -12,16 +12,10 @@ from gi.repository import Gtk  # type: ignore[import-not-found]
 
 
 class WindowPhoneMixin:
-    @staticmethod
-    def _wifi_status_connected(status_text: str) -> bool:
-        normalized = str(status_text or "").strip().lower()
-        return normalized.startswith("endpoint status: connected")
-
     def _sync_phone_connect_toggle_button(self) -> None:
         mode = self._selected_connection_mode()
         endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
-        wifi_label = self.wifi_saved_status_label.get_text().strip()
-        wifi_connected = self._wifi_status_connected(wifi_label)
+        wifi_connected = getattr(self, "_wifi_endpoint_connected", False)
 
         if mode == "wifi":
             if endpoint and wifi_connected:
@@ -43,8 +37,7 @@ class WindowPhoneMixin:
     def _on_phone_connect_toggle(self, _btn) -> None:
         mode = self._selected_connection_mode()
         endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
-        wifi_label = self.wifi_saved_status_label.get_text().strip()
-        wifi_connected = self._wifi_status_connected(wifi_label)
+        wifi_connected = getattr(self, "_wifi_endpoint_connected", False)
 
         if mode == "wifi":
             # Prefer disconnect when we know it's connected, or when user has an endpoint and wants to stop it.

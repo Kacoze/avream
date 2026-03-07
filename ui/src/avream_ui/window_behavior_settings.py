@@ -218,14 +218,18 @@ class WindowSettingsMixin:
             return value
         return f"{value}:5555"
 
+    def _set_wifi_endpoint_status(self, text: str, *, connected: bool) -> None:
+        self._wifi_endpoint_connected = connected
+        self.wifi_saved_status_label.set_text(text)
+        sync = getattr(self, "_sync_phone_connect_toggle_button", None)
+        if callable(sync):
+            sync()
+
     def _refresh_saved_wifi_endpoint_status(self) -> None:
         endpoint_raw = self.phone_wifi_endpoint_entry.get_text().strip()
         endpoint = self._normalize_wifi_endpoint(endpoint_raw)
         if not endpoint:
-            self.wifi_saved_status_label.set_text(_("Endpoint status: not set"))
-            sync = getattr(self, "_sync_phone_connect_toggle_button", None)
-            if callable(sync):
-                sync()
+            self._set_wifi_endpoint_status(_("Endpoint status: not set"), connected=False)
             return
 
         if self._wifi_status_refresh_inflight:
@@ -245,10 +249,7 @@ class WindowSettingsMixin:
 
             body = resp.get("body", {}) if isinstance(resp, dict) else {}
             if not isinstance(body, dict) or not body.get("ok"):
-                self.wifi_saved_status_label.set_text(_("Endpoint status: {endpoint} unavailable").format(endpoint=endpoint))
-                sync = getattr(self, "_sync_phone_connect_toggle_button", None)
-                if callable(sync):
-                    sync()
+                self._set_wifi_endpoint_status(_("Endpoint status: {endpoint} unavailable").format(endpoint=endpoint), connected=False)
                 if self._wifi_status_refresh_pending:
                     self._wifi_status_refresh_pending = False
                     self._refresh_saved_wifi_endpoint_status()
@@ -278,27 +279,18 @@ class WindowSettingsMixin:
                     break
 
             if matched_state == "device":
-                self.wifi_saved_status_label.set_text(_("Endpoint status: connected ({endpoint})").format(endpoint=endpoint))
-                sync = getattr(self, "_sync_phone_connect_toggle_button", None)
-                if callable(sync):
-                    sync()
+                self._set_wifi_endpoint_status(_("Endpoint status: connected ({endpoint})").format(endpoint=endpoint), connected=True)
                 if self._wifi_status_refresh_pending:
                     self._wifi_status_refresh_pending = False
                     self._refresh_saved_wifi_endpoint_status()
                 return False
             if isinstance(matched_state, str):
-                self.wifi_saved_status_label.set_text(_("Endpoint status: {endpoint} — {state}").format(endpoint=endpoint, state=matched_state))
-                sync = getattr(self, "_sync_phone_connect_toggle_button", None)
-                if callable(sync):
-                    sync()
+                self._set_wifi_endpoint_status(_("Endpoint status: {endpoint} — {state}").format(endpoint=endpoint, state=matched_state), connected=False)
                 if self._wifi_status_refresh_pending:
                     self._wifi_status_refresh_pending = False
                     self._refresh_saved_wifi_endpoint_status()
                 return False
-            self.wifi_saved_status_label.set_text(_("Endpoint status: {endpoint} not found").format(endpoint=endpoint))
-            sync = getattr(self, "_sync_phone_connect_toggle_button", None)
-            if callable(sync):
-                sync()
+            self._set_wifi_endpoint_status(_("Endpoint status: {endpoint} not found").format(endpoint=endpoint), connected=False)
             if self._wifi_status_refresh_pending:
                 self._wifi_status_refresh_pending = False
                 self._refresh_saved_wifi_endpoint_status()

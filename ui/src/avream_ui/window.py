@@ -44,6 +44,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self._startup_auto_connect_attempted = False
         self._startup_auto_connect_completed = False
         self._current_language = "en"
+        self._wifi_endpoint_connected = False
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         root.set_margin_top(16)
