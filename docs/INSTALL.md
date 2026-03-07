@@ -1,19 +1,5 @@
 # AVream Installation and Upgrade
 
-This page covers all supported distribution channels: `APT/.deb`, `RPM`, `AUR`, `Nix`, `Snap`, `Flatpak`, and `PPA source`.
-
-## Channel comparison
-
-| Channel | Best for | Install updates | CI automation |
-| --- | --- | --- | --- |
-| APT / `.deb` | Debian/Ubuntu users | `apt upgrade` | `ci.yml`, `release.yml`, `nightly.yml` |
-| RPM | Fedora/openSUSE users | `dnf upgrade` / `zypper update` | `ci.yml`, `release.yml`, `nightly.yml` |
-| AUR | Arch users | `yay -Syu` / `paru -Syu` | `arch-validate.yml` |
-| Nix | NixOS/Nix users | re-run `nix profile install` | `nix.yml` |
-| Snap | Ubuntu Store flow | auto refresh + channel tracking | `snap.yml` |
-| Flatpak | cross-distro desktop flow | `flatpak update` | `flatpak.yml` |
-| PPA source | Ubuntu-native package pipeline | `apt upgrade` via PPA | `ppa.yml` |
-
 ## Recommended: one-liner installer
 
 Install latest AVream:
@@ -22,26 +8,15 @@ Install latest AVream:
 curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | bash
 ```
 
-Install specific GitHub release package version:
+Install specific version:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | AVREAM_VERSION=<version> bash
 ```
 
-Force installer channel:
-
-```bash
-# Snap
-curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | AVREAM_INSTALL_METHOD=snap bash
-
-# Flatpak
-curl -fsSL https://raw.githubusercontent.com/Kacoze/avream/main/scripts/install.sh | AVREAM_INSTALL_METHOD=flatpak bash
-```
-
 Installer behavior in `auto` mode:
 - Debian/Ubuntu: APT repository first, fallback to `.deb` release package.
 - Fedora/openSUSE: install from `.rpm` release package.
-- Arch/Nix: points to native path (`AUR` / `flake`).
 
 ## Debian / Ubuntu
 
@@ -72,17 +47,6 @@ sudo apt install ./avream-daemon_<version>_amd64.deb \
   ./avream-helper_<version>_amd64.deb
 ```
 
-### Ubuntu PPA path (source package pipeline)
-
-PPA publishing is automated by `.github/workflows/ppa.yml` (when secrets are configured).  
-User-side install remains standard `apt` after adding your PPA:
-
-```bash
-sudo add-apt-repository ppa:<owner>/<ppa-name>
-sudo apt update
-sudo apt install avream
-```
-
 ## Fedora / openSUSE
 
 Install from release RPM:
@@ -94,18 +58,6 @@ sudo dnf install ./avream-<version>-1.x86_64.rpm
 # openSUSE
 sudo zypper --non-interactive --no-gpg-checks install ./avream-<version>-1.x86_64.rpm
 ```
-
-## Arch Linux (AUR)
-
-Use your AUR helper:
-
-```bash
-yay -S avream
-# or
-paru -S avream
-```
-
-Repository package sources are in `packaging/arch/`.
 
 ## Nix / NixOS
 
@@ -121,34 +73,12 @@ Run without installing profile:
 nix run github:Kacoze/avream#avream-ui
 ```
 
-## Snap (Ubuntu Software / Snap Store)
-
-```bash
-sudo snap install avream --classic
-```
-
-Track edge channel:
-
-```bash
-sudo snap refresh avream --channel=edge
-```
-
-## Flatpak (Flathub-style flow)
-
-```bash
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install -y flathub io.avream.AVream
-```
-
 ## Upgrade
 
-- APT/PPA: `sudo apt update && sudo apt upgrade avream`
+- APT: `sudo apt update && sudo apt upgrade avream`
 - DNF: `sudo dnf upgrade avream`
 - zypper: `sudo zypper update avream`
-- AUR: update via your helper (`yay -Syu` / `paru -Syu`)
 - Nix: re-run `nix profile install github:Kacoze/avream#avream`
-- Snap: `sudo snap refresh avream`
-- Flatpak: `flatpak update io.avream.AVream`
 
 ## Uninstall
 
