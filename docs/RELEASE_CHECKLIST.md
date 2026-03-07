@@ -30,7 +30,8 @@ Use this checklist before cutting a stable tag.
   - device discovery/connect logic,
   - video/audio runtime pipeline,
   - polkit/helper behavior,
-  - installer behavior not covered by existing automated tests.
+  - installer behavior not covered by existing automated tests,
+  - i18n/locale changes (verify language switch and `.mo` files are packaged).
 - When no high-risk areas changed and all automated gates are green, manual QA can be skipped.
 
 ## Security and Privilege Model
@@ -41,7 +42,7 @@ Use this checklist before cutting a stable tag.
 
 ## Packaging and Artifacts
 
-- `.deb` contains daemon, UI, helper, desktop entry, metainfo, icon, policy.
+- `.deb` contains daemon, UI, helper, desktop entry, metainfo, icon, policy, and `.mo` locale files for all supported languages.
 - Release notes include upgrade notes for removed API endpoints.
 - SHA256 checksum file is generated and published with release assets.
 - `scripts/install.sh` one-liner logic validated by automated platform fixtures and release gate smoke checks.
