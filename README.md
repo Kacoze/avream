@@ -28,6 +28,7 @@ Website and documentation are generated from Markdown files in `docs/`.
 - Works as standard Linux devices: `AVream Camera` and `AVream Mic`.
 - Stable Linux-native pipeline (daemon + UI + helper), built for real calls.
 - Security model based on polkit helper actions (no random `sudo` commands in GUI).
+- UI available in **English, Polski, Español, العربية, 中文** (RTL support for Arabic).
 
 ## Works With
 
