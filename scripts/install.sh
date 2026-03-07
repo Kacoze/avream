@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/lib/install-platform.sh"
+_AVREAM_SCRIPT="${BASH_SOURCE[0]:-}"
+if [ -n "$_AVREAM_SCRIPT" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "$_AVREAM_SCRIPT")" && pwd)"
+  source "${SCRIPT_DIR}/lib/install-platform.sh"
+else
+  # curl-pipe mode: fetch lib from GitHub Raw
+  source <(curl -fsSL "https://raw.githubusercontent.com/Kacoze/avream/main/scripts/lib/install-platform.sh")
+fi
 
 REPO="${AVREAM_REPO:-Kacoze/avream}"
 VERSION="${AVREAM_VERSION:-latest}"
