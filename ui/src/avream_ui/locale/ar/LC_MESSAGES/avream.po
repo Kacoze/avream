@@ -573,3 +573,12 @@ msgstr "جاري قطع اتصال الهاتف المحدد..."
 
 msgid "Phone disconnected from AVream session."
 msgstr "تم قطع اتصال الهاتف من جلسة AVream."
+
+msgid "Apply language change"
+msgstr "تطبيق تغيير اللغة"
+
+msgid "Restart"
+msgstr "إعادة التشغيل"
+
+msgid "Restarts the application to apply the selected language."
+msgstr "يعيد تشغيل التطبيق لتطبيق اللغة المحددة."

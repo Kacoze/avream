@@ -573,3 +573,12 @@ msgstr "正在断开所选手机..."
 
 msgid "Phone disconnected from AVream session."
 msgstr "手机已从 AVream 会话断开。"
+
+msgid "Apply language change"
+msgstr "应用语言更改"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "Restarts the application to apply the selected language."
+msgstr "重启应用程序以应用所选语言。"

@@ -573,3 +573,12 @@ msgstr "Desconectando el teléfono seleccionado..."
 
 msgid "Phone disconnected from AVream session."
 msgstr "Teléfono desconectado de la sesión AVream."
+
+msgid "Apply language change"
+msgstr "Aplicar cambio de idioma"
+
+msgid "Restart"
+msgstr "Reiniciar"
+
+msgid "Restarts the application to apply the selected language."
+msgstr "Reinicia la aplicación para aplicar el idioma seleccionado."
