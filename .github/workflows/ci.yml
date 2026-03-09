@@ -281,8 +281,9 @@ jobs:
             set -eu
             case "$0" in
               ubuntu:*|debian:*)
+                sed -i '/security.ubuntu.com/d' /etc/apt/sources.list 2>/dev/null || true
                 apt-get update -q
-                apt-get install -y --no-upgrade python3 python3-pip python3-aiohttp
+                apt-get install -y python3 python3-pip python3-aiohttp
                 ;;
               fedora:*)
                 dnf install -y python3 python3-pip python3-aiohttp
