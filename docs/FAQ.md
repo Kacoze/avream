@@ -1,3 +1,7 @@
+---
+description: Frequently asked questions about AVream — Android webcam and microphone for Linux.
+---
+
 # AVream FAQ
 
 ## How do I use my Android phone as a webcam on Linux?

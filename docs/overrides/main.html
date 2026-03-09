@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {% set _title = config.site_name if not page else (page.title + ' – ' + config.site_name if page.title != config.site_name else config.site_name) %}
+  {% set _desc = (page.meta.description if page and page.meta and page.meta.description else config.site_description) | e %}
+  {% set _url = page.canonical_url if page and page.canonical_url else config.site_url %}
+  {% set _image = config.site_url + 'assets/og-image.svg' %}
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name | e }}">
+  <meta property="og:title" content="{{ _title | e }}">
+  <meta property="og:description" content="{{ _desc }}">
+  <meta property="og:url" content="{{ _url }}">
+  <meta property="og:image" content="{{ _image }}">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ _title | e }}">
+  <meta name="twitter:description" content="{{ _desc }}">
+  <meta name="twitter:image" content="{{ _image }}">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "AVream",
+    "description": {{ config.site_description | tojson }},
+    "applicationCategory": "VideoCamera",
+    "operatingSystem": "Linux",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "downloadUrl": "https://github.com/Kacoze/avream/releases",
+    "softwareHelp": {{ config.site_url | tojson }},
+    "url": {{ config.site_url | tojson }}
+  }
+  </script>
+{% endblock %}

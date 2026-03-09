@@ -1,6 +1,10 @@
+---
+description: Use your Android phone as a Linux webcam and microphone — no app required. Works with Zoom, Google Meet, and OBS.
+---
+
 # AVream
 
-Turn your Android phone into a Linux virtual camera and microphone for real meetings and recordings.
+Turn your Android phone into a Linux virtual camera and microphone for real meetings and recordings — no dedicated phone app required.
 
 [![Release](https://img.shields.io/github/v/release/kacoze/avream?sort=semver)](https://github.com/Kacoze/avream/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Kacoze/avream/blob/main/LICENSE)
@@ -14,19 +18,20 @@ Turn your Android phone into a Linux virtual camera and microphone for real meet
 
 ## Why AVream
 
-- No dedicated app required on the phone.
-- Phone-first UX: scan phone, select device, start camera.
-- USB and Wi-Fi modes with practical reconnect flow.
-- Works as standard Linux devices: `AVream Camera` and `AVream Mic`.
-- Includes both GUI (`avream-ui`) and CLI (`avream`).
-- Security model based on polkit helper actions (no `sudo` in GUI controls).
+- No dedicated app required on the phone — uses ADB and scrcpy.
+- Phone-first UX: scan phone, select device, start camera in three clicks.
+- USB and Wi-Fi modes with automatic reconnect flow.
+- Registers as standard Linux devices: `AVream Camera` (V4L2) and `AVream Mic` (PipeWire/PulseAudio).
+- Includes both GUI (`avream-ui`) and CLI (`avream`) for automation.
+- Security model based on polkit helper actions — no `sudo` in GUI controls.
+- UI available in English, Polski, Español, العربية, and 中文.
 
 ## Works With
 
-- Google Meet
-- Zoom
-- OBS Studio
-- Other apps that support Linux V4L2 camera and Pulse/PipeWire microphone devices
+- **Google Meet** — select `AVream Camera` and `AVream Mic` in Meet settings
+- **Zoom** — select `AVream Camera` and `AVream Mic` in Zoom audio/video settings
+- **OBS Studio** — add `AVream Camera` as a V4L2 video capture source
+- Any app that supports standard Linux V4L2 camera and PulseAudio/PipeWire microphone devices
 
 ## Quickstart (One-liner)
 
@@ -49,6 +54,7 @@ avream-ui
 ```
 
 Then:
+
 1. Go to **Devices** and click **Scan Phones**.
 2. Select your phone and click **Connect**.
 3. Go to **Stream** and click **Start Camera**.
@@ -69,37 +75,16 @@ Full command reference: [CLI Reference](CLI_README.md).
 - Recommended: one-liner installer (`scripts/install.sh`).
 - Debian/Ubuntu: APT repository (`apt install avream`) or `.deb`.
 - Fedora/openSUSE: monolithic RPM (`avream-<version>-1.x86_64.rpm`).
-- Arch Linux: AUR package path (`packaging/arch/`).
+- Arch Linux: AUR package (`packaging/arch/`).
 - Nix/NixOS: flake package (`.#avream`).
-- Snap Store package (`snap/snapcraft.yaml`).
-- Flatpak manifest (`packaging/flatpak/io.avream.AVream.yml`).
-- Ubuntu PPA source package pipeline (`debian/` + `.github/workflows/ppa.yml`).
-- Manual monolithic package: `avream_<version>_amd64.deb`.
-- Advanced Debian split bundle: `avream-deb-split_<version>_amd64.tar.gz`.
+- Snap Store, Flatpak, and Ubuntu PPA also available.
 
 Full guide: [Install and Upgrade](INSTALL.md).
-
-## Documentation
-
-- [User Guide](USER_GUIDE.md)
-- [Install and Upgrade](INSTALL.md)
-- [CLI Reference](CLI_README.md)
-- [Troubleshooting](TROUBLESHOOTING.md)
-- [FAQ](FAQ.md)
-- [Supported Platforms](SUPPORTED_PLATFORMS.md)
-- [API v1](API_V1.md)
-
-Release and security references:
-
-- [Release Checklist](RELEASE_CHECKLIST.md)
-- [Release Template](RELEASE_TEMPLATE.md)
-- [RC Drill](RC_DRILL.md)
-- [Security Decisions](SECURITY_DECISIONS.md)
 
 ## Known Limits
 
 - PC audio output to phone speaker is not in stable baseline.
-- Preview runs as a separate `scrcpy` window, not embedded in GTK content.
+- Preview runs as a separate `scrcpy` window, not embedded in the GTK UI.
 
 ## Releases
 

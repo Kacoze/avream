@@ -1,3 +1,7 @@
+---
+description: Install AVream on Linux using the one-liner installer, APT, RPM, Arch, Nix, Snap, or Flatpak.
+---
+
 # AVream Installation and Upgrade
 
 ## Recommended: one-liner installer

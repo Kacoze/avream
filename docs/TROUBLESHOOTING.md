@@ -1,3 +1,7 @@
+---
+description: Fix common AVream issues: phone not detected, no virtual camera, Wi-Fi mode fails, and microphone problems.
+---
+
 # AVream Troubleshooting
 
 Use this page when Android webcam/microphone setup on Linux is not working as expected.

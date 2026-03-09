@@ -1,3 +1,7 @@
+---
+description: Step-by-step guide to using AVream: phone setup, USB and Wi-Fi modes, camera, microphone, and updates.
+---
+
 # AVream User Guide
 
 This guide covers the stable AVream flow for using an Android phone as webcam and microphone on Linux.

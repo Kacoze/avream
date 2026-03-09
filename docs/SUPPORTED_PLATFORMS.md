@@ -1,3 +1,7 @@
+---
+description: Linux distributions and system requirements for AVream — Ubuntu, Debian, Fedora, Arch, NixOS.
+---
+
 # Supported Platforms
 
 ## Tested environment

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kacoze.github.io/avream/sitemap.xml
