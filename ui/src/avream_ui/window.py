@@ -321,7 +321,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
 
         shortcuts_group = Adw.PreferencesGroup(
             title=_("Keyboard shortcuts"),
-            description=_("Assign keyboard shortcuts to AVream actions."),
+            description=_("Assign keyboard shortcuts to AVream actions. Global shortcuts (work when AVream is in the background) require Wayland."),
         )
         self._shortcut_toggle_row = Adw.ActionRow(
             title=_("Toggle camera"),

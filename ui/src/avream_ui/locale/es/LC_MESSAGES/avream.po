@@ -600,3 +600,6 @@ msgstr "Pulsa una combinación de teclas para asignarla al interruptor de cámar
 
 msgid "Disabled"
 msgstr "Desactivado"
+
+msgid "Assign keyboard shortcuts to AVream actions. Global shortcuts (work when AVream is in the background) require Wayland."
+msgstr "Asigna atajos de teclado a las acciones de AVream. Los atajos globales (funcionan cuando AVream está en segundo plano) requieren Wayland."
