@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import logging
+import os
+
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # type: ignore[import-not-found]
 
 from avream_ui.i18n import _
+
+_log = logging.getLogger(__name__)
 
 # Keyvals that are pure modifiers (no binding makes sense alone)
 _MODIFIER_KEYVALS: frozenset[int] = frozenset({
@@ -50,11 +55,12 @@ _USEFUL_MODS: int = _useful_modifier_mask()
 class _PortalShortcutSession:
     """Global shortcut via the XDG GlobalShortcuts portal (Wayland/GNOME 43+).
 
-    Falls back silently when the portal is unavailable (X11, older compositors).
+    Falls back silently when the portal is unavailable.
     """
 
-    def __init__(self, callback) -> None:
+    def __init__(self, callback, on_shortcuts_changed=None) -> None:
         self._callback = callback
+        self._on_change_cb = on_shortcuts_changed
         self._portal: Gio.DBusProxy | None = None
         self._bus: Gio.DBusConnection | None = None
         self._session_path: str | None = None
@@ -77,7 +83,8 @@ class _PortalShortcutSession:
                 _PORTAL_IFACE,
                 None,
             )
-        except Exception:
+        except Exception as e:
+            _log.debug("GlobalShortcuts portal: proxy creation failed: %s", e)
             return
 
         handle_token = self._next_token()
@@ -113,7 +120,9 @@ class _PortalShortcutSession:
                 None,
                 lambda _src, _res: None,
             )
-        except Exception:
+            _log.debug("GlobalShortcuts portal: CreateSession sent")
+        except Exception as e:
+            _log.debug("GlobalShortcuts portal: CreateSession failed: %s", e)
             self._bus.signal_unsubscribe(self._response_sub)
 
     def _on_create_response(self, params: GLib.Variant, accel: str) -> None:
@@ -121,12 +130,15 @@ class _PortalShortcutSession:
             self._bus.signal_unsubscribe(self._response_sub)
         response = params[0]
         if int(response) != 0:
+            _log.debug("GlobalShortcuts portal: CreateSession response error %d", int(response))
             return
         results = params[1].unpack()
         session_handle = results.get("session_handle")
         if not session_handle:
+            _log.debug("GlobalShortcuts portal: CreateSession response missing session_handle")
             return
         self._session_path = str(session_handle)
+        _log.debug("GlobalShortcuts portal: session created at %s", self._session_path)
 
         if self._bus:
             self._bus.signal_subscribe(
@@ -138,21 +150,44 @@ class _PortalShortcutSession:
                 Gio.DBusSignalFlags.NONE,
                 self._on_activated,
             )
+            self._bus.signal_subscribe(
+                _PORTAL_BUS,
+                _PORTAL_IFACE,
+                "ShortcutsChanged",
+                self._session_path,
+                None,
+                Gio.DBusSignalFlags.NONE,
+                self._on_shortcuts_changed,
+            )
 
         self._bind(accel)
 
     def _on_activated(
         self, _conn, _sender, _path, _iface, _signal, params: GLib.Variant
     ) -> None:
-        shortcut_id = str(params[1])
+        unpacked = params.unpack()
+        shortcut_id = unpacked[1]
+        _log.debug("GlobalShortcuts portal: Activated shortcut_id=%r", shortcut_id)
         if shortcut_id == _SHORTCUT_ID:
             GLib.idle_add(self._callback)
+
+    def _on_shortcuts_changed(
+        self, _conn, _sender, _path, _iface, _signal, params: GLib.Variant
+    ) -> None:
+        shortcuts = params.unpack()[1]  # list of (id, options_dict)
+        for sid, opts in shortcuts:
+            if sid == _SHORTCUT_ID:
+                trigger = opts.get("trigger-description", "")
+                _log.debug("GlobalShortcuts portal: ShortcutsChanged trigger=%r", trigger)
+                if trigger and self._on_change_cb:
+                    GLib.idle_add(self._on_change_cb, trigger)
+                break
 
     def _bind(self, accel: str) -> None:
         if not self._portal or not self._session_path:
             return
         handle_token = self._next_token()
-        shortcut_trigger = GLib.Variant("s", accel) if accel else GLib.Variant("s", "")
+        shortcut_trigger = GLib.Variant("s", accel if accel else "")
         try:
             self._portal.call(
                 "BindShortcuts",
@@ -180,8 +215,9 @@ class _PortalShortcutSession:
                 None,
                 lambda _src, _res: None,
             )
-        except Exception:
-            pass
+            _log.debug("GlobalShortcuts portal: BindShortcuts sent accel=%r", accel)
+        except Exception as e:
+            _log.debug("GlobalShortcuts portal: BindShortcuts failed: %s", e)
 
     def update(self, accel: str) -> None:
         """Rebind after shortcut changes."""
@@ -189,9 +225,52 @@ class _PortalShortcutSession:
             self._bind(accel)
 
 
+class _KeybinderShortcut:
+    """Global shortcut via libkeybinder-3.0 (X11).
+
+    Optional — silently skipped if gir1.2-keybinder-3.0 is not installed.
+    """
+
+    def __init__(self, callback) -> None:
+        self._callback = callback
+        self._accel = ""
+        self._kb = None
+        try:
+            import gi
+            gi.require_version("Keybinder", "3.0")
+            from gi.repository import Keybinder  # type: ignore[import-not-found]
+            Keybinder.init()
+            self._kb = Keybinder
+            _log.debug("Keybinder: initialized (X11 global shortcut)")
+        except Exception as e:
+            _log.debug("Keybinder: not available: %s", e)
+
+    def start(self, accel: str) -> None:
+        if not self._kb or not accel:
+            return
+        try:
+            self._kb.bind(accel, lambda _a: self._callback())
+            self._accel = accel
+            _log.debug("Keybinder: bound %s", accel)
+        except Exception as e:
+            _log.debug("Keybinder: bind failed: %s", e)
+
+    def update(self, accel: str) -> None:
+        if not self._kb:
+            return
+        if self._accel:
+            try:
+                self._kb.unbind(self._accel)
+            except Exception:
+                pass
+            self._accel = ""
+        self.start(accel)
+
+
 class WindowShortcutsMixin:
     _camera_toggle_shortcut: str
     _portal_session: _PortalShortcutSession | None = None
+    _keybinder_shortcut: _KeybinderShortcut | None = None
 
     def _setup_shortcuts(self) -> None:
         app = self.get_application()
@@ -202,10 +281,17 @@ class WindowShortcutsMixin:
         app.add_action(action)
         self._apply_shortcut_accel(self._camera_toggle_shortcut)
 
-        self._portal_session = _PortalShortcutSession(
-            lambda: self._on_stream_toggle(None)
-        )
-        self._portal_session.start(self._camera_toggle_shortcut)
+        cb = lambda: self._on_stream_toggle(None)
+        if os.environ.get("WAYLAND_DISPLAY"):
+            self._portal_session = _PortalShortcutSession(
+                cb, on_shortcuts_changed=self._on_portal_shortcuts_changed
+            )
+            self._portal_session.start(self._camera_toggle_shortcut)
+            self._keybinder_shortcut = None
+        else:
+            self._portal_session = None
+            self._keybinder_shortcut = _KeybinderShortcut(cb)
+            self._keybinder_shortcut.start(self._camera_toggle_shortcut)
 
     def _apply_shortcut_accel(self, accel: str) -> None:
         app = self.get_application()
@@ -214,6 +300,12 @@ class WindowShortcutsMixin:
         app.set_accels_for_action("app.toggle-camera", [accel] if accel else [])
         if self._portal_session is not None:
             self._portal_session.update(accel)
+        if self._keybinder_shortcut is not None:
+            self._keybinder_shortcut.update(accel)
+
+    def _on_portal_shortcuts_changed(self, trigger: str) -> None:
+        if hasattr(self, "_shortcut_toggle_row"):
+            self._shortcut_toggle_row.set_subtitle(trigger)
 
     def _shortcut_label(self, accel: str) -> str:
         if not accel:
