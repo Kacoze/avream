@@ -164,6 +164,12 @@ class WindowSettingsMixin:
             endpoint = self._saved_ui_settings.get("wifi_endpoint")
             if isinstance(endpoint, str) and endpoint.strip():
                 self.phone_wifi_endpoint_entry.set_text(endpoint.strip())
+
+            shortcut = self._saved_ui_settings.get("camera_toggle_shortcut")
+            if isinstance(shortcut, str):
+                self._camera_toggle_shortcut = shortcut
+                if hasattr(self, "_shortcut_toggle_row"):
+                    self._shortcut_toggle_row.set_subtitle(self._shortcut_label(shortcut))
         finally:
             self._ignore_settings_events = False
 
@@ -176,6 +182,7 @@ class WindowSettingsMixin:
         self._saved_ui_settings["camera_rotation"] = self._selected_camera_rotation()
         self._saved_ui_settings["preview_window"] = bool(self.preview_window_switch.get_active())
         self._saved_ui_settings["language"] = getattr(self, "_current_language", "en")
+        self._saved_ui_settings["camera_toggle_shortcut"] = getattr(self, "_camera_toggle_shortcut", "<Control>space")
 
         endpoint = self.phone_wifi_endpoint_entry.get_text().strip()
         if endpoint:
