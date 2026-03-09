@@ -582,3 +582,21 @@ msgstr "إعادة التشغيل"
 
 msgid "Restarts the application to apply the selected language."
 msgstr "يعيد تشغيل التطبيق لتطبيق اللغة المحددة."
+
+msgid "Keyboard shortcuts"
+msgstr "اختصارات لوحة المفاتيح"
+
+msgid "Assign keyboard shortcuts to AVream actions."
+msgstr "تعيين اختصارات لوحة المفاتيح لإجراءات AVream."
+
+msgid "Toggle camera"
+msgstr "تبديل الكاميرا"
+
+msgid "Camera Toggle Shortcut"
+msgstr "اختصار تبديل الكاميرا"
+
+msgid "Press a key combination to assign to camera toggle.\nPress Escape to cancel."
+msgstr "اضغط تركيبة مفاتيح لتعيينها لتبديل الكاميرا.\nاضغط Escape للإلغاء."
+
+msgid "Disabled"
+msgstr "معطّل"

@@ -582,3 +582,21 @@ msgstr "重启"
 
 msgid "Restarts the application to apply the selected language."
 msgstr "重启应用程序以应用所选语言。"
+
+msgid "Keyboard shortcuts"
+msgstr "键盘快捷键"
+
+msgid "Assign keyboard shortcuts to AVream actions."
+msgstr "为 AVream 操作分配键盘快捷键。"
+
+msgid "Toggle camera"
+msgstr "切换摄像头"
+
+msgid "Camera Toggle Shortcut"
+msgstr "摄像头切换快捷键"
+
+msgid "Press a key combination to assign to camera toggle.\nPress Escape to cancel."
+msgstr "按下按键组合以分配给摄像头切换。\n按 Escape 取消。"
+
+msgid "Disabled"
+msgstr "已禁用"

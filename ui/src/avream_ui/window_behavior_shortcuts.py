@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from gi.repository import Adw, Gdk, Gio, Gtk  # type: ignore[import-not-found]
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # type: ignore[import-not-found]
 
 from avream_ui.i18n import _
 
@@ -25,6 +25,11 @@ _MODIFIER_KEYVALS: frozenset[int] = frozenset({
 
 _KEY_ESCAPE: int = getattr(Gdk, "KEY_Escape", 0xFF1B)
 
+_PORTAL_BUS = "org.freedesktop.portal.Desktop"
+_PORTAL_PATH = "/org/freedesktop/portal/desktop"
+_PORTAL_IFACE = "org.freedesktop.portal.GlobalShortcuts"
+_SHORTCUT_ID = "toggle-camera"
+
 
 def _useful_modifier_mask() -> int:
     """Returns an integer mask of shift/control/alt/super modifier bits."""
@@ -42,8 +47,151 @@ def _useful_modifier_mask() -> int:
 _USEFUL_MODS: int = _useful_modifier_mask()
 
 
+class _PortalShortcutSession:
+    """Global shortcut via the XDG GlobalShortcuts portal (Wayland/GNOME 43+).
+
+    Falls back silently when the portal is unavailable (X11, older compositors).
+    """
+
+    def __init__(self, callback) -> None:
+        self._callback = callback
+        self._portal: Gio.DBusProxy | None = None
+        self._bus: Gio.DBusConnection | None = None
+        self._session_path: str | None = None
+        self._tok = 0
+        self._response_sub: int = 0
+
+    def _next_token(self) -> str:
+        self._tok += 1
+        return f"avream{self._tok}"
+
+    def start(self, accel: str) -> None:
+        try:
+            self._bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+            self._portal = Gio.DBusProxy.new_sync(
+                self._bus,
+                Gio.DBusProxyFlags.DO_NOT_AUTO_START,
+                None,
+                _PORTAL_BUS,
+                _PORTAL_PATH,
+                _PORTAL_IFACE,
+                None,
+            )
+        except Exception:
+            return
+
+        handle_token = self._next_token()
+        session_token = self._next_token()
+
+        sender = self._bus.get_unique_name().lstrip(":").replace(".", "_")
+        request_path = f"/org/freedesktop/portal/desktop/request/{sender}/{handle_token}"
+
+        self._response_sub = self._bus.signal_subscribe(
+            _PORTAL_BUS,
+            "org.freedesktop.portal.Request",
+            "Response",
+            request_path,
+            None,
+            Gio.DBusSignalFlags.NONE,
+            lambda _c, _s, _p, _i, _sig, params: self._on_create_response(params, accel),
+        )
+
+        try:
+            self._portal.call(
+                "CreateSession",
+                GLib.Variant(
+                    "(a{sv})",
+                    (
+                        {
+                            "handle_token": GLib.Variant("s", handle_token),
+                            "session_handle_token": GLib.Variant("s", session_token),
+                        },
+                    ),
+                ),
+                Gio.DBusCallFlags.NONE,
+                -1,
+                None,
+                lambda _src, _res: None,
+            )
+        except Exception:
+            self._bus.signal_unsubscribe(self._response_sub)
+
+    def _on_create_response(self, params: GLib.Variant, accel: str) -> None:
+        if self._bus:
+            self._bus.signal_unsubscribe(self._response_sub)
+        response = params[0]
+        if int(response) != 0:
+            return
+        results = params[1].unpack()
+        session_handle = results.get("session_handle")
+        if not session_handle:
+            return
+        self._session_path = str(session_handle)
+
+        if self._bus:
+            self._bus.signal_subscribe(
+                _PORTAL_BUS,
+                _PORTAL_IFACE,
+                "Activated",
+                self._session_path,
+                None,
+                Gio.DBusSignalFlags.NONE,
+                self._on_activated,
+            )
+
+        self._bind(accel)
+
+    def _on_activated(
+        self, _conn, _sender, _path, _iface, _signal, params: GLib.Variant
+    ) -> None:
+        shortcut_id = str(params[1])
+        if shortcut_id == _SHORTCUT_ID:
+            GLib.idle_add(self._callback)
+
+    def _bind(self, accel: str) -> None:
+        if not self._portal or not self._session_path:
+            return
+        handle_token = self._next_token()
+        shortcut_trigger = GLib.Variant("s", accel) if accel else GLib.Variant("s", "")
+        try:
+            self._portal.call(
+                "BindShortcuts",
+                GLib.Variant(
+                    "(oa(sa{sv})sa{sv})",
+                    (
+                        self._session_path,
+                        [
+                            (
+                                _SHORTCUT_ID,
+                                {
+                                    "description": GLib.Variant(
+                                        "s", "Toggle AVream camera"
+                                    ),
+                                    "preferred-trigger": shortcut_trigger,
+                                },
+                            )
+                        ],
+                        "",
+                        {"handle_token": GLib.Variant("s", handle_token)},
+                    ),
+                ),
+                Gio.DBusCallFlags.NONE,
+                -1,
+                None,
+                lambda _src, _res: None,
+            )
+        except Exception:
+            pass
+
+    def update(self, accel: str) -> None:
+        """Rebind after shortcut changes."""
+        if self._session_path:
+            self._bind(accel)
+
+
 class WindowShortcutsMixin:
     _camera_toggle_shortcut: str
+    _portal_session: _PortalShortcutSession | None = None
 
     def _setup_shortcuts(self) -> None:
         app = self.get_application()
@@ -54,11 +202,18 @@ class WindowShortcutsMixin:
         app.add_action(action)
         self._apply_shortcut_accel(self._camera_toggle_shortcut)
 
+        self._portal_session = _PortalShortcutSession(
+            lambda: self._on_stream_toggle(None)
+        )
+        self._portal_session.start(self._camera_toggle_shortcut)
+
     def _apply_shortcut_accel(self, accel: str) -> None:
         app = self.get_application()
         if app is None:
             return
         app.set_accels_for_action("app.toggle-camera", [accel] if accel else [])
+        if self._portal_session is not None:
+            self._portal_session.update(accel)
 
     def _shortcut_label(self, accel: str) -> str:
         if not accel:

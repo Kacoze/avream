@@ -582,3 +582,21 @@ msgstr "Uruchom ponownie"
 
 msgid "Restarts the application to apply the selected language."
 msgstr "Uruchamia ponownie aplikację, aby zastosować wybrany język."
+
+msgid "Keyboard shortcuts"
+msgstr "Skróty klawiszowe"
+
+msgid "Assign keyboard shortcuts to AVream actions."
+msgstr "Przypisz skróty klawiszowe do akcji AVream."
+
+msgid "Toggle camera"
+msgstr "Włącz/wyłącz kamerę"
+
+msgid "Camera Toggle Shortcut"
+msgstr "Skrót przełączania kamery"
+
+msgid "Press a key combination to assign to camera toggle.\nPress Escape to cancel."
+msgstr "Naciśnij kombinację klawiszy, aby przypisać do przełączania kamery.\nNaciśnij Escape, aby anulować."
+
+msgid "Disabled"
+msgstr "Wyłączony"
