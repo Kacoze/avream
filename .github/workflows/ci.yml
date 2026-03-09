@@ -134,7 +134,7 @@ jobs:
         run: |
           image="${{ matrix.image }}"
           ver='${{ steps.meta.outputs.version }}'
-          docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc "apt-get update && apt-get install -y curl ca-certificates && apt-get install -y /dist/avream-daemon_${ver}_amd64.deb /dist/avream-ui_${ver}_amd64.deb /dist/avream-helper_${ver}_amd64.deb && avreamd --help && avream-ui --help"
+          docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc "apt-get update && apt-get install -y curl ca-certificates && apt-get install -y --fix-missing /dist/avream-daemon_${ver}_amd64.deb /dist/avream-ui_${ver}_amd64.deb /dist/avream-helper_${ver}_amd64.deb && avreamd --help && avream-ui --help"
 
   split-upgrade-smoke:
     runs-on: ubuntu-latest
