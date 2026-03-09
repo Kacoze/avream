@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # type: ignore[import-not-found]
 
@@ -225,52 +224,9 @@ class _PortalShortcutSession:
             self._bind(accel)
 
 
-class _KeybinderShortcut:
-    """Global shortcut via libkeybinder-3.0 (X11).
-
-    Optional — silently skipped if gir1.2-keybinder-3.0 is not installed.
-    """
-
-    def __init__(self, callback) -> None:
-        self._callback = callback
-        self._accel = ""
-        self._kb = None
-        try:
-            import gi
-            gi.require_version("Keybinder", "3.0")
-            from gi.repository import Keybinder  # type: ignore[import-not-found]
-            Keybinder.init()
-            self._kb = Keybinder
-            _log.debug("Keybinder: initialized (X11 global shortcut)")
-        except Exception as e:
-            _log.debug("Keybinder: not available: %s", e)
-
-    def start(self, accel: str) -> None:
-        if not self._kb or not accel:
-            return
-        try:
-            self._kb.bind(accel, lambda _a: self._callback())
-            self._accel = accel
-            _log.debug("Keybinder: bound %s", accel)
-        except Exception as e:
-            _log.debug("Keybinder: bind failed: %s", e)
-
-    def update(self, accel: str) -> None:
-        if not self._kb:
-            return
-        if self._accel:
-            try:
-                self._kb.unbind(self._accel)
-            except Exception:
-                pass
-            self._accel = ""
-        self.start(accel)
-
-
 class WindowShortcutsMixin:
     _camera_toggle_shortcut: str
     _portal_session: _PortalShortcutSession | None = None
-    _keybinder_shortcut: _KeybinderShortcut | None = None
 
     def _setup_shortcuts(self) -> None:
         app = self.get_application()
@@ -281,17 +237,11 @@ class WindowShortcutsMixin:
         app.add_action(action)
         self._apply_shortcut_accel(self._camera_toggle_shortcut)
 
-        cb = lambda: self._on_stream_toggle(None)
-        if os.environ.get("WAYLAND_DISPLAY"):
-            self._portal_session = _PortalShortcutSession(
-                cb, on_shortcuts_changed=self._on_portal_shortcuts_changed
-            )
-            self._portal_session.start(self._camera_toggle_shortcut)
-            self._keybinder_shortcut = None
-        else:
-            self._portal_session = None
-            self._keybinder_shortcut = _KeybinderShortcut(cb)
-            self._keybinder_shortcut.start(self._camera_toggle_shortcut)
+        self._portal_session = _PortalShortcutSession(
+            lambda: self._on_stream_toggle(None),
+            on_shortcuts_changed=self._on_portal_shortcuts_changed,
+        )
+        self._portal_session.start(self._camera_toggle_shortcut)
 
     def _apply_shortcut_accel(self, accel: str) -> None:
         app = self.get_application()
@@ -300,8 +250,6 @@ class WindowShortcutsMixin:
         app.set_accels_for_action("app.toggle-camera", [accel] if accel else [])
         if self._portal_session is not None:
             self._portal_session.update(accel)
-        if self._keybinder_shortcut is not None:
-            self._keybinder_shortcut.update(accel)
 
     def _on_portal_shortcuts_changed(self, trigger: str) -> None:
         if hasattr(self, "_shortcut_toggle_row"):

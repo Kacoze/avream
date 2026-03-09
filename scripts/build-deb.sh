@@ -41,7 +41,7 @@ Priority: optional
 Architecture: $ARCH
 Maintainer: AVream contributors
 Depends: python3 (>= 3.10), python3-aiohttp, python3-gi, gir1.2-gtk-4.0, gir1.2-adw-1, polkitd, kmod, psmisc
-Recommends: policykit-1, scrcpy, android-tools-adb, pipewire, pipewire-pulse, gir1.2-keybinder-3.0
+Recommends: policykit-1, scrcpy, android-tools-adb, pipewire, pipewire-pulse
 Description: AVream daemon, GUI, and privileged helper
  AVream provides a user daemon managing virtual A/V devices,
  a GTK/libadwaita GUI, and a privileged helper invoked via polkit.
