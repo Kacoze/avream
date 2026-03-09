@@ -5,6 +5,7 @@ from avream_ui.window_behavior_passwordless import WindowPasswordlessMixin
 from avream_ui.window_behavior_phone import WindowPhoneMixin
 from avream_ui.window_behavior_service import WindowServiceMixin
 from avream_ui.window_behavior_settings import WindowSettingsMixin
+from avream_ui.window_behavior_shortcuts import WindowShortcutsMixin
 from avream_ui.window_behavior_update import WindowUpdateMixin
 
 
@@ -15,6 +16,7 @@ class WindowBehaviorMixin(
     WindowPhoneMixin,
     WindowUpdateMixin,
     WindowPasswordlessMixin,
+    WindowShortcutsMixin,
 ):
     """Aggregates AVream window behavior mixins."""
 

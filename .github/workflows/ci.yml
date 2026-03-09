@@ -134,7 +134,7 @@ jobs:
         run: |
           image="${{ matrix.image }}"
           ver='${{ steps.meta.outputs.version }}'
-          docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc "apt-get update && apt-get install -y curl ca-certificates && apt-get install -y /dist/avream-daemon_${ver}_amd64.deb /dist/avream-ui_${ver}_amd64.deb /dist/avream-helper_${ver}_amd64.deb && avreamd --help && avream-ui --help"
+          docker run --rm -v "$PWD/dist:/dist" "$image" bash -lc "apt-get update && apt-get install -y --no-upgrade curl ca-certificates && apt-get install -y --no-upgrade /dist/avream-daemon_${ver}_amd64.deb /dist/avream-ui_${ver}_amd64.deb /dist/avream-helper_${ver}_amd64.deb && avreamd --help && avream-ui --help"
 
   split-upgrade-smoke:
     runs-on: ubuntu-latest
@@ -281,6 +281,7 @@ jobs:
             set -eu
             case "$0" in
               ubuntu:*|debian:*)
+                sed -i '/security.ubuntu.com/d' /etc/apt/sources.list 2>/dev/null || true
                 apt-get update -q
                 apt-get install -y python3 python3-pip python3-aiohttp
                 ;;

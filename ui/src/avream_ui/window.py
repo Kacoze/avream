@@ -45,6 +45,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self._startup_auto_connect_completed = False
         self._current_language = "en"
         self._wifi_endpoint_connected = False
+        self._camera_toggle_shortcut = "<Control>space"
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         root.set_margin_top(16)
@@ -318,6 +319,21 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self.ui_settings_status_row = ui_settings_row
         advanced_page.add(ui_group)
 
+        shortcuts_group = Adw.PreferencesGroup(
+            title=_("Keyboard shortcuts"),
+            description=_("Assign keyboard shortcuts to AVream actions. Global shortcuts (work when AVream is in the background) require Wayland."),
+        )
+        self._shortcut_toggle_row = Adw.ActionRow(
+            title=_("Toggle camera"),
+            subtitle=self._shortcut_label(self._camera_toggle_shortcut),
+            activatable=True,
+        )
+        self._shortcut_disable_btn = Gtk.Button(label=_("Disable"), valign=Gtk.Align.CENTER)
+        self._shortcut_disable_btn.add_css_class("flat")
+        self._shortcut_toggle_row.add_suffix(self._shortcut_disable_btn)
+        shortcuts_group.add(self._shortcut_toggle_row)
+        advanced_page.add(shortcuts_group)
+
         maintenance_group = Adw.PreferencesGroup(
             title=_("Maintenance"),
             description=_("Actions for troubleshooting and recovering from device issues."),
@@ -456,6 +472,8 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
         self._lang_combo_advanced.connect("notify::selected", self._on_language_changed)
         self._lang_combo_lock.connect("notify::selected", self._on_language_changed)
         self.restart_app_btn.connect("clicked", self._on_restart_app)
+        self._shortcut_toggle_row.connect("activated", self._on_shortcut_row_activated)
+        self._shortcut_disable_btn.connect("clicked", self._on_shortcut_disable_clicked)
 
         self._video_running = False
         self._latest_release_url = "https://github.com/Kacoze/avream/releases/latest"
@@ -465,6 +483,7 @@ class AvreamWindow(WindowBehaviorMixin, Adw.ApplicationWindow):
 
         self._load_ui_settings()
         self._apply_loaded_ui_settings()
+        self._setup_shortcuts()
 
         self._refresh_status()
         self._refresh_passwordless_status()

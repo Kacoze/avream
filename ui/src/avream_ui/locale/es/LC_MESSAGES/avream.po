@@ -582,3 +582,24 @@ msgstr "Reiniciar"
 
 msgid "Restarts the application to apply the selected language."
 msgstr "Reinicia la aplicación para aplicar el idioma seleccionado."
+
+msgid "Keyboard shortcuts"
+msgstr "Atajos de teclado"
+
+msgid "Assign keyboard shortcuts to AVream actions."
+msgstr "Asigna atajos de teclado a las acciones de AVream."
+
+msgid "Toggle camera"
+msgstr "Activar/desactivar cámara"
+
+msgid "Camera Toggle Shortcut"
+msgstr "Atajo para alternar cámara"
+
+msgid "Press a key combination to assign to camera toggle.\nPress Escape to cancel."
+msgstr "Pulsa una combinación de teclas para asignarla al interruptor de cámara.\nPulsa Escape para cancelar."
+
+msgid "Disabled"
+msgstr "Desactivado"
+
+msgid "Assign keyboard shortcuts to AVream actions. Global shortcuts (work when AVream is in the background) require Wayland."
+msgstr "Asigna atajos de teclado a las acciones de AVream. Los atajos globales (funcionan cuando AVream está en segundo plano) requieren Wayland."

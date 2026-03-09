@@ -102,6 +102,8 @@ class WindowServiceMixin:
         self._refresh_status()
 
     def _on_stream_toggle(self, _btn) -> None:
+        if self._busy or self._daemon_locked:
+            return
         if self._video_running:
             self._on_video_stop(_btn)
             return
